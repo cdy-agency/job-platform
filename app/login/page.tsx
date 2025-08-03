@@ -43,11 +43,8 @@ export default function LoginPage() {
   function onSubmit(data: LoginFormValues) {
     setIsLoading(true)
 
-    // Simulate API call
     setTimeout(() => {
       setIsLoading(false)
-
-      // Redirect based on role
       if (data.role === "user") {
         router.push("/dashboard/user")
       } else {
@@ -62,12 +59,12 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-gray-50">
+    <div className="flex min-h-screen flex-col bg-white">
       <div className="container flex flex-1 items-center justify-center py-12">
         <Card className="mx-auto w-full max-w-md">
           <CardHeader className="text-center">
-            <CardTitle className="text-2xl text-gray-800">Log in to JobHub</CardTitle>
-            <CardDescription className="text-gray-600">Enter your credentials to access your account</CardDescription>
+            <CardTitle className="text-2xl text-gray-800">Injira</CardTitle>
+            <CardDescription className="text-gray-600">Uzuza imyirondoro yawe hano</CardDescription>
           </CardHeader>
           <CardContent>
             <Form {...form}>
@@ -91,7 +88,7 @@ export default function LoginPage() {
                   render={({ field }) => (
                     <FormItem>
                       <div className="flex items-center justify-between">
-                        <FormLabel className="text-gray-800">Password</FormLabel>
+                        <FormLabel className="text-gray-800">Ijambobanga</FormLabel>
                         <Link href="/forgot-password" className="text-xs text-blue-500 hover:underline">
                           Forgot password?
                         </Link>
@@ -108,7 +105,7 @@ export default function LoginPage() {
                   name="role"
                   render={({ field }) => (
                     <FormItem className="space-y-2">
-                      <FormLabel className="text-gray-800">Account Type</FormLabel>
+                      <FormLabel className="text-gray-800">Urinjira nkiki?</FormLabel>
                       <FormControl>
                         <RadioGroup
                           onValueChange={field.onChange}
@@ -119,13 +116,13 @@ export default function LoginPage() {
                             <FormControl>
                               <RadioGroupItem value="user" />
                             </FormControl>
-                            <FormLabel className="font-normal text-gray-600">Job Seeker</FormLabel>
+                            <FormLabel className="font-normal text-gray-600">Umuntu ushaka akazi</FormLabel>
                           </FormItem>
                           <FormItem className="flex items-center space-x-2 space-y-0">
                             <FormControl>
                               <RadioGroupItem value="company" />
                             </FormControl>
-                            <FormLabel className="font-normal text-gray-600">Company</FormLabel>
+                            <FormLabel className="font-normal text-gray-600">Utanga akazi</FormLabel>
                           </FormItem>
                         </RadioGroup>
                       </FormControl>
@@ -143,9 +140,9 @@ export default function LoginPage() {
                   </Button>
                 </div>
                 <div className="text-center text-sm text-gray-600">
-                  Don&apos;t have an account?{" "}
+                  Don&apos;Usanzwe ufite Konti?{" "}
                   <Link href="/register" className="font-medium text-blue-500 hover:underline">
-                    Sign up
+                    Fungura Konti
                   </Link>
                 </div>
               </form>

@@ -1,37 +1,52 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Briefcase, Edit, GraduationCap, Mail, MapPin, Phone, Plus } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Separator } from "@/components/ui/separator"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { mockUsers } from "@/lib/mock-data"
-import { toast } from "@/components/ui/use-toast"
+import { useState } from "react";
+import {
+  Briefcase,
+  Edit,
+  GraduationCap,
+  Mail,
+  MapPin,
+  Phone,
+  Plus,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs";
+import { mockUsers } from "@/lib/mock-data";
+import { toast } from "@/components/ui/use-toast";
 
 export default function UserProfilePage() {
-  const [isEditing, setIsEditing] = useState(false)
+  const [isEditing, setIsEditing] = useState(false);
 
-  // Mock data for the current user
-  const currentUser = mockUsers[0]
+  const currentUser = mockUsers[0];
 
   const handleSaveProfile = () => {
-    // Simulate saving profile
     setTimeout(() => {
-      setIsEditing(false)
+      setIsEditing(false);
       toast({
         title: "Profile updated",
         description: "Your profile has been successfully updated.",
-      })
-    }, 500)
-  }
+      });
+    }, 500);
+  };
 
   return (
     <div className="container space-y-6 p-6 pb-16">
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-gray-800">My Profile</h1>
-          <p className="text-gray-600">Manage your personal information and resume</p>
+          <h1 className="text-3xl font-bold tracking-tight text-gray-800">
+            Umwirondoro wanjye
+          </h1>
+          <p className="text-gray-600">
+            Hindura umwirondoro wawe ma cv
+          </p>
         </div>
         <div>
           {isEditing ? (
@@ -41,16 +56,22 @@ export default function UserProfilePage() {
                 onClick={() => setIsEditing(false)}
                 className="border-gray-300 bg-transparent text-gray-800"
               >
-                Cancel
+                Funga
               </Button>
-              <Button onClick={handleSaveProfile} className="bg-blue-500 text-white hover:bg-blue-600">
-                Save Changes
+              <Button
+                onClick={handleSaveProfile}
+                className="bg-blue-500 text-white hover:bg-blue-600"
+              >
+                Emeze
               </Button>
             </div>
           ) : (
-            <Button onClick={() => setIsEditing(true)} className="bg-blue-500 text-white hover:bg-blue-600">
+            <Button
+              onClick={() => setIsEditing(true)}
+              className="bg-blue-500 text-white hover:bg-blue-600"
+            >
               <Edit className="mr-2 h-4 w-4" />
-              Edit Profile
+              Hindura umwirondoro
             </Button>
           )}
         </div>
@@ -74,7 +95,7 @@ export default function UserProfilePage() {
                 <p className="text-gray-600">{currentUser.experience[0].title}</p>
                 <div className="mt-4 flex items-center justify-center gap-2">
                   <Button variant="outline" size="sm" className="border-gray-300 bg-transparent text-gray-800">
-                    Change Photo
+                    Hindura ifoto ikuranga
                   </Button>
                 </div>
               </div>
@@ -92,7 +113,7 @@ export default function UserProfilePage() {
                 </div>
                 <div className="flex items-center gap-2">
                   <MapPin className="h-4 w-4 text-gray-600" />
-                  <span className="text-sm text-gray-600">New York, NY</span>
+                  <span className="text-sm text-gray-600">Kigali Rwanda</span>
                 </div>
               </div>
             </CardContent>
@@ -100,7 +121,7 @@ export default function UserProfilePage() {
 
           <Card className="border-gray-200">
             <CardHeader>
-              <CardTitle className="text-gray-800">Skills</CardTitle>
+              <CardTitle className="text-gray-800">Ubemenyi</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="flex flex-wrap gap-2">
@@ -123,7 +144,7 @@ export default function UserProfilePage() {
 
           <Card className="border-gray-200">
             <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle className="text-gray-800">Documents</CardTitle>
+              <CardTitle className="text-gray-800">Ibyangombwa</CardTitle>
               <Button variant="ghost" size="sm" className="text-gray-600 hover:text-gray-800">
                 <Plus className="h-4 w-4" />
                 <span className="sr-only">Add document</span>
@@ -152,7 +173,7 @@ export default function UserProfilePage() {
                     </div>
                     <div>
                       <p className="font-medium text-gray-800">{currentUser.resume}</p>
-                      <p className="text-xs text-gray-600">Updated 2 weeks ago</p>
+                      <p className="text-xs text-gray-600">Byahinduwe ibyumeru 2 bishize</p>
                     </div>
                   </div>
                   <Button variant="ghost" size="sm" className="text-gray-600 hover:text-gray-800">
@@ -164,48 +185,38 @@ export default function UserProfilePage() {
           </Card>
         </div>
 
-        <div className="space-y-6">
-          <Card className="border-gray-200">
+        {/* Right Column - Tabs Section */}
+        <Card className="border-gray-200">
+          <Tabs defaultValue="about">
             <CardHeader>
-              <Tabs defaultValue="about">
-                <TabsList className="grid w-full grid-cols-3">
-                  <TabsTrigger value="about" className="text-gray-600">
-                    About
-                  </TabsTrigger>
-                  <TabsTrigger value="experience" className="text-gray-600">
-                    Experience
-                  </TabsTrigger>
-                  <TabsTrigger value="education" className="text-gray-600">
-                    Education
-                  </TabsTrigger>
-                </TabsList>
-              </Tabs>
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="about" className="text-gray-600">Ibinyerekeyeho</TabsTrigger>
+                <TabsTrigger value="experience" className="text-gray-600">Uburambe</TabsTrigger>
+                <TabsTrigger value="education" className="text-gray-600">Amashuri</TabsTrigger>
+              </TabsList>
             </CardHeader>
             <CardContent>
               <TabsContent value="about" className="mt-0">
                 <div className="space-y-4">
                   <div>
-                    <h3 className="mb-2 text-lg font-semibold text-gray-800">About Me</h3>
+                    <h3 className="mb-2 text-lg font-semibold text-gray-800">Ibinyerekeyeho</h3>
                     <p className="text-gray-600">
-                      Experienced Frontend Developer with a passion for creating responsive and user-friendly web
-                      applications. Skilled in React, TypeScript, and modern frontend tools. Looking for opportunities
-                      to work on innovative projects with a collaborative team.
+                      Experienced Frontend Developer with a passion for creating responsive and user-friendly web applications. Skilled in React, TypeScript, and modern frontend tools. Looking for opportunities to work on innovative projects with a collaborative team.
                     </p>
                   </div>
                   <div>
                     <h3 className="mb-2 text-lg font-semibold text-gray-800">Professional Summary</h3>
                     <p className="text-gray-600">
-                      Over 5 years of experience in web development, specializing in frontend technologies. Proven track
-                      record of delivering high-quality, performant applications that meet business requirements and
-                      provide excellent user experiences.
+                      Over 5 years of experience in web development, specializing in frontend technologies. Proven track record of delivering high-quality, performant applications that meet business requirements and provide excellent user experiences.
                     </p>
                   </div>
                 </div>
               </TabsContent>
+
               <TabsContent value="experience" className="mt-0">
                 <div className="space-y-6">
                   <div className="flex justify-between">
-                    <h3 className="text-lg font-semibold text-gray-800">Work Experience</h3>
+                    <h3 className="text-lg font-semibold text-gray-800">Uburambe</h3>
                     <Button variant="ghost" size="sm" className="text-gray-600 hover:text-gray-800">
                       <Plus className="mr-1 h-4 w-4" />
                       Add
@@ -229,6 +240,7 @@ export default function UserProfilePage() {
                   ))}
                 </div>
               </TabsContent>
+
               <TabsContent value="education" className="mt-0">
                 <div className="space-y-6">
                   <div className="flex justify-between">
@@ -255,9 +267,9 @@ export default function UserProfilePage() {
                 </div>
               </TabsContent>
             </CardContent>
-          </Card>
-        </div>
+          </Tabs>
+        </Card>
       </div>
     </div>
-  )
+  );
 }

@@ -23,7 +23,7 @@ export default function RegisterPage() {
       <div className="container flex flex-1 items-center justify-center py-12">
         <Card className="mx-auto w-full max-w-md">
           <CardHeader className="text-center">
-            <CardTitle className="text-2xl text-gray-800">Create an Account</CardTitle>
+            <CardTitle className="text-2xl text-gray-800">Kora Konti Yawe</CardTitle>
             <CardDescription className="text-gray-600">
               Join JobHub to find your next opportunity or hire top talent
             </CardDescription>
@@ -31,7 +31,7 @@ export default function RegisterPage() {
           <CardContent>
             {!role ? (
               <div className="space-y-4">
-                <p className="text-center text-sm text-gray-600">Choose your account type:</p>
+                <p className="text-center text-sm text-gray-600">Hitamo compte ushaka gukora:</p>
                 <div className="grid grid-cols-2 gap-4">
                   <Button
                     variant="outline"
@@ -47,13 +47,13 @@ export default function RegisterPage() {
                     onClick={() => handleRoleSelect("company")}
                   >
                     <Briefcase className="h-8 w-8" />
-                    <span>Company</span>
+                    <span>Sosiyete</span>
                   </Button>
                 </div>
                 <div className="mt-6 text-center text-sm text-gray-600">
-                  Already have an account?{" "}
+                  Waba usanzwe ufote Konti?{" "}
                   <Link href="/login" className="font-medium text-blue-500 hover:underline">
-                    Log in
+                    Injira hano
                   </Link>
                 </div>
               </div>
@@ -61,10 +61,10 @@ export default function RegisterPage() {
               <Tabs defaultValue={role} className="w-full">
                 <TabsList className="grid w-full grid-cols-2">
                   <TabsTrigger value="user" onClick={() => setRole("user")} className="text-gray-600">
-                    Job Seeker
+                    Ushaka akazi
                   </TabsTrigger>
                   <TabsTrigger value="company" onClick={() => setRole("company")} className="text-gray-600">
-                    Company
+                    Sosiyete utanga akazi
                   </TabsTrigger>
                 </TabsList>
                 <TabsContent value="user">
