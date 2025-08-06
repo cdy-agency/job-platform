@@ -11,14 +11,16 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { MainNav } from "@/components/main-nav"
 import { MobileNav } from "@/components/mobile-nav"
 import { Footer } from "@/components/footer"
-import { getJobById } from "@/lib/mock-data"
+import { getJobById, getSimilarJobs } from "@/lib/mock-data"
 import { ApplyJobForm } from "@/components/apply-job-form"
+import { Breadcrumb } from "@/components/breadcrumb"
 
 export default function JobDetailsPage({ params }: { params: { id: string } }) {
   const [isApplying, setIsApplying] = useState(false)
   const router = useRouter()
 
   const job = getJobById(params.id)
+  const similarJobs = getSimilarJobs(params.id, 3)
 
   if (!job) {
     return (
@@ -61,6 +63,12 @@ export default function JobDetailsPage({ params }: { params: { id: string } }) {
       </header>
       <main className="flex-1">
         <div className="container px-4 py-6 sm:px-8">
+          <Breadcrumb 
+            items={[
+              { label: "Jobs", href: "/jobs" },
+              { label: job.title }
+            ]} 
+          />
           <div className="mb-6">
             <Button
               variant="ghost"
@@ -230,29 +238,27 @@ export default function JobDetailsPage({ params }: { params: { id: string } }) {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="space-y-4">
-                    {/* This would typically be populated with actual similar jobs */}
-                    <div className="rounded-md border border-gray-200 p-3">
-                      <h4 className="font-medium text-gray-800">Senior Frontend Developer</h4>
-                      <p className="text-sm text-gray-600">TechCorp • Remote</p>
-                      <div className="mt-2">
-                        <Link href="/jobs/job3">
-                          <Button variant="link" className="h-auto p-0 text-blue-500">
-                            View Job
-                          </Button>
-                        </Link>
-                      </div>
-                    </div>
-                    <div className="rounded-md border border-gray-200 p-3">
-                      <h4 className="font-medium text-gray-800">UI/UX Designer</h4>
-                      <p className="text-sm text-gray-600">Acme Inc • New York, NY</p>
-                      <div className="mt-2">
-                        <Link href="/jobs/job5">
-                          <Button variant="link" className="h-auto p-0 text-blue-500">
-                            View Job
-                          </Button>
-                        </Link>
-                      </div>
-                    </div>
+                    {similarJobs.length > 0 ? (
+                      similarJobs.map((similarJob) => (
+                        <div key={similarJob.id} className="rounded-md border border-gray-200 p-3">
+                          <h4 className="font-medium text-gray-800">{similarJob.title}</h4>
+                          <p className="text-sm text-gray-600">{similarJob.company.name} • {similarJob.location}</p>
+                          <div className="mt-2 flex flex-wrap gap-2">
+                            <span className="rounded-full bg-blue-100 px-2 py-1 text-xs text-blue-800">{similarJob.type}</span>
+                            <span className="rounded-full bg-gray-100 px-2 py-1 text-xs text-gray-800">{similarJob.salary}</span>
+                          </div>
+                          <div className="mt-2">
+                            <Link href={`/jobs/${similarJob.id}`}>
+                              <Button variant="link" className="h-auto p-0 text-blue-500">
+                                View Job
+                              </Button>
+                            </Link>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-sm text-gray-500">No similar jobs found.</p>
+                    )}
                   </div>
                 </CardContent>
               </Card>

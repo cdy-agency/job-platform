@@ -4,12 +4,12 @@ import { useState } from "react"
 import Link from "next/link"
 import { Search } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { MainNav } from "@/components/main-nav"
 import { MobileNav } from "@/components/mobile-nav"
 import { Footer } from "@/components/footer"
+import { JobCard } from "@/components/job-card"
 import { mockJobs } from "@/lib/mock-data"
 
 export default function JobsPage() {
@@ -17,6 +17,7 @@ export default function JobsPage() {
   const [jobType, setJobType] = useState("all")
   const [location, setLocation] = useState("all")
   const [salaryRange, setSalaryRange] = useState("all")
+  const [sortBy, setSortBy] = useState("newest")
 
   // Filter jobs based on search term, job type, location, and salary range
   const filteredJobs = mockJobs.filter((job) => {
@@ -129,7 +130,7 @@ export default function JobsPage() {
               <h2 className="text-xl font-semibold text-gray-800">
                 {filteredJobs.length} {filteredJobs.length === 1 ? "Job" : "Jobs"} Found
               </h2>
-              <Select defaultValue="newest">
+              <Select value={sortBy} onValueChange={setSortBy}>
                 <SelectTrigger className="w-[180px] border-gray-300">
                   <SelectValue placeholder="Sort by" />
                 </SelectTrigger>
@@ -137,50 +138,22 @@ export default function JobsPage() {
                   <SelectItem value="newest">Newest First</SelectItem>
                   <SelectItem value="oldest">Oldest First</SelectItem>
                   <SelectItem value="relevance">Relevance</SelectItem>
+                  <SelectItem value="salary-high">Salary: High to Low</SelectItem>
+                  <SelectItem value="salary-low">Salary: Low to High</SelectItem>
+                  <SelectItem value="title">Job Title A-Z</SelectItem>
+                  <SelectItem value="company">Company A-Z</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div className="grid gap-6">
               {filteredJobs.length > 0 ? (
                 filteredJobs.map((job) => (
-                  <Card key={job.id} className="overflow-hidden border-gray-200">
-                    <div className="grid md:grid-cols-[1fr_auto]">
-                      <CardHeader className="flex flex-row items-start gap-4 space-y-0">
-                        <div className="h-12 w-12 overflow-hidden rounded-md">
-                          <img
-                            src={job.company.logo || "/placeholder.svg"}
-                            alt={job.company.name}
-                            className="h-full w-full object-cover"
-                            width={48}
-                            height={48}
-                          />
-                        </div>
-                        <div>
-                          <h3 className="font-semibold text-gray-800">{job.title}</h3>
-                          <p className="text-sm text-gray-600">{job.company.name}</p>
-                          <div className="mt-2 flex flex-wrap gap-2">
-                            <span className="rounded-full bg-blue-100 px-3 py-1 text-xs text-blue-800">{job.type}</span>
-                            <span className="rounded-full bg-gray-100 px-3 py-1 text-xs text-gray-800">
-                              {job.location}
-                            </span>
-                            <span className="rounded-full bg-gray-100 px-3 py-1 text-xs text-gray-800">
-                              {job.salary}
-                            </span>
-                          </div>
-                        </div>
-                      </CardHeader>
-                      <CardContent className="hidden md:flex md:items-center md:px-6">
-                        <p className="text-sm text-gray-600">
-                          Posted on {new Date(job.postedDate).toLocaleDateString()}
-                        </p>
-                      </CardContent>
-                      <CardFooter className="flex justify-between border-t p-4 md:border-l md:border-t-0">
-                        <Link href={`/jobs/${job.id}`} className="w-full">
-                          <Button className="w-full bg-blue-500 text-white hover:bg-blue-600">View Details</Button>
-                        </Link>
-                      </CardFooter>
-                    </div>
-                  </Card>
+                  <JobCard 
+                    key={job.id} 
+                    job={job} 
+                    variant="detailed" 
+                    showPostedDate={true}
+                  />
                 ))
               ) : (
                 <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-gray-300 p-8 text-center">

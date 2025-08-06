@@ -496,3 +496,22 @@ export function getJobsByType(type: string) {
 export function getJobsByLocation(location: string) {
   return mockJobs.filter((job) => job.location.includes(location))
 }
+
+// Helper function to get similar jobs (excluding current job)
+export function getSimilarJobs(currentJobId: string, limit: number = 3) {
+  const currentJob = getJobById(currentJobId)
+  if (!currentJob) return []
+  
+  // Find jobs with similar category, company, or location
+  const similarJobs = mockJobs.filter((job) => {
+    if (job.id === currentJobId) return false
+    return (
+      job.category === currentJob.category ||
+      job.company.id === currentJob.company.id ||
+      job.location === currentJob.location ||
+      job.type === currentJob.type
+    )
+  })
+  
+  return similarJobs.slice(0, limit)
+}

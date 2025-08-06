@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button"
 import { MainNav } from "@/components/main-nav"
 import { MobileNav } from "@/components/mobile-nav"
 import { Footer } from "@/components/footer"
+import { JobCard } from "@/components/job-card"
 import { Briefcase, CheckCircle, Search, Users } from "lucide-react"
 import { mockJobs } from "@/lib/mock-data"
 
@@ -118,31 +119,7 @@ export default function Home() {
             </div>
             <div className="grid gap-6 md:grid-cols-3">
               {featuredJobs.map((job) => (
-                <div key={job.id} className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-                  <div className="mb-4 flex items-center gap-3">
-                    <div className="h-12 w-12 overflow-hidden rounded-md">
-                      <img
-                        src={job.company.logo || "/placeholder.svg"}
-                        alt={job.company.name}
-                        className="h-full w-full object-cover"
-                        width={48}
-                        height={48}
-                      />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-gray-800">{job.title}</h3>
-                      <p className="text-sm text-gray-600">{job.company.name}</p>
-                    </div>
-                  </div>
-                  <div className="mb-4 flex flex-wrap gap-2">
-                    <span className="rounded-full bg-blue-100 px-3 py-1 text-xs text-blue-800">{job.type}</span>
-                    <span className="rounded-full bg-gray-100 px-3 py-1 text-xs text-gray-800">{job.location}</span>
-                  </div>
-                  <p className="mb-4 line-clamp-3 text-sm text-gray-600">{job.description}</p>
-                  <Link href={`/jobs/${job.id}`}>
-                    <Button className="w-full bg-blue-500 text-white hover:bg-blue-600">View Details</Button>
-                  </Link>
-                </div>
+                <JobCard key={job.id} job={job} variant="default" />
               ))}
             </div>
             <div className="mt-10 text-center">
