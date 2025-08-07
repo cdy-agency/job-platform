@@ -11,9 +11,10 @@ import { MainNav } from "@/components/main-nav"
 import { MobileNav } from "@/components/mobile-nav"
 import { Footer } from "@/components/footer"
 import { mockJobs } from "@/lib/mock-data"
+import { useDebouncedSearch } from "@/hooks/use-debounced-search"
 
 export default function JobsPage() {
-  const [searchTerm, setSearchTerm] = useState("")
+  const { searchTerm, debouncedSearchTerm, updateSearchTerm, clearSearch } = useDebouncedSearch("", 300)
   const [jobType, setJobType] = useState("all")
   const [location, setLocation] = useState("all")
   const [salaryRange, setSalaryRange] = useState("all")
@@ -21,9 +22,9 @@ export default function JobsPage() {
   // Filter jobs based on search term, job type, location, and salary range
   const filteredJobs = mockJobs.filter((job) => {
     const matchesSearch =
-      job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      job.company.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      job.description.toLowerCase().includes(searchTerm.toLowerCase())
+      job.title.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
+      job.company.name.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
+      job.description.toLowerCase().includes(debouncedSearchTerm.toLowerCase())
 
     const matchesType = jobType === "all" || job.type === jobType
     const matchesLocation = location === "all" || job.location.toLowerCase().includes(location.toLowerCase())
@@ -80,7 +81,7 @@ export default function JobsPage() {
                     placeholder="Search jobs, companies, or keywords"
                     className="border-gray-300 pl-9"
                     value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
+                    onChange={(e) => updateSearchTerm(e.target.value)}
                   />
                 </div>
                 <Select value={jobType} onValueChange={setJobType}>
@@ -190,7 +191,7 @@ export default function JobsPage() {
                     variant="outline"
                     className="border-gray-300 bg-transparent text-gray-800"
                     onClick={() => {
-                      setSearchTerm("")
+                      clearSearch()
                       setJobType("all")
                       setLocation("all")
                       setSalaryRange("all")
