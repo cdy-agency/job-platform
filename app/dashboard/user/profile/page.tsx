@@ -145,7 +145,7 @@ export default function UserProfilePage() {
           <Card className="border-gray-200">
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle className="text-gray-800">Ibyangombwa</CardTitle>
-              <Button variant="ghost" size="sm" className="text-gray-600 hover:text-gray-800">
+              <Button size="sm" className="text-gray-600 hover:text-gray-800">
                 <Plus className="h-4 w-4" />
                 <span className="sr-only">Add document</span>
               </Button>
@@ -176,7 +176,7 @@ export default function UserProfilePage() {
                       <p className="text-xs text-gray-600">Byahinduwe ibyumeru 2 bishize</p>
                     </div>
                   </div>
-                  <Button variant="ghost" size="sm" className="text-gray-600 hover:text-gray-800">
+                  <Button size="sm" className="text-gray-600 hover:text-gray-800">
                     View
                   </Button>
                 </div>
@@ -217,7 +217,7 @@ export default function UserProfilePage() {
                 <div className="space-y-6">
                   <div className="flex justify-between">
                     <h3 className="text-lg font-semibold text-gray-800">Uburambe</h3>
-                    <Button variant="ghost" size="sm" className="text-gray-600 hover:text-gray-800">
+                    <Button size="sm" className="text-gray-600 hover:text-gray-800">
                       <Plus className="mr-1 h-4 w-4" />
                       Add
                     </Button>
@@ -245,7 +245,7 @@ export default function UserProfilePage() {
                 <div className="space-y-6">
                   <div className="flex justify-between">
                     <h3 className="text-lg font-semibold text-gray-800">Education</h3>
-                    <Button variant="ghost" size="sm" className="text-gray-600 hover:text-gray-800">
+                    <Button size="sm" className="text-gray-600 hover:text-gray-800">
                       <Plus className="mr-1 h-4 w-4" />
                       Add
                     </Button>

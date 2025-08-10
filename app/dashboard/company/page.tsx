@@ -24,7 +24,6 @@ export default function CompanyDashboardPage() {
         <div className="flex items-center gap-2">
           <Button
             variant="outline"
-            size="icon"
             className="border-gray-300 bg-transparent text-gray-600 hover:text-gray-800"
           >
             <Bell className="h-4 w-4" />
@@ -149,7 +148,7 @@ export default function CompanyDashboardPage() {
                   <div>
                     <h4 className="font-medium text-gray-800">{job.title}</h4>
                     <div className="mt-1 flex flex-wrap gap-2">
-                      <span className="rounded-full bg-blue-100 px-2 py-0.5 text-xs text-blue-800">{job.type}</span>
+                      <span className="rounded-full bg-blue-100 px-2 py-0.5 text-xs text-blue-800">{job.employmentType}</span>
                       <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-800">{job.location}</span>
                       <span className="text-xs text-gray-600">
                         Posted on {new Date(job.postedDate).toLocaleDateString()}
@@ -161,7 +160,7 @@ export default function CompanyDashboardPage() {
                       {job.applicants.length} Applicants
                     </span>
                     <Link href={`/dashboard/company/jobs/${job.id}`}>
-                      <Button variant="ghost" size="sm" className="text-gray-600 hover:text-gray-800">
+                      <Button size="sm" className="text-gray-600 hover:text-gray-800">
                         View
                       </Button>
                     </Link>
@@ -170,7 +169,7 @@ export default function CompanyDashboardPage() {
               ))}
               <div className="pt-2 text-center">
                 <Link href="/dashboard/company/jobs">
-                  <Button variant="link" className="text-blue-500">
+                  <Button className="text-blue-500">
                     View all jobs
                   </Button>
                 </Link>
@@ -212,7 +211,7 @@ export default function CompanyDashboardPage() {
                       </div>
                     </div>
                     <Link href={`/dashboard/company/applicants/${app.id}`}>
-                      <Button variant="ghost" size="sm" className="text-gray-600 hover:text-gray-800">
+                      <Button size="sm" className="text-gray-600 hover:text-gray-800">
                         Review
                       </Button>
                     </Link>
@@ -221,7 +220,7 @@ export default function CompanyDashboardPage() {
               })}
               <div className="pt-2 text-center">
                 <Link href="/dashboard/company/applicants">
-                  <Button variant="link" className="text-blue-500">
+                  <Button className="text-blue-500">
                     View all applicants
                   </Button>
                 </Link>

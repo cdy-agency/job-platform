@@ -33,7 +33,7 @@ export const mockUsers = [
     ],
     preferences: {
       jobTypes: ["Full-time", "Remote"],
-      locations: ["New York", "Remote"],
+      locations: ["Western", "Remote"],
       salaryRange: "$80,000 - $120,000",
       notifications: {
         email: true,
@@ -76,7 +76,7 @@ export const mockUsers = [
     ],
     preferences: {
       jobTypes: ["Full-time", "Contract"],
-      locations: ["San Francisco", "Los Angeles", "Remote"],
+      locations: ["Eastern", "Remote"],
       salaryRange: "$90,000 - $130,000",
       notifications: {
         email: true,
@@ -97,7 +97,7 @@ export const mockCompanies = [
     role: "company",
     profilePicture: "/placeholder.svg?height=100&width=100",
     logo: "/placeholder.svg?height=40&width=40",
-    location: "New York, NY",
+    location: "Southern",
     industry: "Technology",
     description: "A leading technology company specializing in innovative solutions.",
     website: "https://acme.example.com",
@@ -175,248 +175,102 @@ export const mockCompanies = [
 ]
 
 // Mock data for jobs
+// Updated mock data to match JobTypes interface
 export const mockJobs = [
   {
-    id: "job1",
-    title: "Frontend Developer",
+    id: "1",
+    title: "Senior Frontend Developer",
     company: {
-      id: "company1",
-      name: "Acme Inc",
-      logo: "/placeholder.svg?height=40&width=40",
+      id: "company-1",
+      name: "TechCorp Inc.",
+      logo: "/api/placeholder/50/50"
     },
-    location: "New York, NY",
-    type: "Full-time",
-    category: "Engineering",
-    salary: "$80,000 - $100,000",
-    description:
-      "We are looking for a skilled Frontend Developer to join our team. You will be responsible for building responsive web applications using React and TypeScript.",
+    location: "Northern",
+    employmentType: "full-time", // Changed from 'type' to 'employmentType'
+    category: "Frontend Development",
+    salary: "$80,000 - $120,000",
+    description: "We are looking for a skilled Frontend Developer to join our team and help build amazing user experiences.",
     requirements: [
-      "3+ years of experience with React",
-      "Strong knowledge of JavaScript/TypeScript",
-      "Experience with responsive design",
-      "Familiarity with modern frontend tools",
+      "3+ years of React experience",
+      "Strong JavaScript/TypeScript skills",
+      "Experience with modern build tools"
     ],
     responsibilities: [
-      "Develop new user-facing features",
-      "Build reusable components and libraries",
-      "Optimize applications for maximum speed and scalability",
-      "Collaborate with backend developers and designers",
+      "Develop user interfaces using React",
+      "Collaborate with design team",
+      "Write clean, maintainable code"
     ],
-    postedDate: "2023-07-15",
-    applicationDeadline: "2023-08-15",
-    applicants: ["user1"],
+    skills: ["React", "TypeScript", "JavaScript", "CSS", "HTML"], // Added skills array
+    experience: "3-5 years", // Added experience field
+    image: "/api/placeholder/400/200", // Added image field
+    featured: true, // Added featured field
+    postedDate: "2024-01-15",
+    applicationDeadline: "2024-02-15",
+    applicants: ["user1", "user2", "user3"]
   },
   {
-    id: "job2",
-    title: "UX Designer",
+    id: "2",
+    title: "Backend Engineer",
     company: {
-      id: "company2",
-      name: "TechCorp",
-      logo: "/placeholder.svg?height=40&width=40",
+      id: "company-2",
+      name: "DataFlow Solutions",
+      logo: "/api/placeholder/50/50"
     },
     location: "San Francisco, CA",
-    type: "Full-time",
+    employmentType: "full-time",
+    category: "Backend Development",
+    salary: "$90,000 - $140,000",
+    description: "Join our backend team to build scalable APIs and microservices that power our platform.",
+    requirements: [
+      "5+ years of Node.js experience",
+      "Database design skills",
+      "API development experience"
+    ],
+    responsibilities: [
+      "Design and implement APIs",
+      "Optimize database performance",
+      "Mentor junior developers"
+    ],
+    skills: ["Node.js", "PostgreSQL", "MongoDB", "Docker", "AWS"],
+    experience: "5+ years",
+    image: "/api/placeholder/400/200",
+    featured: true,
+    postedDate: "2024-01-20",
+    applicationDeadline: "2024-02-20",
+    applicants: ["user4", "user5"]
+  },
+  {
+    id: "3",
+    title: "UI/UX Designer",
+    company: {
+      id: "company-3",
+      name: "Creative Studios",
+      logo: "/api/placeholder/50/50"
+    },
+    location: "Remote",
+    employmentType: "contract",
     category: "Design",
-    salary: "$90,000 - $110,000",
-    description:
-      "TechCorp is seeking a talented UX Designer to create amazing user experiences. You will work on designing intuitive interfaces for web and mobile applications.",
+    salary: "$70,000 - $95,000",
+    description: "We're seeking a talented UI/UX Designer to create beautiful and intuitive user interfaces.",
     requirements: [
-      "4+ years of UX design experience",
-      "Proficiency with design tools like Figma and Adobe XD",
-      "Portfolio demonstrating UX process and solutions",
-      "Experience conducting user research",
+      "Portfolio of design work",
+      "Figma/Sketch proficiency",
+      "User research experience"
     ],
     responsibilities: [
-      "Create wireframes, prototypes, and user flows",
-      "Conduct user research and usability testing",
-      "Collaborate with product managers and developers",
-      "Iterate on designs based on user feedback",
+      "Create wireframes and prototypes",
+      "Conduct user research",
+      "Collaborate with development team"
     ],
-    postedDate: "2023-07-10",
-    applicationDeadline: "2023-08-10",
-    applicants: ["user2"],
-  },
-  {
-    id: "job3",
-    title: "Backend Developer",
-    company: {
-      id: "company2",
-      name: "TechCorp",
-      logo: "/placeholder.svg?height=40&width=40",
-    },
-    location: "Remote",
-    type: "Full-time",
-    category: "Engineering",
-    salary: "$95,000 - $120,000",
-    description:
-      "We're looking for a Backend Developer to build and maintain our server-side applications. You will work with Node.js, Express, and MongoDB.",
-    requirements: [
-      "3+ years of experience with Node.js",
-      "Knowledge of MongoDB or similar NoSQL databases",
-      "Experience with RESTful APIs",
-      "Understanding of server-side templating languages",
-    ],
-    responsibilities: [
-      "Design and implement backend services",
-      "Optimize application performance",
-      "Ensure data security and protection",
-      "Collaborate with frontend developers",
-    ],
-    postedDate: "2023-07-05",
-    applicationDeadline: "2023-08-05",
-    applicants: ["user1"],
-  },
-  {
-    id: "job4",
-    title: "Product Manager",
-    company: {
-      id: "company1",
-      name: "Acme Inc",
-      logo: "/placeholder.svg?height=40&width=40",
-    },
-    location: "Chicago, IL",
-    type: "Full-time",
-    category: "Product",
-    salary: "$110,000 - $130,000",
-    description:
-      "Acme Inc is looking for a Product Manager to lead our product development efforts. You will be responsible for defining product vision, strategy, and roadmap.",
-    requirements: [
-      "5+ years of product management experience",
-      "Strong analytical and problem-solving skills",
-      "Experience with agile methodologies",
-      "Excellent communication and leadership skills",
-    ],
-    responsibilities: [
-      "Define product vision and strategy",
-      "Create and prioritize product backlog",
-      "Work with engineering, design, and marketing teams",
-      "Analyze market trends and competition",
-    ],
-    postedDate: "2023-06-28",
-    applicationDeadline: "2023-07-28",
-    applicants: [],
-  },
-  {
-    id: "job5",
-    title: "Data Scientist",
-    company: {
-      id: "company2",
-      name: "TechCorp",
-      logo: "/placeholder.svg?height=40&width=40",
-    },
-    location: "Boston, MA",
-    type: "Full-time",
-    category: "Data Science",
-    salary: "$100,000 - $140,000",
-    description:
-      "TechCorp is seeking a Data Scientist to analyze complex data sets and extract valuable insights. You will work with machine learning models and statistical analysis.",
-    requirements: [
-      "Master's degree in Computer Science, Statistics, or related field",
-      "Experience with Python, R, and SQL",
-      "Knowledge of machine learning algorithms",
-      "Experience with data visualization tools",
-    ],
-    responsibilities: [
-      "Analyze large datasets to extract insights",
-      "Develop machine learning models",
-      "Create data visualizations and reports",
-      "Collaborate with product and engineering teams",
-    ],
-    postedDate: "2023-06-20",
-    applicationDeadline: "2023-07-20",
-    applicants: [],
-  },
-  {
-    id: "job6",
-    title: "DevOps Engineer",
-    company: {
-      id: "company1",
-      name: "Acme Inc",
-      logo: "/placeholder.svg?height=40&width=40",
-    },
-    location: "Remote",
-    type: "Full-time",
-    category: "Engineering",
-    salary: "$90,000 - $120,000",
-    description:
-      "We are looking for a DevOps Engineer to help us build and maintain our cloud infrastructure. You will work with AWS, Docker, and Kubernetes.",
-    requirements: [
-      "3+ years of experience with AWS or similar cloud platforms",
-      "Experience with Docker and Kubernetes",
-      "Knowledge of CI/CD pipelines",
-      "Familiarity with infrastructure as code tools",
-    ],
-    responsibilities: [
-      "Design and implement cloud infrastructure",
-      "Automate deployment processes",
-      "Monitor system performance and security",
-      "Troubleshoot and resolve infrastructure issues",
-    ],
-    postedDate: "2023-06-15",
-    applicationDeadline: "2023-07-15",
-    applicants: [],
-  },
-  {
-    id: "job7",
-    title: "Marketing Specialist",
-    company: {
-      id: "company1",
-      name: "Acme Inc",
-      logo: "/placeholder.svg?height=40&width=40",
-    },
-    location: "New York, NY",
-    type: "Part-time",
-    category: "Marketing",
-    salary: "$50,000 - $70,000",
-    description:
-      "Acme Inc is looking for a Marketing Specialist to help grow our brand presence. You will be responsible for creating and executing marketing campaigns.",
-    requirements: [
-      "2+ years of marketing experience",
-      "Knowledge of digital marketing channels",
-      "Experience with social media marketing",
-      "Strong writing and communication skills",
-    ],
-    responsibilities: [
-      "Create and execute marketing campaigns",
-      "Manage social media accounts",
-      "Analyze marketing metrics",
-      "Collaborate with design and product teams",
-    ],
-    postedDate: "2023-06-10",
-    applicationDeadline: "2023-07-10",
-    applicants: [],
-  },
-  {
-    id: "job8",
-    title: "Customer Support Representative",
-    company: {
-      id: "company2",
-      name: "TechCorp",
-      logo: "/placeholder.svg?height=40&width=40",
-    },
-    location: "Remote",
-    type: "Part-time",
-    category: "Customer Service",
-    salary: "$40,000 - $55,000",
-    description:
-      "TechCorp is seeking a Customer Support Representative to assist our customers with product inquiries and issues. You will be the first point of contact for our customers.",
-    requirements: [
-      "1+ years of customer service experience",
-      "Excellent communication skills",
-      "Problem-solving abilities",
-      "Patience and empathy",
-    ],
-    responsibilities: [
-      "Respond to customer inquiries via email, chat, and phone",
-      "Troubleshoot product issues",
-      "Document customer feedback",
-      "Escalate complex issues to the appropriate teams",
-    ],
-    postedDate: "2023-06-05",
-    applicationDeadline: "2023-07-05",
-    applicants: [],
-  },
-]
+    skills: ["Figma", "Sketch", "Adobe XD", "Prototyping", "User Research"],
+    experience: "2-4 years",
+    image: "/api/placeholder/400/200",
+    featured: true,
+    postedDate: "2024-01-25",
+    applicationDeadline: "2024-02-25",
+    applicants: ["user6"]
+  }
+];
 
 // Mock data for applications
 export const mockApplications = [
@@ -488,9 +342,9 @@ export function getJobsByCategory(category: string) {
 }
 
 // Helper function to get jobs by type
-export function getJobsByType(type: string) {
-  return mockJobs.filter((job) => job.type === type)
-}
+// export function getJobsByType(type: string) {
+//   return mockJobs.filter((job) => job.type === type)
+// }
 
 // Helper function to get jobs by location
 export function getJobsByLocation(location: string) {

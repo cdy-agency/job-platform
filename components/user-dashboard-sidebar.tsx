@@ -2,12 +2,17 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Briefcase, ChevronDown, FileText, Home, LogOut, Menu, MessageSquare, Settings, User } from "lucide-react"
+import { Bell, Briefcase, ChevronDown, FileText, Home, LogOut, Menu, MessageSquare, Settings, User } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { cn } from "@/lib/utils"
 
 const navItems = [
+  {
+    title: "Notifications",
+    href: "/dashboard/user/n  otifications",
+    icon: Bell,
+  },
   {
     title: "Dashboard",
     href: "/dashboard/user",
@@ -23,21 +28,16 @@ const navItems = [
     href: "/dashboard/user/applications",
     icon: Briefcase,
   },
-  {
-    title: "Saved Jobs",
-    href: "/dashboard/user/saved",
-    icon: FileText,
-  },
-  {
-    title: "Messages",
-    href: "/dashboard/user/messages",
-    icon: MessageSquare,
-  },
-  {
-    title: "Settings",
-    href: "/dashboard/user/settings",
-    icon: Settings,
-  },
+  // {
+  //   title: "Saved Jobs",
+  //   href: "/dashboard/user/saved",
+  //   icon: FileText,
+  // },
+  // {
+  //   title: "Settings",
+  //   href: "/dashboard/user/settings",
+  //   icon: Settings,
+  // },
 ]
 
 export function UserDashboardSidebar() {
@@ -49,7 +49,7 @@ export function UserDashboardSidebar() {
       <div className="flex h-16 items-center border-b bg-white p-4 md:hidden">
         <Sheet>
           <SheetTrigger asChild>
-            <Button variant="outline" size="icon" className="border-gray-300 bg-transparent">
+            <Button variant="outline" className="border-gray-300 bg-transparent">
               <Menu className="h-5 w-5 text-gray-600" />
               <span className="sr-only">Toggle menu</span>
             </Button>
@@ -94,11 +94,10 @@ export function UserDashboardSidebar() {
                       <p className="text-sm font-medium text-gray-800">John Doe</p>
                       <p className="text-xs text-gray-600">john@example.com</p>
                     </div>
-                    <ChevronDown className="h-4 w-4 text-gray-600" />
                   </div>
                 </div>
                 <Link href="/login">
-                  <Button variant="ghost" className="mt-2 w-full justify-start gap-3 text-gray-600 hover:text-gray-800">
+                  <Button className="mt-2 w-full justify-start gap-3 text-gray-600 hover:text-gray-800">
                     <LogOut className="h-4 w-4" />
                     <span>Log out</span>
                   </Button>
@@ -164,12 +163,10 @@ export function UserDashboardSidebar() {
                   <p className="text-sm font-medium text-gray-800">John Doe</p>
                   <p className="text-xs text-gray-600">john@example.com</p>
                 </div>
-                <ChevronDown className="h-4 w-4 text-gray-600" />
               </div>
             </div>
             <Link href="/login">
-              <Button variant="ghost" className="mt-2 w-full justify-start gap-3 text-gray-600 hover:text-gray-800">
-                <LogOut className="h-4 w-4" />
+              <Button className="mt-2 w-full text-center justify-start gap-3 bg-[#834de3] hover:bg-[#8d6ee9] text-white">
                 <span>Log out</span>
               </Button>
             </Link>

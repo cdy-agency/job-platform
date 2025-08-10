@@ -4,6 +4,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import {
   BarChart,
+  Bell,
   Briefcase,
   Building,
   ChevronDown,
@@ -20,6 +21,11 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { cn } from "@/lib/utils"
 
 const navItems = [
+  {
+    title: "Notification",
+    href: "/dashboard/company/notifications",
+    icon: Bell,
+  },
   {
     title: "Dashboard",
     href: "/dashboard/company",
@@ -45,21 +51,16 @@ const navItems = [
     href: "/dashboard/company/applicants",
     icon: Users,
   },
-  {
-    title: "Messages",
-    href: "/dashboard/company/messages",
-    icon: MessageSquare,
-  },
-  {
-    title: "Analytics",
-    href: "/dashboard/company/analytics",
-    icon: BarChart,
-  },
-  {
-    title: "Settings",
-    href: "/dashboard/company/settings",
-    icon: Settings,
-  },
+  // {
+  //   title: "Analytics",
+  //   href: "/dashboard/company/analytics",
+  //   icon: BarChart,
+  // },
+  // {
+  //   title: "Settings",
+  //   href: "/dashboard/company/settings",
+  //   icon: Settings,
+  // },
 ]
 
 export function CompanyDashboardSidebar() {
@@ -71,7 +72,7 @@ export function CompanyDashboardSidebar() {
       <div className="flex h-16 items-center border-b bg-white p-4 md:hidden">
         <Sheet>
           <SheetTrigger asChild>
-            <Button variant="outline" size="icon" className="border-gray-300 bg-transparent">
+            <Button variant="outline" className="border-gray-300 bg-transparent">
               <Menu className="h-5 w-5 text-gray-600" />
               <span className="sr-only">Toggle menu</span>
             </Button>
@@ -90,7 +91,7 @@ export function CompanyDashboardSidebar() {
                       key={item.href}
                       href={item.href}
                       className={cn(
-                        "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium hover:bg-gray-100",
+                        "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium hover:bg-gray-100 hover:text-[#834de3] hover:font-semibold",
                         pathname === item.href ? "bg-gray-100 text-gray-800" : "text-gray-600",
                       )}
                     >
@@ -116,11 +117,10 @@ export function CompanyDashboardSidebar() {
                       <p className="text-sm font-medium text-gray-800">Acme Inc</p>
                       <p className="text-xs text-gray-600">hr@acme.com</p>
                     </div>
-                    <ChevronDown className="h-4 w-4 text-gray-600" />
                   </div>
                 </div>
                 <Link href="/login">
-                  <Button variant="ghost" className="mt-2 w-full justify-start gap-3 text-gray-600 hover:text-gray-800">
+                  <Button className="mt-2 w-full justify-start gap-3 bg-[#834de3] hover:bg-[#8d6ee9] text-white">
                     <LogOut className="h-4 w-4" />
                     <span>Log out</span>
                   </Button>
@@ -183,15 +183,13 @@ export function CompanyDashboardSidebar() {
               </div>
               <div className="flex flex-1 items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-800">Acme Inc</p>
+                  <p className="text-sm font-medium text-[#834de3]">Acme Inc</p>
                   <p className="text-xs text-gray-600">hr@acme.com</p>
                 </div>
-                <ChevronDown className="h-4 w-4 text-gray-600" />
               </div>
             </div>
             <Link href="/login">
-              <Button variant="ghost" className="mt-2 w-full justify-start gap-3 text-gray-600 hover:text-gray-800">
-                <LogOut className="h-4 w-4" />
+              <Button className="mt-2 w-full text-center justify-start gap-3 bg-[#834de3] hover:bg-[#8d6ee9] text-white">
                 <span>Log out</span>
               </Button>
             </Link>

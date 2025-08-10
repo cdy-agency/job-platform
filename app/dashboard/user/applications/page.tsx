@@ -67,7 +67,7 @@ export default function UserApplicationsPage() {
                           <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-800">
                             {job.location}
                           </span>
-                          <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-800">{job.type}</span>
+                          <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-800">{job.employmentType}</span>
                           <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-800">
                             Applied on {new Date(app.appliedDate).toLocaleDateString()}
                           </span>
@@ -87,12 +87,12 @@ export default function UserApplicationsPage() {
                         {app.status}
                       </span>
                       <div className="flex gap-2">
-                        <Button variant="ghost" size="sm" className="text-gray-600 hover:text-gray-800">
+                        <Button className="text-gray-600 hover:text-gray-800">
                           <Download className="mr-1 h-4 w-4" />
                           Resume
                         </Button>
                         <Link href={`/jobs/${job.id}`}>
-                          <Button variant="ghost" size="sm" className="text-gray-600 hover:text-gray-800">
+                          <Button className="text-gray-600 hover:text-gray-800">
                             <Eye className="mr-1 h-4 w-4" />
                             View Job
                           </Button>
