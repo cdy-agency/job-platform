@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
+import NavBar from "@/components/home/NavBar"
 
 export default function LoginPage() {
   const [email, setEmail] = useState("")
@@ -20,7 +21,9 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-400 via-purple-500 to-purple-600 flex items-center justify-center p-4">
+    <div>
+      <NavBar />
+      <div className="min-h-screen bg-gradient-to-br from-purple-400 via-purple-500 to-purple-600 flex items-center justify-center p-4">
       <div className="w-full max-w-3xl bg-white rounded shadow-2xl overflow-hidden">
         <div className="flex flex-col-reverse lg:flex-row">
           {/* Left side - Form */}
@@ -106,6 +109,7 @@ export default function LoginPage() {
           </div>
         </div>
       </div>
+    </div>
     </div>
   )
 }

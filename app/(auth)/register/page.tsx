@@ -10,6 +10,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { User, Building2 } from "lucide-react";
 import CompanyRegistration from "@/components/auth/company-registration";
 import EmployeRegistration from "@/components/auth/employee-registration";
+import NavBar from "@/components/home/NavBar";
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
@@ -46,7 +47,9 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-400 via-purple-500 to-purple-600 flex items-center justify-center p-4">
+    <div>
+      <NavBar />
+      <div className="min-h-screen bg-gradient-to-br from-purple-400 via-purple-500 to-purple-600 flex items-center justify-center p-4">
       <div className="w-full max-w-3xl bg-white rounded shadow-2xl overflow-hidden">
         <div className="flex flex-col lg:flex-row">
           {/* Left side - Form */}
@@ -205,6 +208,7 @@ export default function RegisterPage() {
           </div>
         </div>
       </div>
+    </div>
     </div>
   );
 }
