@@ -19,11 +19,56 @@ export const registerCompany = async (
   return response.data;
 };
 
+function decodeJwtPayload(token: string): any | null {
+  try {
+    const payload = token.split(".")[1];
+    const decoded = atob(payload.replace(/-/g, "+").replace(/_/g, "/"));
+    return JSON.parse(decoded);
+  } catch {
+    return null;
+  }
+}
+
 export const loginUser = async (
   data: LoginType
 ): Promise<AuthResponse<EmployeeUser | CompanyUser | AdminUser>> => {
   const response = await api.post("/auth/login", data);
-  return response.data;
+  const body = response.data as any;
+
+  // Cases:
+  // 1) { user, token }
+  // 2) { message, token, role }
+  const token: string | undefined = body?.token;
+  if (!token) return body; // let caller handle unexpected shape
+
+  let user = body?.user as EmployeeUser | CompanyUser | AdminUser | undefined;
+  const role: string | undefined = body?.role || (user as any)?.role;
+
+  if (!user && role === "employee") {
+    user = await getEmployeeProfile();
+  } else if (!user && role === "company") {
+    const company = await getCompanyProfile();
+    // Map CompanyProfile to CompanyUser minimal view for auth context
+    user = {
+      id: company._id,
+      companyName: company.companyName,
+      location: company.location || "",
+      phoneNumber: company.phoneNumber || "",
+      website: company.website || "",
+      logo: company.logo || "",
+      role: "company",
+      isApproved: company.isApproved,
+    } as any;
+  } else if (!user && role === "superadmin") {
+    const payload = decodeJwtPayload(token);
+    user = {
+      id: payload?.id || "",
+      email: payload?.email || "",
+      role: "superadmin",
+    } as AdminUser;
+  }
+
+  return { user: user as any, token };
 };
 
 // Employee endpoints
