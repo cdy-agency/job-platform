@@ -99,7 +99,6 @@ export default function RegisterPage() {
       }
     } catch (error: any) {
       setError(error?.response?.data?.message || 'Registration failed')
-      console.error("Registration error:", error);
     } finally {
       setLoading(false)
     }
