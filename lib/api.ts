@@ -29,6 +29,15 @@ function decodeJwtPayload(token: string): any | null {
   }
 }
 
+const asArray = <T = any>(data: any, ...keys: string[]): T[] => {
+  if (Array.isArray(data)) return data as T[];
+  for (const k of keys) {
+    const v = data?.[k];
+    if (Array.isArray(v)) return v as T[];
+  }
+  return [] as T[];
+};
+
 export const loginUser = async (
   data: LoginType
 ): Promise<AuthResponse<EmployeeUser | CompanyUser | AdminUser>> => {
@@ -81,7 +90,7 @@ export const getEmployeeProfile = async () => {
 
 export const listJobsForEmployee = async (category?: string) => {
   const response = await api.get("/employee/jobs", { params: { category } });
-  return response.data as Job[];
+  return asArray<Job>(response.data, "jobs", "data", "results", "items");
 };
 
 export const applyForJob = async (
@@ -94,12 +103,12 @@ export const applyForJob = async (
 
 export const listEmployeeApplications = async () => {
   const response = await api.get("/employee/applications");
-  return response.data as Application[];
+  return asArray<Application>(response.data, "applications", "data", "results", "items");
 };
 
 export const listEmployeeNotifications = async () => {
   const response = await api.get("/employee/notifications");
-  return response.data as Notification[];
+  return asArray<Notification>(response.data, "notifications", "data", "results", "items");
 };
 
 // Company endpoints
@@ -120,12 +129,12 @@ export const postCompanyJob = async (data: Partial<Job>) => {
 
 export const listCompanyJobs = async () => {
   const response = await api.get("/company/jobs");
-  return response.data as Job[];
+  return asArray<Job>(response.data, "jobs", "data", "results", "items");
 };
 
 export const listApplicantsForJob = async (jobId: string) => {
   const response = await api.get(`/company/applicants/${jobId}`);
-  return response.data as Application[];
+  return asArray<Application>(response.data, "applicants", "applications", "data", "results", "items");
 };
 
 // Admin endpoints
@@ -141,12 +150,12 @@ export const adminUpdatePassword = async (data: { currentPassword: string; newPa
 
 export const adminListEmployees = async () => {
   const response = await api.get("/admin/employees");
-  return response.data as EmployeeUser[];
+  return asArray<EmployeeUser>(response.data, "employees", "data", "results", "items");
 };
 
 export const adminListCompanies = async () => {
   const response = await api.get("/admin/companies");
-  return response.data as CompanyProfile[];
+  return asArray<CompanyProfile>(response.data, "companies", "data", "results", "items");
 };
 
 export const adminApproveCompany = async (id: string) => {

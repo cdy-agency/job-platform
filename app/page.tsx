@@ -18,7 +18,8 @@ export default function Home() {
   useEffect(() => {
     const load = async () => {
       const data = await listJobsForEmployee();
-      setJobs((data as any[]).slice(0, 3));
+      const arr = Array.isArray(data) ? data : [];
+      setJobs(arr.slice(0, 3));
     };
     load();
   }, []);
