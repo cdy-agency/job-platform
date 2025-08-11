@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
 import NavBar from "@/components/home/NavBar"
-import { loginUser } from "@/lib/api"
+import { loginUser, adminLogin } from "@/lib/api"
 import { useAuth } from "@/context/authContext"
 
 export default function LoginPage() {
@@ -26,13 +26,20 @@ export default function LoginPage() {
     setError(null)
     setLoading(true)
     try {
-      const { user, token } = await loginUser({ email, password })
+      let auth = await loginUser({ email, password })
+
+      // If role is superadmin, obtain admin-scoped token explicitly
+      if ((auth as any)?.user?.role === "superadmin") {
+        auth = await adminLogin({ email, password })
+      }
+
+      const { user, token } = auth as any
       login(user, token)
-      // Optional: persist longer if remember me is set
+
       if (rememberMe) {
         // localStorage already used in context; could add cookie if needed
       }
-      // Redirect based on role
+
       if (user.role === "employee") router.replace("/dashboard/user")
       else if (user.role === "company") router.replace("/dashboard/company")
       else if (user.role === "superadmin") router.replace("/dashboard/admin")
