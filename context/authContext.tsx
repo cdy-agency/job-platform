@@ -17,10 +17,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [token, setToken] = useState<string | null>(null);
 
   useEffect(() => {
-    const savedUser = localStorage.getItem("user");
-    const savedToken = localStorage.getItem("token");
-    if (savedUser) setUser(JSON.parse(savedUser));
-    if (savedToken) setToken(savedToken);
+    const savedUser = typeof window !== 'undefined' ? localStorage.getItem("user") : null;
+    const savedToken = typeof window !== 'undefined' ? localStorage.getItem("token") : null;
+    if (savedUser && savedUser !== 'undefined') {
+      try {
+        setUser(JSON.parse(savedUser));
+      } catch {
+        // Clear corrupt value
+        localStorage.removeItem('user')
+        setUser(null)
+      }
+    }
+    if (savedToken && savedToken !== 'undefined') setToken(savedToken);
   }, []);
 
   const login = (userData: AuthUser, token: string) => {
