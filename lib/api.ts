@@ -35,20 +35,22 @@ export const loginUser = async (
   const response = await api.post("/auth/login", data);
   const body = response.data as any;
 
-  // Cases:
-  // 1) { user, token }
-  // 2) { message, token, role }
   const token: string | undefined = body?.token;
-  if (!token) return body; // let caller handle unexpected shape
+  if (!token) return body;
 
   let user = body?.user as EmployeeUser | CompanyUser | AdminUser | undefined;
   const role: string | undefined = body?.role || (user as any)?.role;
 
   if (!user && role === "employee") {
-    user = await getEmployeeProfile();
+    const res = await api.get("/employee/profile", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    user = res.data as EmployeeUser;
   } else if (!user && role === "company") {
-    const company = await getCompanyProfile();
-    // Map CompanyProfile to CompanyUser minimal view for auth context
+    const res = await api.get("/company/profile", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const company = res.data as CompanyProfile;
     user = {
       id: company._id,
       companyName: company.companyName,
