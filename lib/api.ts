@@ -22,9 +22,13 @@ export const registerCompany = async (
 
 export const loginUser = async (
   data: LoginType
-): Promise<AuthResponse<CompanyUser | EmployeeUser>> => {
+): Promise<any> => {
   const response = await api.post("/auth/login", data);
-  return response.data;
+  const res = response.data;
+  if (!res.user && res.role) {
+    res.user = { role: res.role };
+  }
+  return res;
 };
 
 // Employee APIs
@@ -93,7 +97,11 @@ export const fetchJobApplicants = async (jobId: string) => {
 // Admin APIs
 export const adminLogin = async (data: LoginType) => {
   const res = await api.post("/admin/login", data);
-  return res.data;
+  const dataRes = res.data;
+  if (!dataRes.user && dataRes.role) {
+    dataRes.user = { role: dataRes.role };
+  }
+  return dataRes;
 };
 
 export const adminUpdatePassword = async (payload: { currentPassword: string; newPassword: string }) => {
