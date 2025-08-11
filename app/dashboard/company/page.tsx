@@ -1,25 +1,38 @@
+"use client"
+
+import { useEffect, useMemo, useState } from "react"
 import Link from "next/link"
 import { Bell, PlusCircle, Users } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { mockCompanies, mockJobs, mockApplications, mockUsers } from "@/lib/mock-data"
+import { listCompanyJobs } from "@/lib/api"
+import { useAuth } from "@/context/authContext"
 
 export default function CompanyDashboardPage() {
-  // Mock data for the current company
-  const currentCompany = mockCompanies[0]
+  const [companyJobs, setCompanyJobs] = useState<any[]>([])
+  const { user } = useAuth()
 
-  // Get company's posted jobs
-  const companyJobs = mockJobs.filter((job) => job.company.id === currentCompany.id)
+  useEffect(() => {
+    const load = async () => {
+      if (!user || user.role !== "company") return
+      try {
+        const jobs = await listCompanyJobs()
+        setCompanyJobs(jobs as any)
+      } catch {
+        setCompanyJobs([])
+      }
+    }
+    load()
+  }, [user])
 
-  // Get applications for company's jobs
-  const jobApplications = mockApplications.filter((app) => companyJobs.some((job) => job.id === app.jobId))
+  const jobApplicationsCount = useMemo(() => 0, [])
 
   return (
     <div className="container space-y-8 p-6 pb-16">
       <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-gray-800">Company Dashboard</h1>
-          <p className="text-gray-600">Welcome back, {currentCompany.name}</p>
+          <p className="text-gray-600">Welcome back</p>
         </div>
         <div className="flex items-center gap-2">
           <Button
@@ -78,7 +91,7 @@ export default function CompanyDashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="flex items-center justify-between">
-              <div className="text-2xl font-bold text-gray-800">{jobApplications.length}</div>
+              <div className="text-2xl font-bold text-gray-800">{jobApplicationsCount}</div>
               <Users className="h-5 w-5 text-gray-600" />
             </div>
           </CardContent>
@@ -144,22 +157,22 @@ export default function CompanyDashboardPage() {
           <CardContent>
             <div className="space-y-4">
               {companyJobs.slice(0, 3).map((job) => (
-                <div key={job.id} className="flex items-center justify-between">
+                <div key={job._id} className="flex items-center justify-between">
                   <div>
                     <h4 className="font-medium text-gray-800">{job.title}</h4>
                     <div className="mt-1 flex flex-wrap gap-2">
                       <span className="rounded-full bg-blue-100 px-2 py-0.5 text-xs text-blue-800">{job.employmentType}</span>
-                      <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-800">{job.location}</span>
+                      <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-800">{(job as any).location || ''}</span>
                       <span className="text-xs text-gray-600">
-                        Posted on {new Date(job.postedDate).toLocaleDateString()}
+                        Posted on {new Date(job.createdAt).toLocaleDateString()}
                       </span>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="rounded-full bg-green-100 px-2 py-0.5 text-xs text-green-800">
-                      {job.applicants.length} Applicants
+                      0 Applicants
                     </span>
-                    <Link href={`/dashboard/company/jobs/${job.id}`}>
+                    <Link href={`/dashboard/company/jobs/${job._id}`}>
                       <Button size="sm" className="text-gray-600 hover:text-gray-800">
                         View
                       </Button>
@@ -178,56 +191,7 @@ export default function CompanyDashboardPage() {
           </CardContent>
         </Card>
 
-        <Card className="border-gray-200">
-          <CardHeader>
-            <CardTitle className="text-gray-800">Recent Applicants</CardTitle>
-            <CardDescription className="text-gray-600">Candidates who recently applied to your jobs</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {jobApplications.map((app) => {
-                const job = mockJobs.find((j) => j.id === app.jobId)
-                const user = mockUsers.find((u) => u.id === app.userId)
-                if (!job || !user) return null
-
-                return (
-                  <div key={app.id} className="flex items-center justify-between">
-                    <div className="flex items-start gap-3">
-                      <div className="h-10 w-10 overflow-hidden rounded-full">
-                        <img
-                          src={user.profilePicture || "/placeholder.svg"}
-                          alt={user.name}
-                          className="h-full w-full object-cover"
-                          width={40}
-                          height={40}
-                        />
-                      </div>
-                      <div>
-                        <h4 className="font-medium text-gray-800">{user.name}</h4>
-                        <p className="text-sm text-gray-600">Applied for {job.title}</p>
-                        <p className="text-xs text-gray-600">
-                          Applied on {new Date(app.appliedDate).toLocaleDateString()}
-                        </p>
-                      </div>
-                    </div>
-                    <Link href={`/dashboard/company/applicants/${app.id}`}>
-                      <Button size="sm" className="text-gray-600 hover:text-gray-800">
-                        Review
-                      </Button>
-                    </Link>
-                  </div>
-                )
-              })}
-              <div className="pt-2 text-center">
-                <Link href="/dashboard/company/applicants">
-                  <Button className="text-blue-500">
-                    View all applicants
-                  </Button>
-                </Link>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        {/* Applicants section would require applicants endpoint; omitted here for brevity but will be wired in next step */}
       </div>
     </div>
   )

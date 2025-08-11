@@ -1,25 +1,25 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Edit, Eye, Trash2, Search } from "lucide-react"
 import { Button } from "@/components/ui/button"
-
-const mockEmployees = [
-  { id: "e1", name: "John Doe", company: "Acme Inc", position: "Developer", email: "john.doe@acme.com" },
-  { id: "e2", name: "Jane Smith", company: "Globex Corp", position: "Designer", email: "jane.smith@globex.com" },
-  { id: "e3", name: "Alice Johnson", company: "Globex Corp", position: "Manager", email: "alice.johnson@globex.com" },
-  { id: "e4", name: "Bob Brown", company: "Umbrella Co", position: "Sales", email: "bob.brown@umbrella.com" },
-  // Add more employees as needed
-]
+import { adminListEmployees } from "@/lib/api"
 
 export default function ManageEmployeesPage() {
   const [searchTerm, setSearchTerm] = useState("")
+  const [employees, setEmployees] = useState<any[]>([])
 
-  const filteredEmployees = mockEmployees.filter((emp) =>
-    emp.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    emp.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    emp.position.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    emp.email.toLowerCase().includes(searchTerm.toLowerCase())
+  useEffect(() => {
+    const load = async () => {
+      const data = await adminListEmployees()
+      setEmployees(data as any[])
+    }
+    load()
+  }, [])
+
+  const filteredEmployees = employees.filter((emp) =>
+    (emp.name || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (emp.email || "").toLowerCase().includes(searchTerm.toLowerCase())
   )
 
   return (
@@ -48,8 +48,6 @@ export default function ManageEmployeesPage() {
           <thead className="bg-gray-50">
             <tr>
               <th className="whitespace-nowrap px-4 py-3 text-left font-semibold text-gray-700">Name</th>
-              <th className="whitespace-nowrap px-4 py-3 text-left font-semibold text-gray-700">Company</th>
-              <th className="whitespace-nowrap px-4 py-3 text-left font-semibold text-gray-700">Position</th>
               <th className="whitespace-nowrap px-4 py-3 text-left font-semibold text-gray-700">Email</th>
               <th className="whitespace-nowrap px-4 py-3 text-center font-semibold text-gray-700">Actions</th>
             </tr>
@@ -57,10 +55,8 @@ export default function ManageEmployeesPage() {
           <tbody className="divide-y divide-gray-200 bg-white">
             {filteredEmployees.length > 0 ? (
               filteredEmployees.map((emp) => (
-                <tr key={emp.id} className="hover:bg-gray-50">
+                <tr key={emp.id || emp._id} className="hover:bg-gray-50">
                   <td className="whitespace-nowrap px-4 py-3">{emp.name}</td>
-                  <td className="whitespace-nowrap px-4 py-3">{emp.company}</td>
-                  <td className="whitespace-nowrap px-4 py-3">{emp.position}</td>
                   <td className="whitespace-nowrap px-4 py-3">{emp.email}</td>
                   <td className="whitespace-nowrap px-4 py-3 text-center space-x-2">
                     <Button

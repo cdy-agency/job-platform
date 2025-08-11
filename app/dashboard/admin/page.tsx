@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import {
   CheckCircle,
   XCircle,
@@ -17,53 +17,43 @@ import {
   CardTitle,
   CardDescription,
 } from "@/components/ui/card"
-
-const mockCompanies = [
-  {
-    id: "c1",
-    name: "Acme Inc",
-    email: "contact@acme.com",
-    status: "Pending",
-    employeesCount: 12,
-  },
-  {
-    id: "c2",
-    name: "Globex Corp",
-    email: "hr@globex.com",
-    status: "Approved",
-    employeesCount: 50,
-  },
-  {
-    id: "c3",
-    name: "Umbrella Co",
-    email: "admin@umbrella.com",
-    status: "Rejected",
-    employeesCount: 8,
-  },
-]
-
-const mockEmployees = [
-  { id: "e1", name: "John Doe", company: "Acme Inc", position: "Developer" },
-  { id: "e2", name: "Jane Smith", company: "Globex Corp", position: "Designer" },
-  { id: "e3", name: "Alice Johnson", company: "Globex Corp", position: "Manager" },
-  { id: "e4", name: "Bob Brown", company: "Umbrella Co", position: "Sales" },
-]
+import { adminApproveCompany, adminListCompanies, adminListEmployees } from "@/lib/api"
 
 export default function AdminDashboardPage() {
-  const [companies, setCompanies] = useState(mockCompanies)
+  const [companies, setCompanies] = useState<any[]>([])
+  const [employees, setEmployees] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
 
-  function updateCompanyStatus(id: string, status: "Approved" | "Rejected") {
-    setCompanies((prev) =>
-      prev.map((company) =>
-        company.id === id ? { ...company, status } : company
-      )
-    )
-  }
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const [comps, emps] = await Promise.all([
+          adminListCompanies(),
+          adminListEmployees(),
+        ])
+        setCompanies(comps as any[])
+        setEmployees(emps as any[])
+      } finally {
+        setLoading(false)
+      }
+    }
+    load()
+  }, [])
 
   const totalCompanies = companies.length
-  const approvedCompanies = companies.filter((c) => c.status === "Approved").length
-  const pendingCompanies = companies.filter((c) => c.status === "Pending").length
-  const totalEmployees = mockEmployees.length
+  const approvedCompanies = companies.filter((c) => c.isApproved).length
+  const pendingCompanies = companies.filter((c) => !c.isApproved).length
+  const totalEmployees = employees.length
+
+  async function updateCompanyStatus(id: string, approve: boolean) {
+    if (approve) {
+      const updated = await adminApproveCompany(id)
+      setCompanies((prev) => prev.map((c) => (c._id === id ? updated : c)))
+    } else {
+      // No explicit reject endpoint provided; simulate by removing or leaving as-is
+      setCompanies((prev) => prev.filter((c) => c._id !== id))
+    }
+  }
 
   return (
     <div className="container max-w-7xl p-6 space-y-8">
@@ -123,34 +113,32 @@ export default function AdminDashboardPage() {
               <tr className="bg-gray-100">
                 <th className="border border-gray-300 p-2 text-left font-medium">Company</th>
                 <th className="border border-gray-300 p-2 text-left font-medium">Email</th>
-                <th className="border border-gray-300 p-2 text-center font-medium">Employees</th>
                 <th className="border border-gray-300 p-2 text-center font-medium">Actions</th>
               </tr>
             </thead>
             <tbody className="text-black">
               {companies
-                .filter((c) => c.status === "Pending")
+                .filter((c) => !c.isApproved)
                 .map((company) => (
-                  <tr key={company.id} className="hover:bg-gray-50">
-                    <td className="border border-gray-300 p-2">{company.name}</td>
+                  <tr key={company._id} className="hover:bg-gray-50">
+                    <td className="border border-gray-300 p-2">{company.companyName}</td>
                     <td className="border border-gray-300 p-2">{company.email}</td>
-                    <td className="border border-gray-300 p-2 text-center">{company.employeesCount}</td>
                     <td className="border border-gray-300 p-2 text-center space-x-2">
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => updateCompanyStatus(company.id, "Approved")}
+                        onClick={() => updateCompanyStatus(company._id, true)}
                         className="text-green-600 border-green-600 hover:bg-green-100 bg-white"
-                        aria-label={`Approve ${company.name}`}
+                        aria-label={`Approve ${company.companyName}`}
                       >
                         <CheckCircle className="mr-1 h-4 w-4" /> Approve
                       </Button>
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => updateCompanyStatus(company.id, "Rejected")}
+                        onClick={() => updateCompanyStatus(company._id, false)}
                         className="text-red-600 border-red-600 hover:bg-red-100 bg-white"
-                        aria-label={`Reject ${company.name}`}
+                        aria-label={`Reject ${company.companyName}`}
                       >
                         <XCircle className="mr-1 h-4 w-4" /> Reject
                       </Button>
@@ -168,16 +156,16 @@ export default function AdminDashboardPage() {
           <thead className="font-bold">
             <tr className="bg-gray-100">
               <th className="border border-gray-300 p-2 text-left font-medium">Name</th>
-              <th className="border border-gray-300 p-2 text-left font-medium">Company</th>
-              <th className="border border-gray-300 p-2 text-left font-medium">Position</th>
+              <th className="border border-gray-300 p-2 text-left font-medium">Email</th>
+              <th className="border border-gray-300 p-2 text-left font-medium">Role</th>
             </tr>
           </thead>
           <tbody>
-            {mockEmployees.map((emp) => (
-              <tr key={emp.id} className="hover:bg-gray-50">
+            {employees.map((emp) => (
+              <tr key={emp.id || emp._id} className="hover:bg-gray-50">
                 <td className="border border-gray-300 p-2">{emp.name}</td>
-                <td className="border border-gray-300 p-2">{emp.company}</td>
-                <td className="border border-gray-300 p-2">{emp.position}</td>
+                <td className="border border-gray-300 p-2">{emp.email}</td>
+                <td className="border border-gray-300 p-2">employee</td>
               </tr>
             ))}
           </tbody>

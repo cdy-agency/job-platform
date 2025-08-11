@@ -68,10 +68,10 @@ export default function RegisterPage() {
           website: formData.website,
           logo: logoString,
         };
-        const response = await registerCompany(payload);
+        const response = await registerCompany(payload as any);
         toast({
           title: `${formData.companyName} Registered Well`,
-          description: "Welcome back! Redirecting you now...",
+          description: "Welcome! You can login once approved by admin.",
         })
         console.log("Company registered:", response);
       } else {
@@ -83,10 +83,10 @@ export default function RegisterPage() {
           dateOfBirth: formData.dateOfBirth,
           phoneNumber: formData.employeePhoneNumber,
         };
-        const response = await registerEmployee(payload);
+        const response = await registerEmployee(payload as any);
         toast({
-          title: `${formData.name} You registered Well`,
-          description: "Welcome back! Redirecting you now...",
+          title: `${formData.name} You registered well`,
+          description: "Welcome! You can now log in.",
         })
         console.log("Employee registered:", response);
       }
