@@ -1,9 +1,9 @@
 export interface EmployeeUser {
   id: string
-  name:string
+  name: string
   phoneNumber: string
   dateOfBirth: string
-  role:"employee"
+  role: "employee"
 }
 
 export interface CompanyUser {
@@ -14,12 +14,18 @@ export interface CompanyUser {
   website: string
   logo: string
   role: "company"
+  isApproved?: boolean
 }
 
-export type AuthUser = EmployeeUser | CompanyUser
+export interface AdminUser {
+  id: string
+  email: string
+  role: "superadmin"
+}
 
+export type AuthUser = EmployeeUser | CompanyUser | AdminUser
 
-export  type RegisterEmployeeRequest ={
+export type RegisterEmployeeRequest ={
   name: string,
   email: string,
   password: string,
@@ -47,16 +53,57 @@ export type LoginRequest = {
 export type AuthResponse<T extends AuthUser = AuthUser> = {
   user: T
   token: string;
-} 
+}
 
+// Backend-aligned types used in API wrappers
+export interface CompanyProfile {
+  _id: string
+  email: string
+  role: "company"
+  createdAt: string
+  updatedAt: string
+  companyName: string
+  location?: string
+  phoneNumber?: string
+  website?: string
+  logo?: string
+  isApproved: boolean
+}
 
+export interface Job {
+  _id: string
+  title: string
+  description: string
+  skills: string[]
+  experience?: string
+  employmentType: "fulltime" | "part-time" | "internship"
+  salary?: string
+  category: string
+  companyId: string | { _id: string; companyName: string; logo?: string }
+  createdAt: string
+  updatedAt: string
+}
 
+export interface Notification {
+  message: string
+  read: boolean
+  createdAt: string
+}
 
+export interface Application {
+  _id: string
+  jobId: string | Job
+  employeeId: string | EmployeeUser
+  skills: string[]
+  experience?: string
+  appliedVia: "normal" | "whatsapp" | "referral"
+  status: "pending" | "reviewed" | "interview" | "hired" | "rejected"
+  notifications: Notification[]
+  createdAt: string
+  updatedAt: string
+}
 
-
-
-
-
+// Existing FE-only types kept for UI components using mock data
 export interface CompanyTypes {
   id: string;
   name: string;

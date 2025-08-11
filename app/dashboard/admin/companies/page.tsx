@@ -1,36 +1,37 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Check, Eye, Trash2, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
-
-const mockCompanies = [
-  { id: "c1", name: "Acme Inc", email: "hr@acme.com", registeredAt: "2024-04-01", status: "Pending" },
-  { id: "c2", name: "Globex Corp", email: "contact@globex.com", registeredAt: "2024-03-15", status: "Approved" },
-  { id: "c3", name: "Umbrella Co", email: "info@umbrella.com", registeredAt: "2024-05-10", status: "Rejected" },
-  { id: "c4", name: "Initech", email: "hello@initech.com", registeredAt: "2024-02-28", status: "Pending" },
-]
+import { adminApproveCompany, adminListCompanies } from "@/lib/api"
 
 export default function ManageCompaniesPage() {
   const [searchTerm, setSearchTerm] = useState("")
+  const [companies, setCompanies] = useState<any[]>([])
 
-  const filteredCompanies = mockCompanies.filter((comp) =>
-    comp.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    comp.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    comp.status.toLowerCase().includes(searchTerm.toLowerCase())
-  )
-
-  const getStatusClass = (status: string) => {
-    switch (status) {
-      case "Approved":
-        return "bg-green-100 text-green-800"
-      case "Pending":
-        return "bg-yellow-100 text-yellow-800"
-      case "Rejected":
-        return "bg-red-100 text-red-800"
-      default:
-        return "bg-gray-100 text-gray-800"
+  useEffect(() => {
+    const load = async () => {
+      const data = await adminListCompanies()
+      setCompanies(data as any[])
     }
+    load()
+  }, [])
+
+  const filteredCompanies = companies.filter((comp) => {
+    return (
+      (comp.companyName || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (comp.email || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (comp.isApproved ? "approved" : "pending").includes(searchTerm.toLowerCase())
+    )
+  })
+
+  const getStatusClass = (approved: boolean) => {
+    return approved ? "bg-green-100 text-green-800" : "bg-yellow-100 text-yellow-800"
+  }
+
+  const approve = async (id: string) => {
+    const updated = await adminApproveCompany(id)
+    setCompanies((prev) => prev.map((c) => (c._id === id ? updated : c)))
   }
 
   return (
@@ -71,7 +72,6 @@ export default function ManageCompaniesPage() {
             <tr>
               <th className="whitespace-nowrap px-4 py-3 text-left font-semibold text-gray-700">Company Name</th>
               <th className="whitespace-nowrap px-4 py-3 text-left font-semibold text-gray-700">Email</th>
-              <th className="whitespace-nowrap px-4 py-3 text-left font-semibold text-gray-700">Registered On</th>
               <th className="whitespace-nowrap px-4 py-3 text-left font-semibold text-gray-700">Status</th>
               <th className="whitespace-nowrap px-4 py-3 text-center font-semibold text-gray-700">Actions</th>
             </tr>
@@ -79,23 +79,23 @@ export default function ManageCompaniesPage() {
           <tbody className="divide-y divide-gray-200 bg-white">
             {filteredCompanies.length > 0 ? (
               filteredCompanies.map((comp) => (
-                <tr key={comp.id} className="hover:bg-gray-50 text-black">
-                  <td className="whitespace-nowrap px-4 py-3">{comp.name}</td>
+                <tr key={comp._id} className="hover:bg-gray-50 text-black">
+                  <td className="whitespace-nowrap px-4 py-3">{comp.companyName}</td>
                   <td className="whitespace-nowrap px-4 py-3">{comp.email}</td>
-                  <td className="whitespace-nowrap px-4 py-3">{new Date(comp.registeredAt).toLocaleDateString()}</td>
                   <td className="whitespace-nowrap px-4 py-3">
-                    <span className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${getStatusClass(comp.status)}`}>
-                      {comp.status}
+                    <span className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${getStatusClass(comp.isApproved)}`}>
+                      {comp.isApproved ? "Approved" : "Pending"}
                     </span>
                   </td>
                   <td className="whitespace-nowrap px-4 py-3 text-center space-x-2">
-                    {comp.status === "Pending" && (
+                    {!comp.isApproved && (
                       <>
                         <Button
                           size="sm"
                           variant="outline"
                           className="text-green-600 border-green-600 hover:bg-green-100 bg-white"
-                          aria-label={`Approve ${comp.name}`}
+                          aria-label={`Approve ${comp.companyName}`}
+                          onClick={() => approve(comp._id)}
                         >
                           <Check className="h-4 w-4" />
                         </Button>
@@ -103,7 +103,7 @@ export default function ManageCompaniesPage() {
                           size="sm"
                           variant="outline"
                           className="text-yellow-600 border-yellow-600 hover:bg-yellow-100 bg-white"
-                          aria-label={`Reject ${comp.name}`}
+                          aria-label={`Reject ${comp.companyName}`}
                         >
                           <X className="h-4 w-4" />
                         </Button>
@@ -113,7 +113,7 @@ export default function ManageCompaniesPage() {
                       size="sm"
                       variant="outline"
                       className="text-indigo-600 border-indigo-600 hover:bg-indigo-100 bg-white"
-                      aria-label={`View ${comp.name}`}
+                      aria-label={`View ${comp.companyName}`}
                     >
                       <Eye className="h-4 w-4" />
                     </Button>
@@ -121,7 +121,7 @@ export default function ManageCompaniesPage() {
                       size="sm"
                       variant="outline"
                       className="text-red-600 border-red-600 hover:bg-red-100 bg-white"
-                      aria-label={`Delete ${comp.name}`}
+                      aria-label={`Delete ${comp.companyName}`}
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>

@@ -10,6 +10,7 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { toast } from "@/components/ui/use-toast"
+import { applyForJob } from "@/lib/api"
 
 const applyFormSchema = z.object({
   fullName: z.string().min(2, {
@@ -48,20 +49,25 @@ export function ApplyJobForm({ jobId, onCancel }: ApplyJobFormProps) {
     },
   })
 
-  function onSubmit(data: ApplyFormValues) {
+  async function onSubmit(data: ApplyFormValues) {
     setIsSubmitting(true)
-
-    // Simulate API call
-    setTimeout(() => {
-      setIsSubmitting(false)
+    try {
+      // Minimal payload to backend model
+      await applyForJob(jobId, {
+        skills: [],
+        experience: undefined,
+        appliedVia: "normal",
+      })
       toast({
         title: "Application submitted!",
         description: "Your job application has been successfully submitted.",
       })
-
-      // Redirect to user dashboard or confirmation page
       router.push("/dashboard/user")
-    }, 1500)
+    } catch (e: any) {
+      toast({ title: "Failed to apply", description: e?.response?.data?.message || "Please try again." })
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (

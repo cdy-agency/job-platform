@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
 import {
   Search,
@@ -31,22 +31,24 @@ import {
 import { Badge } from "@/components/ui/badge";
 import NavBar from "@/components/home/NavBar";
 import { Footer } from "@/components/footer";
-import { mockJobs } from "@/lib/mock-data";
+import { listJobsForEmployee } from "@/lib/api";
 
 // Type definitions
-interface Company {
-  name: string;
+interface CompanyLite {
+  companyName?: string;
   logo?: string;
 }
 
 interface Job {
-  id: string;
+  _id: string;
   title: string;
-  company: Company;
-  location: string;
+  companyId: string | { _id: string; companyName: string; logo?: string };
   employmentType: string;
-  salary: string;
+  category: string;
+  salary?: string;
   description: string;
+  // optional FE fields for display
+  location?: string;
 }
 
 interface CollapsibleSectionProps {
@@ -63,6 +65,7 @@ export default function JobsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [location, setLocation] = useState("all");
   const [salaryRange, setSalaryRange] = useState("all");
+  const [jobs, setJobs] = useState<Job[]>([]);
 
   // State for collapsible sections
   const [expandedSections, setExpandedSections] = useState({
@@ -71,19 +74,29 @@ export default function JobsPage() {
     internship: false,
   });
 
+  useEffect(() => {
+    const load = async () => {
+      const data = await listJobsForEmployee();
+      setJobs(data as any);
+    };
+    load();
+  }, []);
+
   const filteredJobs = useMemo(() => {
-    return mockJobs.filter((job) => {
+    return jobs.filter((job) => {
+      const company = typeof job.companyId === "object" ? job.companyId : ({} as any);
       const matchesSearch =
         job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        job.company.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (company.companyName || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
         job.description.toLowerCase().includes(searchTerm.toLowerCase());
 
       const matchesLocation =
         location === "all" ||
-        job.location.toLowerCase().includes(location.toLowerCase());
+        (job as any).location?.toLowerCase().includes(location.toLowerCase());
 
+      // Salary numeric filter is best-effort; many backends use string ranges
       let matchesSalary = true;
-      const salaryNum = parseInt(job.salary.replace(/[^0-9]/g, ""));
+      const salaryNum = parseInt((job.salary || "").replace(/[^0-9]/g, ""));
       if (salaryRange === "under-50k") matchesSalary = salaryNum < 50000;
       if (salaryRange === "50k-100k")
         matchesSalary = salaryNum >= 50000 && salaryNum <= 100000;
@@ -91,11 +104,11 @@ export default function JobsPage() {
 
       return matchesSearch && matchesLocation && matchesSalary;
     });
-  }, [searchTerm, location, salaryRange]);
+  }, [searchTerm, location, salaryRange, jobs]);
 
   const jobsByType = useMemo(() => {
     const fullTime = filteredJobs.filter(
-      (job) => job.employmentType.toLowerCase() === "full-time"
+      (job) => job.employmentType.toLowerCase() === "fulltime"
     );
     const partTime = filteredJobs.filter(
       (job) => job.employmentType.toLowerCase() === "part-time"
@@ -116,7 +129,7 @@ export default function JobsPage() {
 
   const getEmploymentIcon = (type: string) => {
     switch (type.toLowerCase()) {
-      case "full-time":
+      case "fulltime":
         return <Briefcase className="w-4 h-4" />;
       case "part-time":
         return <Clock className="w-4 h-4" />;
@@ -129,7 +142,7 @@ export default function JobsPage() {
 
   const getEmploymentColor = (type: string) => {
     switch (type.toLowerCase()) {
-      case "full-time":
+      case "fulltime":
         return "bg-[#834de3] text-white";
       case "part-time":
         return "bg-[#9260e7] text-white";
@@ -140,60 +153,63 @@ export default function JobsPage() {
     }
   };
 
-  const JobCard = ({ job }: { job: Job }) => (
-    <Card className="group hover:shadow-xl transition-all duration-300 border-gray-200 hover:border-[#834de3] bg-white">
-      <CardHeader className="pb-3">
-        <div className="flex items-start gap-3">
-          <div className="relative">
-            <img
-              src={job.company.logo || "/placeholder.svg"}
-              alt={job.company.name}
-              className="h-12 w-12 rounded-lg object-cover ring-2 ring-gray-100 group-hover:ring-[#834de3] transition-all"
-            />
+  const JobCard = ({ job }: { job: Job }) => {
+    const company = typeof job.companyId === "object" ? job.companyId : ({} as any);
+    return (
+      <Card className="group hover:shadow-xl transition-all duration-300 border-gray-200 hover:border-[#834de3] bg-white">
+        <CardHeader className="pb-3">
+          <div className="flex items-start gap-3">
+            <div className="relative">
+              <img
+                src={company.logo || "/placeholder.svg"}
+                alt={company.companyName || "Company"}
+                className="h-12 w-12 rounded-lg object-cover ring-2 ring-gray-100 group-hover:ring-[#834de3] transition-all"
+              />
+            </div>
+            <div className="flex-1 min-w-0">
+              <h3 className="font-bold text-gray-900 text-lg leading-tight mb-1 group-hover:text-[#834de3] transition-colors">
+                {job.title}
+              </h3>
+              <p className="text-sm text-gray-600 font-medium">
+                {company.companyName || "Company"}
+              </p>
+              <Badge
+                className={`mt-2 text-xs ${getEmploymentColor(
+                  job.employmentType
+                )}`}
+              >
+                {getEmploymentIcon(job.employmentType)}
+                <span className="ml-1">{job.employmentType}</span>
+              </Badge>
+            </div>
           </div>
-          <div className="flex-1 min-w-0">
-            <h3 className="font-bold text-gray-900 text-lg leading-tight mb-1 group-hover:text-[#834de3] transition-colors">
-              {job.title}
-            </h3>
-            <p className="text-sm text-gray-600 font-medium">
-              {job.company.name}
-            </p>
-            <Badge
-              className={`mt-2 text-xs ${getEmploymentColor(
-                job.employmentType
-              )}`}
-            >
-              {getEmploymentIcon(job.employmentType)}
-              <span className="ml-1">{job.employmentType}</span>
-            </Badge>
-          </div>
-        </div>
-      </CardHeader>
+        </CardHeader>
 
-      <CardContent className="pb-4">
-        <div className="space-y-2 mb-3">
-          <div className="flex items-center text-sm text-gray-600">
-            <MapPin className="w-4 h-4 mr-2 text-[#834de3]" />
-            {job.location}
+        <CardContent className="pb-4">
+          <div className="space-y-2 mb-3">
+            <div className="flex items-center text-sm text-gray-600">
+              <MapPin className="w-4 h-4 mr-2 text-[#834de3]" />
+              {(job as any).location || ""}
+            </div>
+            <div className="flex items-center text-sm text-gray-600">
+              <span className="font-semibold text-gray-800">{job.salary || ""}</span>
+            </div>
           </div>
-          <div className="flex items-center text-sm text-gray-600">
-            <span className="font-semibold text-gray-800">{job.salary}</span>
-          </div>
-        </div>
-        <p className="text-sm text-gray-600 line-clamp-2 leading-relaxed">
-          {job.description}
-        </p>
-      </CardContent>
+          <p className="text-sm text-gray-600 line-clamp-2 leading-relaxed">
+            {job.description}
+          </p>
+        </CardContent>
 
-      <CardFooter className="pt-0">
-        <Link href={`/jobs/${job.id}`} className="w-full">
-          <Button className="w-full bg-[#834de3] hover:bg-[#9260e7] text-white font-medium transition-all duration-200 transform hover:scale-[1.02]">
-            View Details
-          </Button>
-        </Link>
-      </CardFooter>
-    </Card>
-  );
+        <CardFooter className="pt-0">
+          <Link href={`/jobs/${job._id}`} className="w-full">
+            <Button className="w-full bg-[#834de3] hover:bg-[#9260e7] text-white font-medium transition-all duration-200 transform hover:scale-[1.02]">
+              View Details
+            </Button>
+          </Link>
+        </CardFooter>
+      </Card>
+    );
+  };
 
   const CollapsibleSection = ({
     title,
@@ -239,7 +255,7 @@ export default function JobsPage() {
           {jobs.length > 0 ? (
             <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 mt-4 sm:mt-6">
               {jobs.map((job) => (
-                <JobCard key={job.id} job={job} />
+                <JobCard key={job._id} job={job} />
               ))}
             </div>
           ) : (
@@ -301,13 +317,11 @@ export default function JobsPage() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">All Locations</SelectItem>
-                      <SelectItem value="Remote">Western Province</SelectItem>
-                      <SelectItem value="New York">Eastern Province</SelectItem>
-                      <SelectItem value="San Francisco">
-                        North Province
-                      </SelectItem>
-                      <SelectItem value="Chicago">Kigali City</SelectItem>
-                      <SelectItem value="Boston">Southern Province</SelectItem>
+                      <SelectItem value="Western">Western Province</SelectItem>
+                      <SelectItem value="Eastern">Eastern Province</SelectItem>
+                      <SelectItem value="Northern">North Province</SelectItem>
+                      <SelectItem value="Kigali">Kigali City</SelectItem>
+                      <SelectItem value="Southern">Southern Province</SelectItem>
                     </SelectContent>
                   </Select>
 

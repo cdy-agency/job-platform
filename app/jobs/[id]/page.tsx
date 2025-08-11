@@ -16,7 +16,7 @@ import {
   DollarSign,
   Calendar,
 } from "lucide-react";
-import { getJobById } from "@/lib/mock-data";
+import { listJobsForEmployee } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import NavBar from "@/components/home/NavBar";
 
@@ -29,8 +29,16 @@ export default function JobDetailsPage() {
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [activeSection, setActiveSection] = useState("about-us");
   const [showScrollTop, setShowScrollTop] = useState(false);
+  const [job, setJob] = useState<any | null>(null);
 
-  const job = getJobById(id);
+  useEffect(() => {
+    const load = async () => {
+      const all = await listJobsForEmployee();
+      const found = (all as any[]).find((j) => j._id === id);
+      setJob(found || null);
+    };
+    load();
+  }, [id]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -83,7 +91,7 @@ export default function JobDetailsPage() {
   }
 
   const handleApply = () => {
-    alert("Application submitted successfully!");
+    router.push("/login");
   };
 
   const handleBookmark = () => {
@@ -94,7 +102,7 @@ export default function JobDetailsPage() {
     if (navigator.share) {
       navigator.share({
         title: job.title,
-        text: `Check out this job at ${job.company.name}`,
+        text: `Check out this job at ${(job.companyId as any)?.companyName}`,
         url: window.location.href,
       });
     } else {
@@ -116,6 +124,8 @@ export default function JobDetailsPage() {
     { id: "apply", label: "How to Apply", icon: <ArrowUp className="h-4 w-4" /> },
   ];
 
+  const company = typeof job.companyId === "object" ? job.companyId : ({} as any);
+
   return (
     <div className="min-h-screen bg-[#f5f5fb]">
       <NavBar />
@@ -124,8 +134,8 @@ export default function JobDetailsPage() {
       <div className="relative overflow-hidden bg-white py-12 px-8 border-b border-gray-200">
         <div className="max-w-6xl mx-auto flex flex-col lg:flex-row items-start gap-8">
           <img
-            src={job.company.logo}
-            alt={job.company.name}
+            src={company.logo}
+            alt={company.companyName}
             className="w-24 h-24 rounded-md border border-gray-300 object-cover"
           />
 
@@ -138,7 +148,7 @@ export default function JobDetailsPage() {
                 >
                   {job.title}
                 </h1>
-                <p className="text-gray-700 font-medium">{job.company.name}</p>
+                <p className="text-gray-700 font-medium">{company.companyName}</p>
               </div>
 
               <div className="flex gap-2">
@@ -157,29 +167,29 @@ export default function JobDetailsPage() {
               <InfoCard
                 icon={<MapPin className="h-4 w-4" />}
                 label="Location"
-                value={job.location}
+                value={(job as any).location || ""}
               />
               <InfoCard
                 icon={<Clock className="h-4 w-4" />}
                 label="Experience"
-                value={job.experience}
+                value={job.experience || ""}
               />
               <InfoCard
                 icon={<DollarSign className="h-4 w-4" />}
                 label="Salary"
-                value="Competitive"
+                value={job.salary || "Competitive"}
               />
               <InfoCard
                 icon={<Calendar className="h-4 w-4" />}
                 label="Posted"
-                value="2 days ago"
+                value={new Date(job.createdAt).toLocaleDateString()}
               />
             </div>
 
             <div className="flex flex-wrap gap-2">
               <Badge text={job.employmentType} />
               <Badge text={job.category} />
-              {job.featured && <Badge text="Featured" />}
+              {(job as any).featured && <Badge text="Featured" />}
               <Badge text="Remote Friendly" />
             </div>
           </div>
@@ -229,7 +239,7 @@ export default function JobDetailsPage() {
         <div className="lg:col-span-3 space-y-8">
           <Section id="about-us" title="About Us" color={mainPurple}>
             <p className="text-gray-700 leading-relaxed text-lg">
-              {job.company.name}
+              {company.companyName}
             </p>
           </Section>
 
@@ -240,16 +250,16 @@ export default function JobDetailsPage() {
           </Section>
 
           <Section id="responsibilities" title="Responsibilities" color={mainPurple}>
-            <SimpleList items={job.responsibilities} />
+            <SimpleList items={(job as any).responsibilities || []} />
           </Section>
 
           <Section id="requirements" title="Requirements" color={mainPurple}>
-            <SimpleList items={job.requirements} />
+            <SimpleList items={(job as any).requirements || []} />
           </Section>
 
           <Section id="skills" title="Skills Required" color={mainPurple}>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-              {job.skills.map((skill, i) => (
+              {(job.skills || []).map((skill: string, i: number) => (
                 <div
                   key={i}
                   className="border border-gray-300 rounded-md p-3 text-gray-700 font-semibold text-sm text-center hover:bg-[#f3e8ff] cursor-default"

@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { toast } from "@/components/ui/use-toast"
+import { postCompanyJob } from "@/lib/api"
 
 const jobFormSchema = z.object({
   title: z.string().min(5, {
@@ -35,11 +36,11 @@ const jobFormSchema = z.object({
   description: z.string().min(50, {
     message: "Job description must be at least 50 characters.",
   }),
-  requirements: z.string().min(50, {
-    message: "Job requirements must be at least 50 characters.",
+  requirements: z.string().min(10, {
+    message: "Job requirements must be at least 10 characters.",
   }),
-  responsibilities: z.string().min(50, {
-    message: "Job responsibilities must be at least 50 characters.",
+  responsibilities: z.string().min(10, {
+    message: "Job responsibilities must be at least 10 characters.",
   }),
   applicationDeadline: z.string().min(1, {
     message: "Application deadline is required.",
@@ -68,18 +69,35 @@ export default function PostJobPage() {
     },
   })
 
-  function onSubmit(data: JobFormValues) {
+  async function onSubmit(data: JobFormValues) {
     setIsSubmitting(true)
 
-    // Simulate API call
-    setTimeout(() => {
-      setIsSubmitting(false)
+    try {
+      const payload = {
+        title: data.title,
+        description: data.description,
+        skills: [],
+        experience: undefined,
+        employmentType: data.type.toLowerCase() as any,
+        salary: `${data.salaryMin}-${data.salaryMax}`,
+        category: data.category,
+        // optional properties not strictly in backend model
+        // @ts-ignore
+        location: data.location,
+        requirements: data.requirements.split("\n").map((s) => s.trim()).filter(Boolean),
+        responsibilities: data.responsibilities.split("\n").map((s) => s.trim()).filter(Boolean),
+      }
+      await postCompanyJob(payload as any)
       toast({
         title: "Job posted successfully!",
         description: "Your job has been posted and is now live.",
       })
       router.push("/dashboard/company/jobs")
-    }, 1500)
+    } catch (e: any) {
+      toast({ title: "Failed to post job", description: e?.response?.data?.message || "Please try again." })
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -157,11 +175,9 @@ export default function PostJobPage() {
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value="Full-time">Full-time</SelectItem>
-                            <SelectItem value="Part-time">Part-time</SelectItem>
-                            <SelectItem value="Contract">Contract</SelectItem>
-                            <SelectItem value="Internship">Internship</SelectItem>
-                            <SelectItem value="Remote">Remote</SelectItem>
+                            <SelectItem value="fulltime">Full-time</SelectItem>
+                            <SelectItem value="part-time">Part-time</SelectItem>
+                            <SelectItem value="internship">Internship</SelectItem>
                           </SelectContent>
                         </Select>
                         <FormMessage />
@@ -177,7 +193,7 @@ export default function PostJobPage() {
                     <FormItem>
                       <FormLabel className="text-gray-800">Location</FormLabel>
                       <FormControl>
-                        <Input placeholder="e.g. New York, NY or Remote" {...field} className="border-gray-300" />
+                        <Input placeholder="e.g. Kigali City or Remote" {...field} className="border-gray-300" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -195,7 +211,7 @@ export default function PostJobPage() {
                           <Input placeholder="e.g. 50000" {...field} className="border-gray-300" />
                         </FormControl>
                         <FormDescription className="text-gray-600">
-                          Enter amount in USD without commas or currency symbol
+                          Enter amount in RWF without commas or currency symbol
                         </FormDescription>
                         <FormMessage />
                       </FormItem>
@@ -212,7 +228,7 @@ export default function PostJobPage() {
                           <Input placeholder="e.g. 70000" {...field} className="border-gray-300" />
                         </FormControl>
                         <FormDescription className="text-gray-600">
-                          Enter amount in USD without commas or currency symbol
+                          Enter amount in RWF without commas or currency symbol
                         </FormDescription>
                         <FormMessage />
                       </FormItem>
@@ -246,12 +262,11 @@ export default function PostJobPage() {
                       <FormLabel className="text-gray-800">Requirements</FormLabel>
                       <FormControl>
                         <Textarea
-                          placeholder="List the skills, qualifications, and experience required..."
+                          placeholder="List the skills, qualifications, and experience required... (one per line)"
                           className="min-h-[150px] border-gray-300"
                           {...field}
                         />
                       </FormControl>
-                      <FormDescription className="text-gray-600">Use a new line for each requirement</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -265,7 +280,7 @@ export default function PostJobPage() {
                       <FormLabel className="text-gray-800">Responsibilities</FormLabel>
                       <FormControl>
                         <Textarea
-                          placeholder="List the key responsibilities and duties..."
+                          placeholder="List the key responsibilities and duties... (one per line)"
                           className="min-h-[150px] border-gray-300"
                           {...field}
                         />

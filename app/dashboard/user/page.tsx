@@ -1,25 +1,41 @@
+"use client"
+
+import { useEffect, useMemo, useState } from "react"
 import Link from "next/link"
 import { Bell, Briefcase, Clock, Eye, FileText, Search } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { mockApplications, mockJobs, mockUsers } from "@/lib/mock-data"
+import { listEmployeeApplications, listEmployeeNotifications, listJobsForEmployee } from "@/lib/api"
 
 export default function UserDashboardPage() {
-  // Mock data for the current user
-  const currentUser = mockUsers[0]
+  const [applications, setApplications] = useState<any[]>([])
+  const [jobs, setJobs] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
 
-  // Get user's applications
-  const userApplications = mockApplications.filter((app) => app.userId === currentUser.id)
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const [appsRes, jobsRes] = await Promise.all([
+          listEmployeeApplications(),
+          listJobsForEmployee(),
+        ])
+        setApplications(appsRes)
+        setJobs(jobsRes)
+      } finally {
+        setLoading(false)
+      }
+    }
+    load()
+  }, [])
 
-  // Get recommended jobs (just using some of the mock jobs)
-  const recommendedJobs = mockJobs.slice(0, 3)
+  const recommendedJobs = useMemo(() => jobs.slice(0, 3), [jobs])
 
   return (
     <div className="container space-y-8 p-6 pb-16">
       <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-gray-800">Dashboard</h1>
-          <p className="text-gray-600">Welcome back, {currentUser.name}</p>
+          <p className="text-gray-600">Welcome back</p>
         </div>
         <div className="flex items-center gap-2">
           <Button
@@ -45,7 +61,7 @@ export default function UserDashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="flex items-center justify-between">
-              <div className="text-2xl font-bold text-gray-800">{userApplications.length}</div>
+              <div className="text-2xl font-bold text-gray-800">{applications.length}</div>
               <Briefcase className="h-5 w-5 text-gray-600" />
             </div>
           </CardContent>
@@ -56,7 +72,7 @@ export default function UserDashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="flex items-center justify-between">
-              <div className="text-2xl font-bold text-gray-800">{currentUser.savedJobs.length}</div>
+              <div className="text-2xl font-bold text-gray-800">0</div>
               <FileText className="h-5 w-5 text-gray-600" />
             </div>
           </CardContent>
@@ -92,19 +108,19 @@ export default function UserDashboardPage() {
             <CardDescription className="text-gray-600">Your recently submitted job applications</CardDescription>
           </CardHeader>
           <CardContent>
-            {userApplications.length > 0 ? (
+            {applications.length > 0 ? (
               <div className="space-y-4">
-                {userApplications.map((app) => {
-                  const job = mockJobs.find((j) => j.id === app.jobId)
+                {applications.map((app) => {
+                  const job: any = typeof app.jobId === "object" ? app.jobId : jobs.find((j: any) => j._id === app.jobId)
                   if (!job) return null
 
                   return (
-                    <div key={app.id} className="flex items-center justify-between">
+                    <div key={app._id} className="flex items-center justify-between">
                       <div className="flex items-start gap-3">
                         <div className="h-10 w-10 overflow-hidden rounded">
                           <img
-                            src={job.company.logo || "/placeholder.svg"}
-                            alt={job.company.name}
+                            src={(job.companyId as any)?.logo || "/placeholder.svg"}
+                            alt={(job.companyId as any)?.companyName || "Company"}
                             className="h-full w-full object-cover"
                             width={40}
                             height={40}
@@ -112,20 +128,14 @@ export default function UserDashboardPage() {
                         </div>
                         <div>
                           <h4 className="font-medium text-gray-800">{job.title}</h4>
-                          <p className="text-sm text-gray-600">{job.company.name}</p>
+                          <p className="text-sm text-gray-600">{(job.companyId as any)?.companyName || "Company"}</p>
                           <p className="text-xs text-gray-600">
-                            Applied on {new Date(app.appliedDate).toLocaleDateString()}
+                            Applied on {new Date(app.createdAt).toLocaleDateString()}
                           </p>
                         </div>
                       </div>
                       <span
-                        className={`rounded-full px-3 py-1 text-xs ${
-                          app.status === "Applied"
-                            ? "bg-blue-100 text-blue-800"
-                            : app.status === "Interview"
-                              ? "bg-green-100 text-green-800"
-                              : "bg-red-100 text-red-800"
-                        }`}
+                        className={`rounded-full px-3 py-1 text-xs`}
                       >
                         {app.status}
                       </span>
@@ -159,13 +169,13 @@ export default function UserDashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {recommendedJobs.map((job) => (
-                <div key={job.id} className="flex items-center justify-between">
+              {recommendedJobs.map((job: any) => (
+                <div key={job._id} className="flex items-center justify-between">
                   <div className="flex items-start gap-3">
                     <div className="h-10 w-10 overflow-hidden rounded">
                       <img
-                        src={job.company.logo || "/placeholder.svg"}
-                        alt={job.company.name}
+                        src={(job.companyId as any)?.logo || "/placeholder.svg"}
+                        alt={(job.companyId as any)?.companyName || "Company"}
                         className="h-full w-full object-cover"
                         width={40}
                         height={40}
@@ -173,16 +183,16 @@ export default function UserDashboardPage() {
                     </div>
                     <div>
                       <h4 className="font-medium text-gray-800">{job.title}</h4>
-                      <p className="text-sm text-gray-600">{job.company.name}</p>
+                      <p className="text-sm text-gray-600">{(job.companyId as any)?.companyName || "Company"}</p>
                       <div className="mt-1 flex gap-2">
                         <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-800">{job.employmentType}</span>
                         <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-800">
-                          {job.location}
+                          {(job as any).location || ""}
                         </span>
                       </div>
                     </div>
                   </div>
-                  <Link href={`/jobs/${job.id}`}>
+                  <Link href={`/jobs/${job._id}`}>
                     <Button size="sm" className="text-gray-600 hover:text-gray-800">
                       View
                     </Button>
