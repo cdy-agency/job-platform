@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { toast } from "@/components/ui/use-toast"
-import { postCompanyJob } from "@/lib/api"
+import { postCompanyJob, getCompanyProfile } from "@/lib/api"
 
 const jobFormSchema = z.object({
   title: z.string().min(5, {
@@ -73,20 +73,32 @@ export default function PostJobPage() {
     setIsSubmitting(true)
 
     try {
+      // Ensure company is approved before allowing to post
+      const company = await getCompanyProfile()
+      if (!company.isApproved) {
+        toast({ title: "Awaiting approval", description: "Your company must be approved by admin before posting jobs." })
+        setIsSubmitting(false)
+        return
+      }
+
+      // Map requirements lines to skills array (fallback to a generic skill if empty)
+      const skillsFromReq = data.requirements
+        .split("\n")
+        .map((s) => s.trim())
+        .filter(Boolean)
+      const skills = skillsFromReq.length ? skillsFromReq : ["general"]
+
       const payload = {
         title: data.title,
         description: data.description,
-        skills: [],
-        experience: undefined,
-        employmentType: data.type.toLowerCase() as any,
+        skills, // required by backend
+        // optional fields in backend model
+        employmentType: data.type as "fulltime" | "part-time" | "internship",
         salary: `${data.salaryMin}-${data.salaryMax}`,
         category: data.category,
-        // optional properties not strictly in backend model
-        // @ts-ignore
-        location: data.location,
-        requirements: data.requirements.split("\n").map((s) => s.trim()).filter(Boolean),
-        responsibilities: data.responsibilities.split("\n").map((s) => s.trim()).filter(Boolean),
+        // Do NOT send unsupported keys like location/requirements/responsibilities
       }
+
       await postCompanyJob(payload as any)
       toast({
         title: "Job posted successfully!",
@@ -94,7 +106,8 @@ export default function PostJobPage() {
       })
       router.push("/dashboard/company/jobs")
     } catch (e: any) {
-      toast({ title: "Failed to post job", description: e?.response?.data?.message || "Please try again." })
+      const msg = e?.response?.data?.message || "Server error. Please check your inputs or approval status."
+      toast({ title: "Failed to post job", description: msg })
     } finally {
       setIsSubmitting(false)
     }
