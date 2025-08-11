@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { ArrowLeft, Bookmark, Building, Calendar, MapPin, Share2 } from "lucide-react"
@@ -11,14 +11,34 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { MainNav } from "@/components/main-nav"
 import { MobileNav } from "@/components/mobile-nav"
 import { Footer } from "@/components/footer"
-import { getJobById } from "@/lib/mock-data"
+import { employeeApi } from "@/lib/api"
+import { Job } from "@/lib/types"
+import { getAuth } from "@/hooks/useAuth"
 import { ApplyJobForm } from "@/components/apply-job-form"
 
 export default function JobDetailsPage({ params }: { params: { id: string } }) {
   const [isApplying, setIsApplying] = useState(false)
+  const [job, setJob] = useState<Job | null>(null)
   const router = useRouter()
 
-  const job = getJobById(params.id)
+  useEffect(() => {
+    const { token } = getAuth()
+    const load = async () => {
+      try {
+        let list: Job[] = []
+        if (token) {
+          list = await employeeApi.listJobs(token)
+        } else {
+          list = await fetch("/api/employee/jobs").then((r) => r.json()).catch(() => [])
+        }
+        const found = (list as Job[]).find((j) => j._id === params.id)
+        setJob(found || null)
+      } catch {
+        setJob(null)
+      }
+    }
+    load()
+  }, [params.id])
 
   if (!job) {
     return (
@@ -35,6 +55,8 @@ export default function JobDetailsPage({ params }: { params: { id: string } }) {
   const handleApply = () => {
     setIsApplying(true)
   }
+
+  const company = typeof job.companyId === "object" ? job.companyId : undefined
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -80,8 +102,8 @@ export default function JobDetailsPage({ params }: { params: { id: string } }) {
                     <div className="flex items-start gap-4">
                       <div className="h-12 w-12 overflow-hidden rounded-md">
                         <img
-                          src={job.company.logo || "/placeholder.svg"}
-                          alt={job.company.name}
+                          src={(company && company.logo) || "/placeholder.svg"}
+                          alt={company?.companyName || "Company"}
                           className="h-full w-full object-cover"
                           width={48}
                           height={48}
@@ -90,16 +112,17 @@ export default function JobDetailsPage({ params }: { params: { id: string } }) {
                       <div>
                         <CardTitle className="text-2xl text-gray-800">{job.title}</CardTitle>
                         <CardDescription className="flex flex-wrap items-center gap-2 text-gray-600">
-                          <span>{job.company.name}</span>
+                          <span>{company?.companyName}</span>
                           <span>•</span>
                           <span className="flex items-center">
                             <MapPin className="mr-1 h-3 w-3" />
-                            {job.location}
+                            {/* location not guaranteed in backend model */}
+                            Remote/On-site
                           </span>
                           <span>•</span>
                           <span className="flex items-center">
                             <Calendar className="mr-1 h-3 w-3" />
-                            Posted {new Date(job.postedDate).toLocaleDateString()}
+                            Posted {new Date(job.createdAt).toLocaleDateString()}
                           </span>
                         </CardDescription>
                       </div>
@@ -124,8 +147,10 @@ export default function JobDetailsPage({ params }: { params: { id: string } }) {
                     </div>
                   </div>
                   <div className="mt-4 flex flex-wrap gap-2">
-                    <span className="rounded-full bg-blue-100 px-3 py-1 text-xs text-blue-800">{job.type}</span>
-                    <span className="rounded-full bg-gray-100 px-3 py-1 text-xs text-gray-800">{job.salary}</span>
+                    <span className="rounded-full bg-blue-100 px-3 py-1 text-xs text-blue-800">{job.employmentType}</span>
+                    {job.salary ? (
+                      <span className="rounded-full bg-gray-100 px-3 py-1 text-xs text-gray-800">{job.salary}</span>
+                    ) : null}
                     <span className="rounded-full bg-gray-100 px-3 py-1 text-xs text-gray-800">{job.category}</span>
                   </div>
                 </CardHeader>
@@ -147,14 +172,15 @@ export default function JobDetailsPage({ params }: { params: { id: string } }) {
                     </TabsContent>
                     <TabsContent value="requirements" className="space-y-4">
                       <ul className="ml-6 list-disc space-y-2 text-gray-600">
-                        {job.requirements.map((req, index) => (
+                        {(job.skills || []).map((req, index) => (
                           <li key={index}>{req}</li>
                         ))}
                       </ul>
                     </TabsContent>
                     <TabsContent value="responsibilities" className="space-y-4">
                       <ul className="ml-6 list-disc space-y-2 text-gray-600">
-                        {job.responsibilities.map((resp, index) => (
+                        {/* responsibilities not in backend model; show description parts if needed */}
+                        {(job.description || "").split(". ").slice(0, 5).map((resp, index) => (
                           <li key={index}>{resp}</li>
                         ))}
                       </ul>
@@ -172,7 +198,7 @@ export default function JobDetailsPage({ params }: { params: { id: string } }) {
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <ApplyJobForm jobId={job.id} onCancel={() => setIsApplying(false)} />
+                    <ApplyJobForm jobId={job._id} onCancel={() => setIsApplying(false)} />
                   </CardContent>
                 </Card>
               ) : null}
@@ -186,32 +212,22 @@ export default function JobDetailsPage({ params }: { params: { id: string } }) {
                 <CardContent className="space-y-4">
                   <div>
                     <h4 className="mb-1 text-sm font-medium text-gray-800">Job Type</h4>
-                    <p className="text-gray-600">{job.type}</p>
-                  </div>
-                  <div>
-                    <h4 className="mb-1 text-sm font-medium text-gray-800">Location</h4>
-                    <p className="text-gray-600">{job.location}</p>
+                    <p className="text-gray-600">{job.employmentType}</p>
                   </div>
                   <div>
                     <h4 className="mb-1 text-sm font-medium text-gray-800">Salary</h4>
-                    <p className="text-gray-600">{job.salary}</p>
+                    <p className="text-gray-600">{job.salary || "—"}</p>
                   </div>
                   <div>
                     <h4 className="mb-1 text-sm font-medium text-gray-800">Posted Date</h4>
-                    <p className="text-gray-600">{new Date(job.postedDate).toLocaleDateString()}</p>
-                  </div>
-                  <div>
-                    <h4 className="mb-1 text-sm font-medium text-gray-800">Application Deadline</h4>
-                    <p className="text-gray-600">{new Date(job.applicationDeadline).toLocaleDateString()}</p>
+                    <p className="text-gray-600">{new Date(job.createdAt).toLocaleDateString()}</p>
                   </div>
                   <Separator className="bg-gray-200" />
                   <div>
                     <h4 className="mb-1 text-sm font-medium text-gray-800">About the company</h4>
                     <div className="flex items-center gap-2">
                       <Building className="h-4 w-4 text-gray-600" />
-                      <Link href={`/companies/${job.company.id}`} className="text-blue-500 hover:underline">
-                        {job.company.name}
-                      </Link>
+                      <span className="text-blue-500">{company?.companyName || "Company"}</span>
                     </div>
                   </div>
                   <div className="pt-2">
@@ -224,38 +240,7 @@ export default function JobDetailsPage({ params }: { params: { id: string } }) {
                 </CardContent>
               </Card>
 
-              <Card className="border-gray-200">
-                <CardHeader>
-                  <CardTitle className="text-gray-800">Similar Jobs</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-4">
-                    {/* This would typically be populated with actual similar jobs */}
-                    <div className="rounded-md border border-gray-200 p-3">
-                      <h4 className="font-medium text-gray-800">Senior Frontend Developer</h4>
-                      <p className="text-sm text-gray-600">TechCorp • Remote</p>
-                      <div className="mt-2">
-                        <Link href="/jobs/job3">
-                          <Button variant="link" className="h-auto p-0 text-blue-500">
-                            View Job
-                          </Button>
-                        </Link>
-                      </div>
-                    </div>
-                    <div className="rounded-md border border-gray-200 p-3">
-                      <h4 className="font-medium text-gray-800">UI/UX Designer</h4>
-                      <p className="text-sm text-gray-600">Acme Inc • New York, NY</p>
-                      <div className="mt-2">
-                        <Link href="/jobs/job5">
-                          <Button variant="link" className="h-auto p-0 text-blue-500">
-                            View Job
-                          </Button>
-                        </Link>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+              {/* Similar Jobs can be implemented later using category filter */}
             </div>
           </div>
         </div>

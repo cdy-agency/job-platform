@@ -2,24 +2,45 @@ import Link from "next/link"
 import { Bell, PlusCircle, Users } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { mockCompanies, mockJobs, mockApplications, mockUsers } from "@/lib/mock-data"
+import { useEffect, useState } from "react"
+import { companyApi } from "@/lib/api"
+import { Application, Company, Job } from "@/lib/types"
+import { getAuth } from "@/hooks/useAuth"
 
 export default function CompanyDashboardPage() {
-  // Mock data for the current company
-  const currentCompany = mockCompanies[0]
+  const [company, setCompany] = useState<Company | null>(null)
+  const [jobs, setJobs] = useState<Job[]>([])
+  const [applications, setApplications] = useState<Application[]>([])
 
-  // Get company's posted jobs
-  const companyJobs = mockJobs.filter((job) => job.company.id === currentCompany.id)
-
-  // Get applications for company's jobs
-  const jobApplications = mockApplications.filter((app) => companyJobs.some((job) => job.id === app.jobId))
+  useEffect(() => {
+    const { token } = getAuth()
+    const load = async () => {
+      try {
+        if (!token) return
+        const profile = await companyApi.me(token)
+        setCompany(profile)
+        const myJobs = await companyApi.myJobs(token)
+        setJobs(myJobs)
+        // Aggregate applicants for all jobs
+        const allAppsArrays = await Promise.all(
+          myJobs.map((j) => companyApi.applicants(token, j._id))
+        )
+        setApplications(allAppsArrays.flat())
+      } catch {
+        setCompany(null)
+        setJobs([])
+        setApplications([])
+      }
+    }
+    load()
+  }, [])
 
   return (
     <div className="container space-y-8 p-6 pb-16">
       <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-gray-800">Company Dashboard</h1>
-          <p className="text-gray-600">Welcome back, {currentCompany.name}</p>
+          <p className="text-gray-600">Welcome back, {company?.companyName || "Company"}</p>
         </div>
         <div className="flex items-center gap-2">
           <Button
@@ -46,7 +67,7 @@ export default function CompanyDashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="flex items-center justify-between">
-              <div className="text-2xl font-bold text-gray-800">{companyJobs.length}</div>
+              <div className="text-2xl font-bold text-gray-800">{jobs.length}</div>
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="24"
@@ -67,7 +88,7 @@ export default function CompanyDashboardPage() {
                 <path d="M12 14h.01" />
                 <path d="M16 14h.01" />
                 <path d="M8 18h.01" />
-                <path d="M12 18h.01" />
+                <path d="12 18h.01" />
                 <path d="M16 18h.01" />
               </svg>
             </div>
@@ -79,7 +100,7 @@ export default function CompanyDashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="flex items-center justify-between">
-              <div className="text-2xl font-bold text-gray-800">{jobApplications.length}</div>
+              <div className="text-2xl font-bold text-gray-800">{applications.length}</div>
               <Users className="h-5 w-5 text-gray-600" />
             </div>
           </CardContent>
@@ -90,7 +111,7 @@ export default function CompanyDashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="flex items-center justify-between">
-              <div className="text-2xl font-bold text-gray-800">156</div>
+              <div className="text-2xl font-bold text-gray-800">—</div>
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="24"
@@ -115,7 +136,7 @@ export default function CompanyDashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="flex items-center justify-between">
-              <div className="text-2xl font-bold text-gray-800">3</div>
+              <div className="text-2xl font-bold text-gray-800">—</div>
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="24"
@@ -144,23 +165,19 @@ export default function CompanyDashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {companyJobs.slice(0, 3).map((job) => (
-                <div key={job.id} className="flex items-center justify-between">
+              {jobs.slice(0, 3).map((job) => (
+                <div key={job._id} className="flex items-center justify-between">
                   <div>
                     <h4 className="font-medium text-gray-800">{job.title}</h4>
                     <div className="mt-1 flex flex-wrap gap-2">
-                      <span className="rounded-full bg-blue-100 px-2 py-0.5 text-xs text-blue-800">{job.type}</span>
-                      <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-800">{job.location}</span>
-                      <span className="text-xs text-gray-600">
-                        Posted on {new Date(job.postedDate).toLocaleDateString()}
+                      <span className="rounded-full bg-blue-100 px-2 py-0.5 text-xs text-blue-800">
+                        {job.employmentType}
                       </span>
+                      <span className="text-xs text-gray-600">Posted on {new Date(job.createdAt).toLocaleDateString()}</span>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="rounded-full bg-green-100 px-2 py-0.5 text-xs text-green-800">
-                      {job.applicants.length} Applicants
-                    </span>
-                    <Link href={`/dashboard/company/jobs/${job.id}`}>
+                    <Link href={`/dashboard/company/jobs/${job._id}`}>
                       <Button variant="ghost" size="sm" className="text-gray-600 hover:text-gray-800">
                         View
                       </Button>
@@ -186,32 +203,30 @@ export default function CompanyDashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {jobApplications.map((app) => {
-                const job = mockJobs.find((j) => j.id === app.jobId)
-                const user = mockUsers.find((u) => u.id === app.userId)
-                if (!job || !user) return null
+              {applications.map((app) => {
+                const job = (typeof app.jobId === "object" ? (app.jobId as Job) : undefined)
+                const employee = app.employeeId
+                if (!job || !employee || typeof employee === "string") return null
 
                 return (
-                  <div key={app.id} className="flex items-center justify-between">
+                  <div key={app._id} className="flex items-center justify-between">
                     <div className="flex items-start gap-3">
                       <div className="h-10 w-10 overflow-hidden rounded-full">
                         <img
-                          src={user.profilePicture || "/placeholder.svg"}
-                          alt={user.name}
+                          src={(employee as any).profilePicture || "/placeholder.svg"}
+                          alt={(employee as any).name || "Applicant"}
                           className="h-full w-full object-cover"
                           width={40}
                           height={40}
                         />
                       </div>
                       <div>
-                        <h4 className="font-medium text-gray-800">{user.name}</h4>
+                        <h4 className="font-medium text-gray-800">{(employee as any).name || employee.email}</h4>
                         <p className="text-sm text-gray-600">Applied for {job.title}</p>
-                        <p className="text-xs text-gray-600">
-                          Applied on {new Date(app.appliedDate).toLocaleDateString()}
-                        </p>
+                        <p className="text-xs text-gray-600">Applied on {new Date(app.createdAt).toLocaleDateString()}</p>
                       </div>
                     </div>
-                    <Link href={`/dashboard/company/applicants/${app.id}`}>
+                    <Link href={`/dashboard/company/applicants/${app._id}`}>
                       <Button variant="ghost" size="sm" className="text-gray-600 hover:text-gray-800">
                         Review
                       </Button>

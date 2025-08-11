@@ -2,14 +2,27 @@ import Link from "next/link"
 import { ArrowUpDown, Download, Eye } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { mockApplications, mockJobs, mockUsers } from "@/lib/mock-data"
+import { useEffect, useState } from "react"
+import { employeeApi } from "@/lib/api"
+import { Application, Job } from "@/lib/types"
+import { getAuth } from "@/hooks/useAuth"
 
 export default function UserApplicationsPage() {
-  // Mock data for the current user
-  const currentUser = mockUsers[0]
+  const [applications, setApplications] = useState<Application[]>([])
 
-  // Get user's applications
-  const userApplications = mockApplications.filter((app) => app.userId === currentUser.id)
+  useEffect(() => {
+    const { token } = getAuth()
+    const load = async () => {
+      try {
+        if (!token) return
+        const apps = await employeeApi.applications(token)
+        setApplications(apps)
+      } catch {
+        setApplications([])
+      }
+    }
+    load()
+  }, [])
 
   return (
     <div className="container space-y-6 p-6 pb-16">
@@ -23,9 +36,7 @@ export default function UserApplicationsPage() {
           <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
             <div>
               <CardTitle className="text-gray-800">All Applications</CardTitle>
-              <CardDescription className="text-gray-600">
-                You have applied to {userApplications.length} jobs
-              </CardDescription>
+              <CardDescription className="text-gray-600">You have applied to {applications.length} jobs</CardDescription>
             </div>
             <div className="flex items-center gap-2">
               <Button variant="outline" size="sm" className="border-gray-300 bg-transparent text-gray-800">
@@ -39,22 +50,23 @@ export default function UserApplicationsPage() {
           </div>
         </CardHeader>
         <CardContent>
-          {userApplications.length > 0 ? (
+          {applications.length > 0 ? (
             <div className="space-y-6">
-              {userApplications.map((app) => {
-                const job = mockJobs.find((j) => j.id === app.jobId)
+              {applications.map((app) => {
+                const job = (typeof app.jobId === "object" ? (app.jobId as Job) : undefined)
                 if (!job) return null
+                const company = typeof job.companyId === "object" ? job.companyId : undefined
 
                 return (
                   <div
-                    key={app.id}
+                    key={app._id}
                     className="flex flex-col justify-between gap-4 rounded-lg border border-gray-200 p-4 sm:flex-row sm:items-center"
                   >
                     <div className="flex items-start gap-4">
                       <div className="h-12 w-12 overflow-hidden rounded">
                         <img
-                          src={job.company.logo || "/placeholder.svg"}
-                          alt={job.company.name}
+                          src={(company && company.logo) || "/placeholder.svg"}
+                          alt={company?.companyName || "Company"}
                           className="h-full w-full object-cover"
                           width={48}
                           height={48}
@@ -62,36 +74,25 @@ export default function UserApplicationsPage() {
                       </div>
                       <div>
                         <h3 className="font-semibold text-gray-800">{job.title}</h3>
-                        <p className="text-sm text-gray-600">{job.company.name}</p>
+                        <p className="text-sm text-gray-600">{company?.companyName}</p>
                         <div className="mt-1 flex flex-wrap gap-2">
                           <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-800">
-                            {job.location}
+                            {job.employmentType}
                           </span>
-                          <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-800">{job.type}</span>
                           <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-800">
-                            Applied on {new Date(app.appliedDate).toLocaleDateString()}
+                            Applied on {new Date(app.createdAt).toLocaleDateString()}
                           </span>
                         </div>
                       </div>
                     </div>
                     <div className="flex flex-col items-end gap-2">
-                      <span
-                        className={`rounded-full px-3 py-1 text-xs ${
-                          app.status === "Applied"
-                            ? "bg-blue-100 text-blue-800"
-                            : app.status === "Interview"
-                              ? "bg-green-100 text-green-800"
-                              : "bg-red-100 text-red-800"
-                        }`}
-                      >
-                        {app.status}
-                      </span>
+                      <span className="rounded-full bg-blue-100 px-3 py-1 text-xs text-blue-800">{app.status}</span>
                       <div className="flex gap-2">
                         <Button variant="ghost" size="sm" className="text-gray-600 hover:text-gray-800">
                           <Download className="mr-1 h-4 w-4" />
                           Resume
                         </Button>
-                        <Link href={`/jobs/${job.id}`}>
+                        <Link href={`/jobs/${job._id}`}>
                           <Button variant="ghost" size="sm" className="text-gray-600 hover:text-gray-800">
                             <Eye className="mr-1 h-4 w-4" />
                             View Job

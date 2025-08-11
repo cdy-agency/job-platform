@@ -11,6 +11,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { toast } from "@/components/ui/use-toast"
+import { authApi } from "@/lib/api"
 
 const companyFormSchema = z
   .object({
@@ -72,18 +73,27 @@ export function CompanyRegistrationForm() {
     },
   })
 
-  function onSubmit(data: CompanyFormValues) {
+  async function onSubmit(data: CompanyFormValues) {
     setIsLoading(true)
-
-    // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false)
-      toast({
-        title: "Account created!",
-        description: "You have successfully registered as a company.",
+    try {
+      await authApi.registerCompany({
+        companyName: data.companyName,
+        email: data.email,
+        password: data.password,
+        location: data.location,
+        phoneNumber: data.phoneNumber,
+        website: data.website,
       })
-      router.push("/dashboard/company")
-    }, 1000)
+      toast({
+        title: "Company registered!",
+        description: "Your account requires admin approval before posting jobs.",
+      })
+      router.push("/login")
+    } catch (err: any) {
+      toast({ title: "Registration failed", description: err?.message || "Please try again.", variant: "destructive" })
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (

@@ -1,14 +1,37 @@
+"use client"
+
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { MainNav } from "@/components/main-nav"
 import { MobileNav } from "@/components/mobile-nav"
 import { Footer } from "@/components/footer"
 import { Briefcase, CheckCircle, Search, Users } from "lucide-react"
-import { mockJobs } from "@/lib/mock-data"
+import { useEffect, useState } from "react"
+import { employeeApi } from "@/lib/api"
+import { Job } from "@/lib/types"
+import { getAuth } from "@/hooks/useAuth"
 
 export default function Home() {
-  // Get featured jobs (just the first 3)
-  const featuredJobs = mockJobs.slice(0, 3)
+  const [featuredJobs, setFeaturedJobs] = useState<Job[]>([])
+
+  useEffect(() => {
+    const { token, user } = getAuth()
+    const load = async () => {
+      try {
+        if (user?.role === "employee" && token) {
+          const jobs = await employeeApi.listJobs(token)
+          setFeaturedJobs(jobs.slice(0, 3))
+        } else {
+          // Public view: try without auth if backend allows approved company jobs via employee listing without token
+          const jobs = await fetch("/api/employee/jobs").then((r) => r.json()).catch(() => [])
+          setFeaturedJobs((jobs as Job[]).slice(0, 3))
+        }
+      } catch {
+        setFeaturedJobs([])
+      }
+    }
+    load()
+  }, [])
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -118,12 +141,12 @@ export default function Home() {
             </div>
             <div className="grid gap-6 md:grid-cols-3">
               {featuredJobs.map((job) => (
-                <div key={job.id} className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+                <div key={job._id} className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
                   <div className="mb-4 flex items-center gap-3">
                     <div className="h-12 w-12 overflow-hidden rounded-md">
                       <img
-                        src={job.company.logo || "/placeholder.svg"}
-                        alt={job.company.name}
+                        src={(typeof job.companyId === "object" && job.companyId.logo) || "/placeholder.svg"}
+                        alt={(typeof job.companyId === "object" && job.companyId.companyName) || "Company"}
                         className="h-full w-full object-cover"
                         width={48}
                         height={48}
@@ -131,15 +154,14 @@ export default function Home() {
                     </div>
                     <div>
                       <h3 className="font-semibold text-gray-800">{job.title}</h3>
-                      <p className="text-sm text-gray-600">{job.company.name}</p>
+                      <p className="text-sm text-gray-600">{typeof job.companyId === "object" ? job.companyId.companyName : ""}</p>
                     </div>
                   </div>
                   <div className="mb-4 flex flex-wrap gap-2">
-                    <span className="rounded-full bg-blue-100 px-3 py-1 text-xs text-blue-800">{job.type}</span>
-                    <span className="rounded-full bg-gray-100 px-3 py-1 text-xs text-gray-800">{job.location}</span>
+                    <span className="rounded-full bg-blue-100 px-3 py-1 text-xs text-blue-800">{job.employmentType}</span>
                   </div>
                   <p className="mb-4 line-clamp-3 text-sm text-gray-600">{job.description}</p>
-                  <Link href={`/jobs/${job.id}`}>
+                  <Link href={`/jobs/${job._id}`}>
                     <Button className="w-full bg-blue-500 text-white hover:bg-blue-600">View Details</Button>
                   </Link>
                 </div>

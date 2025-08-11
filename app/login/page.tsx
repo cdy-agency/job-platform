@@ -12,6 +12,8 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { toast } from "@/components/ui/use-toast"
+import { authApi } from "@/lib/api"
+import { useAuth } from "@/hooks/useAuth"
 
 const loginFormSchema = z.object({
   email: z.string().email({
@@ -20,7 +22,7 @@ const loginFormSchema = z.object({
   password: z.string().min(1, {
     message: "Password is required.",
   }),
-  role: z.enum(["user", "company"], {
+  role: z.enum(["employee", "company", "superadmin"], {
     required_error: "Please select a role.",
   }),
 })
@@ -36,26 +38,35 @@ export default function LoginPage() {
     defaultValues: {
       email: "",
       password: "",
-      role: "user",
+      role: "employee",
     },
   })
 
-  function onSubmit(data: LoginFormValues) {
-    setIsLoading(true)
+  const auth = useAuth()
 
-    setTimeout(() => {
-      setIsLoading(false)
-      if (data.role === "user") {
-        router.push("/dashboard/user")
-      } else {
-        router.push("/dashboard/company")
-      }
+  async function onSubmit(data: LoginFormValues) {
+    setIsLoading(true)
+    try {
+      const res = await authApi.login(data.email, data.password)
+      auth.login(res.token, res.user)
 
       toast({
         title: "Login successful!",
-        description: `You have logged in as a ${data.role === "user" ? "job seeker" : "company"}.`,
+        description: `You have logged in as ${res.user.role}.`,
       })
-    }, 1000)
+
+      if (res.user.role === "employee") {
+        router.push("/dashboard/user")
+      } else if (res.user.role === "company") {
+        router.push("/dashboard/company")
+      } else {
+        router.push("/dashboard/admin")
+      }
+    } catch (err: any) {
+      toast({ title: "Login failed", description: err?.message || "Invalid credentials", variant: "destructive" })
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -114,7 +125,7 @@ export default function LoginPage() {
                         >
                           <FormItem className="flex items-center space-x-2 space-y-0">
                             <FormControl>
-                              <RadioGroupItem value="user" />
+                              <RadioGroupItem value="employee" />
                             </FormControl>
                             <FormLabel className="font-normal text-gray-600">Umuntu ushaka akazi</FormLabel>
                           </FormItem>

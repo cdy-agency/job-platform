@@ -40,8 +40,11 @@ const navItems = [
   },
 ]
 
+import { useAuth } from "@/hooks/useAuth"
+
 export function UserDashboardSidebar() {
   const pathname = usePathname()
+  const { user, logout } = useAuth()
 
   return (
     <>
@@ -91,18 +94,16 @@ export function UserDashboardSidebar() {
                   </div>
                   <div className="flex flex-1 items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-gray-800">John Doe</p>
-                      <p className="text-xs text-gray-600">john@example.com</p>
+                      <p className="text-sm font-medium text-gray-800">{user?.email}</p>
+                      <p className="text-xs text-gray-600">{user?._id}</p>
                     </div>
                     <ChevronDown className="h-4 w-4 text-gray-600" />
                   </div>
                 </div>
-                <Link href="/login">
-                  <Button variant="ghost" className="mt-2 w-full justify-start gap-3 text-gray-600 hover:text-gray-800">
-                    <LogOut className="h-4 w-4" />
-                    <span>Log out</span>
-                  </Button>
-                </Link>
+                <Button onClick={logout} variant="ghost" className="mt-2 w-full justify-start gap-3 text-gray-600 hover:text-gray-800">
+                  <LogOut className="h-4 w-4" />
+                  <span>Log out</span>
+                </Button>
               </div>
             </div>
           </SheetContent>
@@ -161,18 +162,16 @@ export function UserDashboardSidebar() {
               </div>
               <div className="flex flex-1 items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-800">John Doe</p>
-                  <p className="text-xs text-gray-600">john@example.com</p>
+                                     <p className="text-sm font-medium text-gray-800">{user?.email}</p>
+                   <p className="text-xs text-gray-600">{user?._id}</p>
                 </div>
                 <ChevronDown className="h-4 w-4 text-gray-600" />
               </div>
             </div>
-            <Link href="/login">
-              <Button variant="ghost" className="mt-2 w-full justify-start gap-3 text-gray-600 hover:text-gray-800">
-                <LogOut className="h-4 w-4" />
-                <span>Log out</span>
-              </Button>
-            </Link>
+            <Button onClick={logout} variant="ghost" className="mt-2 w-full justify-start gap-3 text-gray-600 hover:text-gray-800">
+              <LogOut className="h-4 w-4" />
+              <span>Log out</span>
+            </Button>
           </div>
         </div>
       </div>
