@@ -1,3 +1,4 @@
+"use client"
 import type React from "react"
 import { CompanyDashboardSidebar } from "@/components/company-dashboard-sidebar"
 import { useEffect, useState } from "react"

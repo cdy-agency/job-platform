@@ -1,3 +1,5 @@
+"use client"
+
 import type React from "react"
 import { AdminDashboardSidebar } from "@/components/admin-dashboard"
 import { useEffect } from "react"

@@ -26,22 +26,20 @@ export default function LoginPage() {
     setError(null)
     setLoading(true)
     try {
-      let auth
+      let auth: any
       try {
         auth = await loginUser({ email, password })
       } catch (err: any) {
         // fallback to admin login
         auth = await adminLogin({ email, password })
       }
-      const { user, token } = auth
-      // @ts-ignore allow superadmin
+      const token = auth.token
+      const role = auth?.user?.role || auth.role
+      const user = auth.user || { role }
       login(user, token)
-      // Simple redirect by role
-      // @ts-ignore role comes from backend
-      if (user.role === 'superadmin') {
+      if (role === 'superadmin') {
         router.push('/dashboard/admin')
-      // @ts-ignore
-      } else if (user.role === 'company') {
+      } else if (role === 'company') {
         router.push('/dashboard/company')
       } else {
         router.push('/dashboard/user')

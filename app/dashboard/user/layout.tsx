@@ -1,3 +1,5 @@
+"use client"
+
 import type React from "react"
 import { UserDashboardSidebar } from "@/components/user-dashboard-sidebar"
 import { useEffect } from "react"
