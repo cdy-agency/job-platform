@@ -10,6 +10,8 @@ import { Button } from "@/components/ui/button"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { toast } from "@/components/ui/use-toast"
+import { authApi } from "@/lib/api"
+import { useAuth } from "@/hooks/useAuth"
 
 const userFormSchema = z
   .object({
@@ -35,6 +37,7 @@ type UserFormValues = z.infer<typeof userFormSchema>
 export function UserRegistrationForm() {
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
+  const auth = useAuth()
 
   const form = useForm<UserFormValues>({
     resolver: zodResolver(userFormSchema),
@@ -46,18 +49,24 @@ export function UserRegistrationForm() {
     },
   })
 
-  function onSubmit(data: UserFormValues) {
+  async function onSubmit(data: UserFormValues) {
     setIsLoading(true)
-
-    // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false)
-      toast({
-        title: "Account created!",
-        description: "You have successfully registered as a job seeker.",
+    try {
+      await authApi.registerEmployee({
+        name: data.name,
+        email: data.email,
+        password: data.password,
       })
+      // Auto-login after successful registration
+      const loginRes = await authApi.login(data.email, data.password)
+      auth.login(loginRes.token, loginRes.user)
+      toast({ title: "Account created!", description: "You have successfully registered as a job seeker." })
       router.push("/dashboard/user")
-    }, 1000)
+    } catch (err: any) {
+      toast({ title: "Registration failed", description: err?.message || "Please try again.", variant: "destructive" })
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (

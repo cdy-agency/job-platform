@@ -68,18 +68,33 @@ export default function PostJobPage() {
     },
   })
 
-  function onSubmit(data: JobFormValues) {
+  async function onSubmit(data: JobFormValues) {
     setIsSubmitting(true)
-
-    // Simulate API call
-    setTimeout(() => {
-      setIsSubmitting(false)
-      toast({
-        title: "Job posted successfully!",
-        description: "Your job has been posted and is now live.",
-      })
+    try {
+      const { token } = (await import("@/hooks/useAuth")).getAuth()
+      if (!token) {
+        toast({ title: "Please log in", description: "You must be a company user to post jobs.", variant: "destructive" })
+        router.push("/login")
+        return
+      }
+      const normalizedType =
+        data.type === "Full-time" ? "fulltime" : data.type === "Part-time" ? "part-time" : data.type === "Internship" ? "internship" : "fulltime"
+      const payload = {
+        title: data.title,
+        description: data.description,
+        skills: data.requirements.split("\n").filter(Boolean),
+        employmentType: normalizedType as any,
+        salary: data.salaryMin && data.salaryMax ? `$${data.salaryMin} - $${data.salaryMax}` : undefined,
+        category: data.category,
+      }
+      await (await import("@/lib/api")).companyApi.postJob(token, payload as any)
+      toast({ title: "Job posted successfully!", description: "Your job has been posted and is now live." })
       router.push("/dashboard/company/jobs")
-    }, 1500)
+    } catch (err: any) {
+      toast({ title: "Failed to post job", description: err?.message || "Please try again.", variant: "destructive" })
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Briefcase,
   Edit,
@@ -19,34 +19,43 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs";
-import { mockUsers } from "@/lib/mock-data";
+import { employeeApi } from "@/lib/api"
+import { Employee } from "@/lib/types"
+import { getAuth } from "@/hooks/useAuth";
 import { toast } from "@/components/ui/use-toast";
 
 export default function UserProfilePage() {
   const [isEditing, setIsEditing] = useState(false);
+  const [profile, setProfile] = useState<Employee | null>(null)
 
-  const currentUser = mockUsers[0];
+  useEffect(() => {
+    const { token } = getAuth()
+    const load = async () => {
+      try {
+        if (!token) return
+        const me = await employeeApi.me(token)
+        setProfile(me)
+      } catch (e: any) {
+        toast({ title: "Failed to load profile", description: e?.message || "", variant: "destructive" })
+      }
+    }
+    load()
+  }, [])
 
   const handleSaveProfile = () => {
-    setTimeout(() => {
-      setIsEditing(false);
-      toast({
-        title: "Profile updated",
-        description: "Your profile has been successfully updated.",
-      });
-    }, 500);
+    setIsEditing(false);
+    toast({
+      title: "Profile updated",
+      description: "Your profile has been successfully updated.",
+    });
   };
 
   return (
     <div className="container space-y-6 p-6 pb-16">
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-gray-800">
-            Umwirondoro wanjye
-          </h1>
-          <p className="text-gray-600">
-            Hindura umwirondoro wawe ma cv
-          </p>
+          <h1 className="text-3xl font-bold tracking-tight text-gray-800">Umwirondoro wanjye</h1>
+          <p className="text-gray-600">Hindura umwirondoro wawe ma cv</p>
         </div>
         <div>
           {isEditing ? (
@@ -58,18 +67,12 @@ export default function UserProfilePage() {
               >
                 Funga
               </Button>
-              <Button
-                onClick={handleSaveProfile}
-                className="bg-blue-500 text-white hover:bg-blue-600"
-              >
+              <Button onClick={handleSaveProfile} className="bg-blue-500 text-white hover:bg-blue-600">
                 Emeze
               </Button>
             </div>
           ) : (
-            <Button
-              onClick={() => setIsEditing(true)}
-              className="bg-blue-500 text-white hover:bg-blue-600"
-            >
+            <Button onClick={() => setIsEditing(true)} className="bg-blue-500 text-white hover:bg-blue-600">
               <Edit className="mr-2 h-4 w-4" />
               Hindura umwirondoro
             </Button>
@@ -84,15 +87,15 @@ export default function UserProfilePage() {
               <div className="flex flex-col items-center text-center">
                 <div className="mb-4 h-32 w-32 overflow-hidden rounded-full">
                   <img
-                    src={currentUser.profilePicture || "/placeholder.svg"}
-                    alt={currentUser.name}
+                    src={(profile as any)?.profilePicture || "/placeholder.svg"}
+                    alt={profile?.email || "User"}
                     className="h-full w-full object-cover"
                     width={128}
                     height={128}
                   />
                 </div>
-                <h2 className="text-xl font-bold text-gray-800">{currentUser.name}</h2>
-                <p className="text-gray-600">{currentUser.experience[0].title}</p>
+                <h2 className="text-xl font-bold text-gray-800">{(profile as any)?.name || profile?.email}</h2>
+                <p className="text-gray-600">Employee</p>
                 <div className="mt-4 flex items-center justify-center gap-2">
                   <Button variant="outline" size="sm" className="border-gray-300 bg-transparent text-gray-800">
                     Hindura ifoto ikuranga
@@ -105,15 +108,15 @@ export default function UserProfilePage() {
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
                   <Mail className="h-4 w-4 text-gray-600" />
-                  <span className="text-sm text-gray-600">{currentUser.email}</span>
+                  <span className="text-sm text-gray-600">{profile?.email}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Phone className="h-4 w-4 text-gray-600" />
-                  <span className="text-sm text-gray-600">+1 (555) 123-4567</span>
+                  <span className="text-sm text-gray-600">{profile?.phoneNumber || "—"}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <MapPin className="h-4 w-4 text-gray-600" />
-                  <span className="text-sm text-gray-600">Kigali Rwanda</span>
+                  <span className="text-sm text-gray-600">—</span>
                 </div>
               </div>
             </CardContent>
@@ -125,16 +128,8 @@ export default function UserProfilePage() {
             </CardHeader>
             <CardContent>
               <div className="flex flex-wrap gap-2">
-                {currentUser.skills.map((skill) => (
-                  <span key={skill} className="rounded-full bg-blue-100 px-3 py-1 text-xs text-blue-800">
-                    {skill}
-                  </span>
-                ))}
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="rounded-full border-dashed border-gray-300 bg-transparent text-gray-600"
-                >
+                {/* Skills not in Employee model; placeholder */}
+                <Button variant="outline" size="sm" className="rounded-full border-dashed border-gray-300 bg-transparent text-gray-600">
                   <Plus className="mr-1 h-3 w-3" />
                   Add Skill
                 </Button>
@@ -172,7 +167,7 @@ export default function UserProfilePage() {
                       </svg>
                     </div>
                     <div>
-                      <p className="font-medium text-gray-800">{currentUser.resume}</p>
+                      <p className="font-medium text-gray-800">Resume</p>
                       <p className="text-xs text-gray-600">Byahinduwe ibyumeru 2 bishize</p>
                     </div>
                   </div>
@@ -200,15 +195,11 @@ export default function UserProfilePage() {
                 <div className="space-y-4">
                   <div>
                     <h3 className="mb-2 text-lg font-semibold text-gray-800">Ibinyerekeyeho</h3>
-                    <p className="text-gray-600">
-                      Experienced Frontend Developer with a passion for creating responsive and user-friendly web applications. Skilled in React, TypeScript, and modern frontend tools. Looking for opportunities to work on innovative projects with a collaborative team.
-                    </p>
+                    <p className="text-gray-600">—</p>
                   </div>
                   <div>
                     <h3 className="mb-2 text-lg font-semibold text-gray-800">Professional Summary</h3>
-                    <p className="text-gray-600">
-                      Over 5 years of experience in web development, specializing in frontend technologies. Proven track record of delivering high-quality, performant applications that meet business requirements and provide excellent user experiences.
-                    </p>
+                    <p className="text-gray-600">—</p>
                   </div>
                 </div>
               </TabsContent>
@@ -222,22 +213,7 @@ export default function UserProfilePage() {
                       Add
                     </Button>
                   </div>
-                  {currentUser.experience.map((exp, index) => (
-                    <div key={index} className="space-y-2">
-                      <div className="flex items-start gap-3">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 text-blue-500">
-                          <Briefcase className="h-5 w-5" />
-                        </div>
-                        <div>
-                          <h4 className="font-semibold text-gray-800">{exp.title}</h4>
-                          <p className="text-sm text-gray-600">{exp.company}</p>
-                          <p className="text-sm text-gray-600">{exp.duration}</p>
-                          <p className="mt-2 text-gray-600">{exp.description}</p>
-                        </div>
-                      </div>
-                      {index < currentUser.experience.length - 1 && <Separator className="my-4 bg-gray-200" />}
-                    </div>
-                  ))}
+                  <p className="text-gray-600">—</p>
                 </div>
               </TabsContent>
 
@@ -250,20 +226,7 @@ export default function UserProfilePage() {
                       Add
                     </Button>
                   </div>
-                  {currentUser.education.map((edu, index) => (
-                    <div key={index} className="space-y-2">
-                      <div className="flex items-start gap-3">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 text-blue-500">
-                          <GraduationCap className="h-5 w-5" />
-                        </div>
-                        <div>
-                          <h4 className="font-semibold text-gray-800">{edu.degree}</h4>
-                          <p className="text-sm text-gray-600">{edu.institution}</p>
-                          <p className="text-sm text-gray-600">{edu.year}</p>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
+                  <p className="text-gray-600">—</p>
                 </div>
               </TabsContent>
             </CardContent>

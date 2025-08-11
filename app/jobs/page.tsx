@@ -10,33 +10,60 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { MainNav } from "@/components/main-nav"
 import { MobileNav } from "@/components/mobile-nav"
 import { Footer } from "@/components/footer"
-import { mockJobs } from "@/lib/mock-data"
+import { useEffect } from "react"
+import { employeeApi } from "@/lib/api"
+import { Job } from "@/lib/types"
+import { getAuth } from "@/hooks/useAuth"
 
 export default function JobsPage() {
   const [searchTerm, setSearchTerm] = useState("")
   const [jobType, setJobType] = useState("all")
   const [location, setLocation] = useState("all")
   const [salaryRange, setSalaryRange] = useState("all")
+  const [jobs, setJobs] = useState<Job[]>([])
+
+  useEffect(() => {
+    const { token } = getAuth()
+    const load = async () => {
+      try {
+        if (token) {
+          const list = await employeeApi.listJobs(token)
+          setJobs(list)
+        } else {
+          const list = await fetch("/api/employee/jobs").then((r) => r.json()).catch(() => [])
+          setJobs(list as Job[])
+        }
+      } catch {
+        setJobs([])
+      }
+    }
+    load()
+  }, [])
 
   // Filter jobs based on search term, job type, location, and salary range
-  const filteredJobs = mockJobs.filter((job) => {
+  const filteredJobs = jobs.filter((job) => {
+    const title = job.title?.toLowerCase?.() || ""
+    const companyName = (typeof job.companyId === "object" ? job.companyId.companyName : "")?.toLowerCase?.() || ""
+    const description = job.description?.toLowerCase?.() || ""
+
     const matchesSearch =
-      job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      job.company.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      job.description.toLowerCase().includes(searchTerm.toLowerCase())
+      title.includes(searchTerm.toLowerCase()) ||
+      companyName.includes(searchTerm.toLowerCase()) ||
+      description.includes(searchTerm.toLowerCase())
 
-    const matchesType = jobType === "all" || job.type === jobType
-    const matchesLocation = location === "all" || job.location.toLowerCase().includes(location.toLowerCase())
+    const matchesType = jobType === "all" || job.employmentType === (jobType as any)
+    const matchesLocation = location === "all" // backend model did not include location consistently
 
-    // Simple salary range filtering (just for demonstration)
     let matchesSalary = true
-    if (salaryRange === "under-50k") {
-      matchesSalary = job.salary.includes("50,000") || Number.parseInt(job.salary.replace(/[^0-9]/g, "")) < 50000
-    } else if (salaryRange === "50k-100k") {
-      const salary = Number.parseInt(job.salary.replace(/[^0-9]/g, ""))
-      matchesSalary = salary >= 50000 && salary <= 100000
-    } else if (salaryRange === "over-100k") {
-      matchesSalary = Number.parseInt(job.salary.replace(/[^0-9]/g, "")) > 100000
+    if (salaryRange !== "all" && job.salary) {
+      const numeric = Number.parseInt(job.salary.replace(/[^0-9]/g, ""))
+      if (salaryRange === "under-50k") {
+        matchesSalary = numeric < 50000
+      } else if (salaryRange === "50k-100k") {
+        matchesSalary = numeric >= 50000 && numeric <= 100000
+      } else if (salaryRange === "over-100k") {
+        matchesSalary = numeric > 100000
+      }
     }
 
     return matchesSearch && matchesType && matchesLocation && matchesSalary
@@ -143,13 +170,13 @@ export default function JobsPage() {
             <div className="grid gap-6">
               {filteredJobs.length > 0 ? (
                 filteredJobs.map((job) => (
-                  <Card key={job.id} className="overflow-hidden border-gray-200">
+                  <Card key={job._id} className="overflow-hidden border-gray-200">
                     <div className="grid md:grid-cols-[1fr_auto]">
                       <CardHeader className="flex flex-row items-start gap-4 space-y-0">
                         <div className="h-12 w-12 overflow-hidden rounded-md">
                           <img
-                            src={job.company.logo || "/placeholder.svg"}
-                            alt={job.company.name}
+                            src={(typeof job.companyId === "object" && job.companyId.logo) || "/placeholder.svg"}
+                            alt={(typeof job.companyId === "object" && job.companyId.companyName) || "Company"}
                             className="h-full w-full object-cover"
                             width={48}
                             height={48}
@@ -157,9 +184,9 @@ export default function JobsPage() {
                         </div>
                         <div>
                           <h3 className="font-semibold text-gray-800">{job.title}</h3>
-                          <p className="text-sm text-gray-600">{job.company.name}</p>
+                          <p className="text-sm text-gray-600">{typeof job.companyId === "object" ? job.companyId.companyName : ""}</p>
                           <div className="mt-2 flex flex-wrap gap-2">
-                            <span className="rounded-full bg-blue-100 px-3 py-1 text-xs text-blue-800">{job.type}</span>
+                            <span className="rounded-full bg-blue-100 px-3 py-1 text-xs text-blue-800">{job.employmentType}</span>
                             <span className="rounded-full bg-gray-100 px-3 py-1 text-xs text-gray-800">
                               {job.location}
                             </span>
@@ -170,12 +197,10 @@ export default function JobsPage() {
                         </div>
                       </CardHeader>
                       <CardContent className="hidden md:flex md:items-center md:px-6">
-                        <p className="text-sm text-gray-600">
-                          Posted on {new Date(job.postedDate).toLocaleDateString()}
-                        </p>
+                        <p className="text-sm text-gray-600">Posted on {new Date(job.createdAt).toLocaleDateString()}</p>
                       </CardContent>
                       <CardFooter className="flex justify-between border-t p-4 md:border-l md:border-t-0">
-                        <Link href={`/jobs/${job.id}`} className="w-full">
+                        <Link href={`/jobs/${job._id}`} className="w-full">
                           <Button className="w-full bg-blue-500 text-white hover:bg-blue-600">View Details</Button>
                         </Link>
                       </CardFooter>

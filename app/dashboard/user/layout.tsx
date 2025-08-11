@@ -1,5 +1,6 @@
 import type React from "react"
 import { UserDashboardSidebar } from "@/components/user-dashboard-sidebar"
+import { AuthGuard } from "@/components/AuthGuard"
 
 export default function UserDashboardLayout({
   children,
@@ -7,9 +8,11 @@ export default function UserDashboardLayout({
   children: React.ReactNode
 }) {
   return (
-    <div className="flex min-h-screen flex-col md:flex-row">
-      <UserDashboardSidebar />
-      <main className="flex-1 bg-gray-50">{children}</main>
-    </div>
+    <AuthGuard roles={["employee"]}>
+      <div className="flex min-h-screen flex-col md:flex-row">
+        <UserDashboardSidebar />
+        <main className="flex-1 bg-gray-50">{children}</main>
+      </div>
+    </AuthGuard>
   )
 }
