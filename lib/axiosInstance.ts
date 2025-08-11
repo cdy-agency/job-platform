@@ -25,15 +25,12 @@ api.interceptors.response.use(
   (res) => res,
   (error) => {
     const status = error?.response?.status;
-    const message = error?.response?.data?.message || "";
-    if (typeof window !== "undefined" && (status === 401 || status === 403)) {
-      if (/invalid token/i.test(message) || /access denied/i.test(message)) {
-        try {
-          localStorage.removeItem("user");
-          localStorage.removeItem("token");
-        } catch {}
-        window.location.href = "/login";
-      }
+    if (typeof window !== "undefined" && status === 401) {
+      try {
+        localStorage.removeItem("user");
+        localStorage.removeItem("token");
+      } catch {}
+      window.location.href = "/login";
     }
     return Promise.reject(error);
   }
