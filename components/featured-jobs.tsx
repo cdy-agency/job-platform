@@ -6,17 +6,25 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { listJobsForEmployee } from "@/lib/api"
+import { useAuth } from "@/context/authContext"
 
 export function FeaturedJobs() {
   const [jobs, setJobs] = useState<any[]>([])
+  const { user, isReady } = useAuth()
 
   useEffect(() => {
     const load = async () => {
+      if (!isReady || !user || user.role !== 'employee') {
+        setJobs([])
+        return
+      }
       const data = await listJobsForEmployee()
-      setJobs((data as any[]).slice(0, 4))
+      setJobs((Array.isArray(data) ? data : []).slice(0, 4))
     }
     load()
-  }, [])
+  }, [user, isReady])
+
+  if (jobs.length === 0) return null
 
   return (
     <section className="bg-gray-50 py-16">

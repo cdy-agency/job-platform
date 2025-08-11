@@ -32,13 +32,9 @@ import { Badge } from "@/components/ui/badge";
 import NavBar from "@/components/home/NavBar";
 import { Footer } from "@/components/footer";
 import { listJobsForEmployee } from "@/lib/api";
+import { useAuth } from "@/context/authContext";
 
 // Type definitions
-interface CompanyLite {
-  companyName?: string;
-  logo?: string;
-}
-
 interface Job {
   _id: string;
   title: string;
@@ -47,7 +43,6 @@ interface Job {
   category: string;
   salary?: string;
   description: string;
-  // optional FE fields for display
   location?: string;
 }
 
@@ -66,6 +61,7 @@ export default function JobsPage() {
   const [location, setLocation] = useState("all");
   const [salaryRange, setSalaryRange] = useState("all");
   const [jobs, setJobs] = useState<Job[]>([]);
+  const { user, isReady } = useAuth()
 
   // State for collapsible sections
   const [expandedSections, setExpandedSections] = useState({
@@ -76,11 +72,16 @@ export default function JobsPage() {
 
   useEffect(() => {
     const load = async () => {
+      // Only employees can hit employee/job APIs without 403
+      if (!isReady || !user || user.role !== 'employee') {
+        setJobs([] as any)
+        return
+      }
       const data = await listJobsForEmployee();
-      setJobs(data as any);
+      setJobs((data as any) || []);
     };
     load();
-  }, []);
+  }, [user, isReady]);
 
   const filteredJobs = useMemo(() => {
     return jobs.filter((job) => {
@@ -94,7 +95,7 @@ export default function JobsPage() {
         location === "all" ||
         (job as any).location?.toLowerCase().includes(location.toLowerCase());
 
-      // Salary numeric filter is best-effort; many backends use string ranges
+      // Salary numeric filter is best-effort
       let matchesSalary = true;
       const salaryNum = parseInt((job.salary || "").replace(/[^0-9]/g, ""));
       if (salaryRange === "under-50k") matchesSalary = salaryNum < 50000;

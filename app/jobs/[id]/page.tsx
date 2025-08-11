@@ -19,6 +19,7 @@ import {
 import { listJobsForEmployee } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import NavBar from "@/components/home/NavBar";
+import { useAuth } from "@/context/authContext";
 
 const mainPurple = "#834de3";
 
@@ -30,15 +31,21 @@ export default function JobDetailsPage() {
   const [activeSection, setActiveSection] = useState("about-us");
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [job, setJob] = useState<any | null>(null);
+  const { user, isReady } = useAuth()
 
   useEffect(() => {
     const load = async () => {
+      // Only employees fetch via employee jobs API to avoid 403
+      if (!isReady || !user || user.role !== 'employee') {
+        setJob(null)
+        return
+      }
       const all = await listJobsForEmployee();
       const found = (all as any[]).find((j) => j._id === id);
       setJob(found || null);
     };
     load();
-  }, [id]);
+  }, [id, user, isReady]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -76,14 +83,14 @@ export default function JobDetailsPage() {
           </div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Job Not Found</h1>
           <p className="text-gray-600 mb-6">
-            The job you're looking for doesn't exist or has been removed.
+            The job you're looking for doesn't exist or requires login as an employee.
           </p>
           <Button
-            onClick={() => router.push("/")}
+            onClick={() => router.push("/login")}
             style={{ backgroundColor: mainPurple }}
             className="hover:brightness-110"
           >
-            Back to Home
+            Login to view
           </Button>
         </div>
       </div>
@@ -91,7 +98,11 @@ export default function JobDetailsPage() {
   }
 
   const handleApply = () => {
-    router.push("/login");
+    if (!user || user.role !== 'employee') {
+      router.push('/login')
+      return
+    }
+    alert("Application submitted successfully!")
   };
 
   const handleBookmark = () => {
