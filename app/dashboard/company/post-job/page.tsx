@@ -24,26 +24,18 @@ const jobFormSchema = z.object({
   type: z.string().min(1, {
     message: "Please select a job type.",
   }),
-  location: z.string().min(2, {
-    message: "Location is required.",
-  }),
   salaryMin: z.string().min(1, {
     message: "Minimum salary is required.",
   }),
   salaryMax: z.string().min(1, {
     message: "Maximum salary is required.",
   }),
-  description: z.string().min(50, {
-    message: "Job description must be at least 50 characters.",
+  experience: z.string().optional().default(""),
+  description: z.string().min(20, {
+    message: "Job description must be at least 20 characters.",
   }),
-  requirements: z.string().min(10, {
-    message: "Job requirements must be at least 10 characters.",
-  }),
-  responsibilities: z.string().min(10, {
-    message: "Job responsibilities must be at least 10 characters.",
-  }),
-  applicationDeadline: z.string().min(1, {
-    message: "Application deadline is required.",
+  skillsText: z.string().min(1, {
+    message: "Please provide at least one skill (one per line).",
   }),
 })
 
@@ -59,13 +51,11 @@ export default function PostJobPage() {
       title: "",
       category: "",
       type: "",
-      location: "",
       salaryMin: "",
       salaryMax: "",
+      experience: "",
       description: "",
-      requirements: "",
-      responsibilities: "",
-      applicationDeadline: "",
+      skillsText: "",
     },
   })
 
@@ -73,16 +63,16 @@ export default function PostJobPage() {
     setIsSubmitting(true)
 
     try {
-      const skillsFromReq = data.requirements
+      const skills = data.skillsText
         .split("\n")
         .map((s) => s.trim())
         .filter(Boolean)
-      const skills = skillsFromReq.length ? skillsFromReq : ["general"]
 
       const payload = {
         title: data.title,
         description: data.description,
         skills,
+        experience: data.experience || "",
         employmentType: data.type as "fulltime" | "part-time" | "internship",
         salary: `${data.salaryMin}-${data.salaryMax}`,
         category: data.category,
@@ -188,20 +178,6 @@ export default function PostJobPage() {
                   />
                 </div>
 
-                <FormField
-                  control={form.control}
-                  name="location"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-gray-800">Location</FormLabel>
-                      <FormControl>
-                        <Input placeholder="e.g. Kigali City or Remote" {...field} className="border-gray-300" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
                 <div className="grid gap-4 md:grid-cols-2">
                   <FormField
                     control={form.control}
@@ -240,6 +216,20 @@ export default function PostJobPage() {
 
                 <FormField
                   control={form.control}
+                  name="experience"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-gray-800">Experience</FormLabel>
+                      <FormControl>
+                        <Input placeholder="e.g. 3-5 years" {...field} className="border-gray-300" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
                   name="description"
                   render={({ field }) => (
                     <FormItem>
@@ -247,7 +237,7 @@ export default function PostJobPage() {
                       <FormControl>
                         <Textarea
                           placeholder="Describe the job role, responsibilities, and company culture..."
-                          className="min-h-[150px] border-gray-300"
+                          className="min-h[150px] border-gray-300"
                           {...field}
                         />
                       </FormControl>
@@ -258,51 +248,16 @@ export default function PostJobPage() {
 
                 <FormField
                   control={form.control}
-                  name="requirements"
+                  name="skillsText"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-gray-800">Requirements</FormLabel>
+                      <FormLabel className="text-gray-800">Skills (one per line)</FormLabel>
                       <FormControl>
                         <Textarea
-                          placeholder="List the skills, qualifications, and experience required... (one per line)"
+                          placeholder="React\nTypeScript\nNode.js"
                           className="min-h-[150px] border-gray-300"
                           {...field}
                         />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="responsibilities"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-gray-800">Responsibilities</FormLabel>
-                      <FormControl>
-                        <Textarea
-                          placeholder="List the key responsibilities and duties... (one per line)"
-                          className="min-h-[150px] border-gray-300"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormDescription className="text-gray-600">
-                        Use a new line for each responsibility
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="applicationDeadline"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-gray-800">Application Deadline</FormLabel>
-                      <FormControl>
-                        <Input type="date" {...field} className="border-gray-300" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
