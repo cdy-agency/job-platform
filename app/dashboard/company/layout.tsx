@@ -10,9 +10,10 @@ export default function CompanyDashboardLayout({
   children: React.ReactNode
 }) {
   const router = useRouter()
-  const { user } = useAuth()
+  const { user, isReady } = useAuth()
 
   useEffect(() => {
+    if (!isReady) return
     if (!user) {
       router.replace("/login")
       return
@@ -21,12 +22,8 @@ export default function CompanyDashboardLayout({
       router.replace("/")
       return
     }
-    const companyUser = user as any
-    if (companyUser.isApproved === false) {
-      // redirect to profile/notice if not approved
-      router.replace("/dashboard/company/profile")
-    }
-  }, [user, router])
+    // Approval gate can be enforced on specific pages instead of layout to avoid loops
+  }, [user, isReady, router])
 
   return (
     <div className="flex min-h-screen flex-col md:flex-row">

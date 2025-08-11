@@ -6,6 +6,7 @@ import { AuthUser } from "@/types/types";
 type AuthContextType = {
   user: AuthUser | null;
   token: string | null;
+  isReady: boolean;
   login: (userData: AuthUser, token: string) => void;
   logout: () => void;
 };
@@ -15,12 +16,17 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [token, setToken] = useState<string | null>(null);
+  const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
-    const savedUser = localStorage.getItem("user");
-    const savedToken = localStorage.getItem("token");
-    if (savedUser) setUser(JSON.parse(savedUser));
-    if (savedToken) setToken(savedToken);
+    try {
+      const savedUser = localStorage.getItem("user");
+      const savedToken = localStorage.getItem("token");
+      if (savedUser) setUser(JSON.parse(savedUser));
+      if (savedToken) setToken(savedToken);
+    } finally {
+      setIsReady(true);
+    }
   }, []);
 
   const login = (userData: AuthUser, token: string) => {
@@ -38,7 +44,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, login, logout }}>
+    <AuthContext.Provider value={{ user, token, isReady, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

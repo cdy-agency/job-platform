@@ -10,9 +10,10 @@ export default function UserDashboardLayout({
   children: React.ReactNode
 }) {
   const router = useRouter()
-  const { user } = useAuth()
+  const { user, isReady } = useAuth()
 
   useEffect(() => {
+    if (!isReady) return
     if (!user) {
       router.replace("/login")
       return
@@ -20,7 +21,7 @@ export default function UserDashboardLayout({
     if (user.role !== "superadmin") {
       router.replace("/")
     }
-  }, [user, router])
+  }, [user, isReady, router])
 
   return (
     <div className="flex min-h-screen flex-col md:flex-row">

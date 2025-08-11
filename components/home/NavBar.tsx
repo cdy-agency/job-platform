@@ -5,9 +5,11 @@ import Link from "next/link"
 import React, { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Phone, Mail, Linkedin, Instagram, Facebook, Twitter } from "lucide-react"
+import { useAuth } from "@/context/authContext"
 
 const NavBar = () => {
   const [isScrolled, setIsScrolled] = useState(false)
+  const { user, logout } = useAuth()
 
   useEffect(() => {
     const handleScroll = () => {
@@ -18,6 +20,22 @@ const NavBar = () => {
     window.addEventListener('scroll', handleScroll)
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
+
+  const displayName = user
+    ? user.role === 'company'
+      ? (user as any).companyName || 'Company'
+      : user.role === 'employee'
+        ? (user as any).name || 'Employee'
+        : (user as any).email || 'Admin'
+    : ''
+
+  const dashboardHref = user
+    ? user.role === 'company'
+      ? '/dashboard/company'
+      : user.role === 'employee'
+        ? '/dashboard/user'
+        : '/dashboard/admin'
+    : '/login'
 
   return (
     <div className="relative">
@@ -95,25 +113,48 @@ const NavBar = () => {
               </nav>
             </div>
             
-            {/* Desktop Auth Buttons - Right */}
+            {/* Desktop Right Section */}
             <div className="hidden md:flex items-center gap-4 flex-shrink-0">
-              <Link href="/login">
-                <Button 
-                  size="sm" 
-                  variant="outline"
-                  className="border-[#834de3] bg-[#834de3] hover:bg-[#8d6ee9] text-white font-medium px-6"
-                >
-                  Log in
-                </Button>
-              </Link>
-              <Link href="/register">
-                <Button 
-                  size="sm" 
-                  className="bg-[#834de3] hover:bg-[rgb(141,110,233)] text-white font-medium px-6"
-                >
-                  Create account
-                </Button>
-              </Link>
+              {user ? (
+                <>
+                  <Link href={dashboardHref}>
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      className="border-[#834de3] bg-[#834de3] hover:bg-[#8d6ee9] text-white font-medium px-6"
+                    >
+                      Dashboard
+                    </Button>
+                  </Link>
+                  <div className="flex items-center gap-3 px-3 py-1 border rounded-md">
+                    <div className="h-8 w-8 rounded-full bg-[#ece7fb] flex items-center justify-center text-[#834de3] font-semibold text-xs">
+                      {displayName?.slice(0,1) || 'U'}
+                    </div>
+                    <span className="text-sm text-gray-800 max-w-[160px] truncate">{displayName}</span>
+                    <Button size="sm" variant="ghost" className="text-gray-600" onClick={logout}>Logout</Button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <Link href="/login">
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      className="border-[#834de3] bg-[#834de3] hover:bg-[#8d6ee9] text-white font-medium px-6"
+                    >
+                      Log in
+                    </Button>
+                  </Link>
+                  <Link href="/register">
+                    <Button 
+                      size="sm" 
+                      className="bg-[#834de3] hover:bg-[rgb(141,110,233)] text-white font-medium px-6"
+                    >
+                      Create account
+                    </Button>
+                  </Link>
+                </>
+              )}
             </div>
             
             {/* Mobile Navigation */}
