@@ -1,3 +1,62 @@
+export interface EmployeeUser {
+  id: string
+  name:string
+  phoneNumber: string
+  dateOfBirth: string
+  role:"employee"
+}
+
+export interface CompanyUser {
+  id: string
+  companyName: string,
+  location: string
+  phoneNumber: string,
+  website: string
+  logo: string
+  role: "company"
+}
+
+export type AuthUser = EmployeeUser | CompanyUser
+
+
+export  type RegisterEmployeeRequest ={
+  name: string,
+  email: string,
+  password: string,
+  confirmPassword: string,
+  dateOfBirth: string,
+  phoneNumber: string,
+}
+
+export type RegisterCompanyRequest = {
+  companyName: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+  location: string;
+  phoneNumber: string;
+  website: string;
+  logo: File | null;
+}
+
+export type LoginRequest = {
+  email: string;
+  password: string;
+};
+
+export type AuthResponse<T extends AuthUser = AuthUser> = {
+  user: T
+  token: string;
+} 
+
+
+
+
+
+
+
+
+
 export interface CompanyTypes {
   id: string;
   name: string;

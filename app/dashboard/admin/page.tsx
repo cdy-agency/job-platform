@@ -75,36 +75,36 @@ export default function AdminDashboardPage() {
       </header>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
-        <Card>
+        <Card className="bg-white">
           <CardHeader>
-            <CardTitle className="text-sm font-medium">Total Companies</CardTitle>
+            <CardTitle className="text-sm font-medium text-black">Total Companies</CardTitle>
           </CardHeader>
           <CardContent className="flex items-center gap-3">
             <Building className="h-5 w-5 text-blue-600" />
             <span className="text-xl font-semibold text-gray-900">{totalCompanies}</span>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="bg-white">
           <CardHeader>
-            <CardTitle className="text-sm font-medium">Approved Companies</CardTitle>
+            <CardTitle className="text-sm font-medium text-black">Approved Companies</CardTitle>
           </CardHeader>
           <CardContent className="flex items-center gap-3">
             <CheckCircle className="h-5 w-5 text-green-600" />
             <span className="text-xl font-semibold text-gray-900">{approvedCompanies}</span>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="bg-white">
           <CardHeader>
-            <CardTitle className="text-sm font-medium">Pending Approvals</CardTitle>
+            <CardTitle className="text-sm font-medium text-black">Pending Approvals</CardTitle>
           </CardHeader>
           <CardContent className="flex items-center gap-3">
             <FileCheck className="h-5 w-5 text-yellow-600" />
             <span className="text-xl font-semibold text-gray-900">{pendingCompanies}</span>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="bg-white">
           <CardHeader>
-            <CardTitle className="text-sm font-medium">Total Employees</CardTitle>
+            <CardTitle className="text-sm font-medium text-black  ">Total Employees</CardTitle>
           </CardHeader>
           <CardContent className="flex items-center gap-3">
             <Users className="h-5 w-5 text-purple-600" />
@@ -119,7 +119,7 @@ export default function AdminDashboardPage() {
           <p className="text-gray-600 text-sm">No companies awaiting approval.</p>
         ) : (
           <table className="w-full border-collapse border border-gray-300 text-sm">
-            <thead>
+            <thead className="text-black">
               <tr className="bg-gray-100">
                 <th className="border border-gray-300 p-2 text-left font-medium">Company</th>
                 <th className="border border-gray-300 p-2 text-left font-medium">Email</th>
@@ -127,7 +127,7 @@ export default function AdminDashboardPage() {
                 <th className="border border-gray-300 p-2 text-center font-medium">Actions</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="text-black">
               {companies
                 .filter((c) => c.status === "Pending")
                 .map((company) => (
@@ -140,7 +140,7 @@ export default function AdminDashboardPage() {
                         size="sm"
                         variant="outline"
                         onClick={() => updateCompanyStatus(company.id, "Approved")}
-                        className="text-green-600 border-green-600 hover:bg-green-100"
+                        className="text-green-600 border-green-600 hover:bg-green-100 bg-white"
                         aria-label={`Approve ${company.name}`}
                       >
                         <CheckCircle className="mr-1 h-4 w-4" /> Approve
@@ -149,7 +149,7 @@ export default function AdminDashboardPage() {
                         size="sm"
                         variant="outline"
                         onClick={() => updateCompanyStatus(company.id, "Rejected")}
-                        className="text-red-600 border-red-600 hover:bg-red-100"
+                        className="text-red-600 border-red-600 hover:bg-red-100 bg-white"
                         aria-label={`Reject ${company.name}`}
                       >
                         <XCircle className="mr-1 h-4 w-4" /> Reject
@@ -164,8 +164,8 @@ export default function AdminDashboardPage() {
 
       <section>
         <h2 className="text-lg font-semibold mb-4">Recent Employees</h2>
-        <table className="w-full border-collapse border border-gray-300 text-sm">
-          <thead>
+        <table className="w-full border-collapse border border-gray-300 text-sm text-black">
+          <thead className="font-bold">
             <tr className="bg-gray-100">
               <th className="border border-gray-300 p-2 text-left font-medium">Name</th>
               <th className="border border-gray-300 p-2 text-left font-medium">Company</th>

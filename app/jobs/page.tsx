@@ -317,11 +317,11 @@ export default function JobsPage() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">All Salaries</SelectItem>
-                      <SelectItem value="under-50k">Under $50,000</SelectItem>
+                      <SelectItem value="under-50k">Under RWF 50,000</SelectItem>
                       <SelectItem value="50k-100k">
-                        $50,000 - $100,000
+                          50,000 - 100,000
                       </SelectItem>
-                      <SelectItem value="over-100k">Over $100,000</SelectItem>
+                      <SelectItem value="over-100k">Over RWF 100,000</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

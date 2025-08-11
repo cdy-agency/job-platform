@@ -32,11 +32,11 @@ const NavBar = () => {
             <div className="flex items-center space-x-6">
               <div className="flex items-center space-x-2">
                 <Phone className="h-4 w-4 text-gray-500" />
-                <span className="text-gray-700">Phone: 0784041381</span>
+                <span className="text-gray-700">0784041381</span>
               </div>
               <div className="flex items-center space-x-2">
                 <Mail className="h-4 w-4 text-gray-500" />
-                <span className="text-gray-700">Mail: akazilink@gmail.com</span>
+                <span className="text-gray-700">akazilink@gmail.com</span>
               </div>
             </div>
             <div className="hidden sm:flex items-center space-x-3">

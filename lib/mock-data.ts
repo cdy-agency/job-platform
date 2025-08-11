@@ -188,7 +188,7 @@ export const mockJobs = [
     location: "Northern",
     employmentType: "full-time", // Changed from 'type' to 'employmentType'
     category: "Frontend Development",
-    salary: "$80,000 - $120,000",
+    salary: "80,000 - 120,000",
     description: "We are looking for a skilled Frontend Developer to join our team and help build amazing user experiences.",
     requirements: [
       "3+ years of React experience",

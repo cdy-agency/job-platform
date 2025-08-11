@@ -44,7 +44,7 @@ export default function ManageEmployeesPage() {
 
       {/* Employees table */}
       <div className="overflow-x-auto rounded-lg border border-gray-300">
-        <table className="w-full divide-y divide-gray-200 text-sm">
+        <table className="w-full divide-y divide-gray-200 text-sm text-black">
           <thead className="bg-gray-50">
             <tr>
               <th className="whitespace-nowrap px-4 py-3 text-left font-semibold text-gray-700">Name</th>
@@ -66,7 +66,7 @@ export default function ManageEmployeesPage() {
                     <Button
                       size="sm"
                       variant="outline"
-                      className="text-indigo-600 border-indigo-600 hover:bg-indigo-100"
+                      className="text-indigo-600 border-indigo-600 hover:bg-indigo-100 bg-white"
                       aria-label={`View ${emp.name}`}
                     >
                       <Eye className="h-4 w-4" />
@@ -74,7 +74,7 @@ export default function ManageEmployeesPage() {
                     <Button
                       size="sm"
                       variant="outline"
-                      className="text-green-600 border-green-600 hover:bg-green-100"
+                      className="text-green-600 border-green-600 hover:bg-green-100 bg-white"
                       aria-label={`Edit ${emp.name}`}
                     >
                       <Edit className="h-4 w-4" />
@@ -82,7 +82,7 @@ export default function ManageEmployeesPage() {
                     <Button
                       size="sm"
                       variant="outline"
-                      className="text-red-600 border-red-600 hover:bg-red-100"
+                      className="text-red-600 border-red-600 hover:bg-red-100 bg-white"
                       aria-label={`Delete ${emp.name}`}
                     >
                       <Trash2 className="h-4 w-4" />

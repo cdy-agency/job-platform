@@ -1,23 +1,80 @@
-"use client"
+"use client";
 
-import React from 'react';
-import { useRouter } from 'next/router';
-import { ArrowLeft, MapPin, Clock, Users, Building, Star } from 'lucide-react';
-import { getJobById } from '@/lib/mock-data';
-import { Button } from '@/components/ui/button';
+import React, { useState, useEffect } from "react";
+import { useRouter, useParams } from "next/navigation";
+import {
+  MapPin,
+  Clock,
+  Users,
+  Building,
+  Star,
+  Bookmark,
+  Share2,
+  ArrowUp,
+  CheckCircle,
+  Briefcase,
+  DollarSign,
+  Calendar,
+} from "lucide-react";
+import { getJobById } from "@/lib/mock-data";
+import { Button } from "@/components/ui/button";
+import NavBar from "@/components/home/NavBar";
+
+const mainPurple = "#834de3";
 
 export default function JobDetailsPage() {
   const router = useRouter();
-  const { id } = router.query;
-  
-  const job = getJobById(id as string);
-  
+  const params = useParams();
+  const id = params.id as string;
+  const [isBookmarked, setIsBookmarked] = useState(false);
+  const [activeSection, setActiveSection] = useState("about-us");
+  const [showScrollTop, setShowScrollTop] = useState(false);
+
+  const job = getJobById(id);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const sections = [
+        "about-us",
+        "job-summary",
+        "responsibilities",
+        "requirements",
+        "skills",
+        "apply",
+      ];
+      const scrollPosition = window.scrollY + 200;
+
+      for (const section of sections.reverse()) {
+        const element = document.getElementById(section);
+        if (element && element.offsetTop <= scrollPosition) {
+          setActiveSection(section);
+          break;
+        }
+      }
+
+      setShowScrollTop(window.scrollY > 400);
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   if (!job) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">Job Not Found</h1>
-          <Button onClick={() => router.push('/')}>
+      <div className="min-h-screen flex items-center justify-center px-6 bg-[#f5f5fb]">
+        <div className="text-center bg-white p-8 rounded-lg border border-gray-200">
+          <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-md flex items-center justify-center">
+            <Briefcase className="h-8 w-8 text-gray-400" />
+          </div>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Job Not Found</h1>
+          <p className="text-gray-600 mb-6">
+            The job you're looking for doesn't exist or has been removed.
+          </p>
+          <Button
+            onClick={() => router.push("/")}
+            style={{ backgroundColor: mainPurple }}
+            className="hover:brightness-110"
+          >
             Back to Home
           </Button>
         </div>
@@ -26,161 +83,285 @@ export default function JobDetailsPage() {
   }
 
   const handleApply = () => {
-    // Handle job application logic here
-    alert('Application submitted successfully!');
+    alert("Application submitted successfully!");
   };
 
+  const handleBookmark = () => {
+    setIsBookmarked(!isBookmarked);
+  };
+
+  const handleShare = () => {
+    if (navigator.share) {
+      navigator.share({
+        title: job.title,
+        text: `Check out this job at ${job.company.name}`,
+        url: window.location.href,
+      });
+    } else {
+      navigator.clipboard.writeText(window.location.href);
+      alert("Link copied to clipboard!");
+    }
+  };
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const tocItems = [
+    { id: "about-us", label: "About Us", icon: <Building className="h-4 w-4" /> },
+    { id: "job-summary", label: "Job Summary", icon: <Briefcase className="h-4 w-4" /> },
+    { id: "responsibilities", label: "Responsibilities", icon: <CheckCircle className="h-4 w-4" /> },
+    { id: "requirements", label: "Requirements", icon: <Users className="h-4 w-4" /> },
+    { id: "skills", label: "Skills", icon: <Star className="h-4 w-4" /> },
+    { id: "apply", label: "How to Apply", icon: <ArrowUp className="h-4 w-4" /> },
+  ];
+
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[#f5f5fb]">
+      <NavBar />
+
       {/* Header */}
-      <div className="bg-white shadow-sm border-b">
-        <div className="container mx-auto px-4 py-4">
-          <button 
-            onClick={() => router.back()}
-            className="flex items-center text-gray-600 hover:text-purple-600 transition-colors mb-4"
-          >
-            <ArrowLeft className="h-5 w-5 mr-2" />
-            Back to Jobs
-          </button>
-          
-          <div className="flex items-start gap-6">
-            <img
-              src={job.company.logo}
-              alt={job.company.name}
-              className="w-20 h-20 rounded-xl object-cover"
-            />
-            <div className="flex-1">
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">{job.title}</h1>
-              <div className="flex items-center gap-4 text-gray-600 mb-4">
-                <div className="flex items-center gap-1">
-                  <Building className="h-5 w-5" />
-                  <span className="text-lg">{job.company.name}</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <MapPin className="h-5 w-5" />
-                  <span>{job.location}</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <Clock className="h-5 w-5" />
-                  <span>{job.experience}</span>
-                </div>
-              </div>
-              
-              <div className="flex items-center gap-3 mb-4">
-                <span className="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-sm font-medium">
-                  {job.employmentType.charAt(0).toUpperCase() + job.employmentType.slice(1)}
-                </span>
-                <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm font-medium">
-                  {job.category}
-                </span>
-                {job.featured && (
-                  <span className="bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full text-sm font-medium flex items-center gap-1">
-                    <Star className="h-4 w-4 fill-current" />
-                    Featured
-                  </span>
-                )}
+      <div className="relative overflow-hidden bg-white py-12 px-8 border-b border-gray-200">
+        <div className="max-w-6xl mx-auto flex flex-col lg:flex-row items-start gap-8">
+          <img
+            src={job.company.logo}
+            alt={job.company.name}
+            className="w-24 h-24 rounded-md border border-gray-300 object-cover"
+          />
+
+          <div className="flex-1">
+            <div className="flex justify-between items-start mb-4">
+              <div>
+                <h1
+                  className="text-4xl font-bold"
+                  style={{ color: mainPurple }}
+                >
+                  {job.title}
+                </h1>
+                <p className="text-gray-700 font-medium">{job.company.name}</p>
               </div>
 
-              {job.salary && (
-                <div className="text-2xl font-bold text-purple-600 mb-4">
-                  {job.salary}
-                </div>
-              )}
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleShare}
+                  className="border bg-white border-gray-300 hover:bg-[#f0eaff] text-gray-700"
+                >
+                  <Share2 className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+              <InfoCard
+                icon={<MapPin className="h-4 w-4" />}
+                label="Location"
+                value={job.location}
+              />
+              <InfoCard
+                icon={<Clock className="h-4 w-4" />}
+                label="Experience"
+                value={job.experience}
+              />
+              <InfoCard
+                icon={<DollarSign className="h-4 w-4" />}
+                label="Salary"
+                value="Competitive"
+              />
+              <InfoCard
+                icon={<Calendar className="h-4 w-4" />}
+                label="Posted"
+                value="2 days ago"
+              />
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              <Badge text={job.employmentType} />
+              <Badge text={job.category} />
+              {job.featured && <Badge text="Featured" />}
+              <Badge text="Remote Friendly" />
             </div>
           </div>
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="container mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Left Column - Job Details */}
-          <div className="lg:col-span-2 space-y-8">
-            {/* Description */}
-            <div className="bg-white rounded-xl p-6 shadow-sm">
-              <h2 className="text-xl font-bold text-gray-900 mb-4">Job Description</h2>
-              <p className="text-gray-700 leading-relaxed">{job.description}</p>
-            </div>
-
-            {/* Responsibilities */}
-            <div className="bg-white rounded-xl p-6 shadow-sm">
-              <h2 className="text-xl font-bold text-gray-900 mb-4">Responsibilities</h2>
-              <ul className="space-y-2">
-                {job.responsibilities.map((responsibility, index) => (
-                  <li key={index} className="flex items-start gap-3">
-                    <div className="w-2 h-2 bg-purple-600 rounded-full mt-2 flex-shrink-0"></div>
-                    <span className="text-gray-700">{responsibility}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {/* Requirements */}
-            <div className="bg-white rounded-xl p-6 shadow-sm">
-              <h2 className="text-xl font-bold text-gray-900 mb-4">Requirements</h2>
-              <ul className="space-y-2">
-                {job.requirements.map((requirement, index) => (
-                  <li key={index} className="flex items-start gap-3">
-                    <div className="w-2 h-2 bg-blue-600 rounded-full mt-2 flex-shrink-0"></div>
-                    <span className="text-gray-700">{requirement}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {/* Skills */}
-            <div className="bg-white rounded-xl p-6 shadow-sm">
-              <h2 className="text-xl font-bold text-gray-900 mb-4">Required Skills</h2>
-              <div className="flex flex-wrap gap-2">
-                {job.skills.map((skill, index) => (
-                  <span 
-                    key={index}
-                    className="bg-purple-100 text-purple-700 px-3 py-2 rounded-lg font-medium"
+      {/* Main content */}
+      <div className="max-w-6xl mx-auto px-8 py-12 grid grid-cols-1 lg:grid-cols-4 gap-8">
+        <aside className="lg:col-span-1">
+          <nav className="sticky top-24 bg-white border border-gray-200 rounded-md p-5">
+            <h3
+              className="text-sm font-bold text-gray-700 mb-6 uppercase tracking-wider flex items-center gap-2"
+              style={{ color: mainPurple }}
+            >
+              <div
+                className="w-1 h-4 rounded"
+                style={{ backgroundColor: mainPurple }}
+              ></div>
+              Contents
+            </h3>
+            <ul className="space-y-1">
+              {tocItems.map((item) => (
+                <li key={item.id}>
+                  <a
+                    href={`#${item.id}`}
+                    className={`flex items-center gap-3 px-3 py-2 rounded text-sm font-medium transition-colors duration-200 ${
+                      activeSection === item.id
+                        ? `bg-[#e5dbff] text-[#834de3]`
+                        : "text-gray-600 hover:text-[#834de3]"
+                    }`}
                   >
-                    {skill}
-                  </span>
-                ))}
-              </div>
+                    <div
+                      className={`h-4 w-4 ${
+                        activeSection === item.id ? "text-[#834de3]" : "text-gray-400"
+                      }`}
+                    >
+                      {item.icon}
+                    </div>
+                    {item.label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        </aside>
+
+        <div className="lg:col-span-3 space-y-8">
+          <Section id="about-us" title="About Us" color={mainPurple}>
+            <p className="text-gray-700 leading-relaxed text-lg">
+              {job.company.name}
+            </p>
+          </Section>
+
+          <Section id="job-summary" title="Job Summary" color={mainPurple}>
+            <p className="text-gray-700 leading-relaxed text-lg">
+              {job.description}
+            </p>
+          </Section>
+
+          <Section id="responsibilities" title="Responsibilities" color={mainPurple}>
+            <SimpleList items={job.responsibilities} />
+          </Section>
+
+          <Section id="requirements" title="Requirements" color={mainPurple}>
+            <SimpleList items={job.requirements} />
+          </Section>
+
+          <Section id="skills" title="Skills Required" color={mainPurple}>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+              {job.skills.map((skill, i) => (
+                <div
+                  key={i}
+                  className="border border-gray-300 rounded-md p-3 text-gray-700 font-semibold text-sm text-center hover:bg-[#f3e8ff] cursor-default"
+                >
+                  {skill}
+                </div>
+              ))}
             </div>
-          </div>
+          </Section>
 
-          {/* Right Column - Application Card */}
-          <div className="lg:col-span-1">
-            <div className="bg-white rounded-xl p-6 shadow-sm sticky top-8">
-              <h3 className="text-xl font-bold text-gray-900 mb-6">Apply for this job</h3>
-              
-              <div className="space-y-4 mb-6">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-600">Posted</span>
-                  <span className="font-medium">{new Date(job.postedDate).toLocaleDateString()}</span>
-                </div>
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-600">Deadline</span>
-                  <span className="font-medium">{new Date(job.applicationDeadline).toLocaleDateString()}</span>
-                </div>
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-600 flex items-center gap-1">
-                    <Users className="h-4 w-4" />
-                    Applicants
-                  </span>
-                  <span className="font-medium">{job.applicants.length}</span>
-                </div>
-              </div>
-
-              <Button 
+          <Section id="apply" title="Ready to Apply?" color={mainPurple}>
+            <div className="text-center py-6">
+              <Button
                 onClick={handleApply}
-                className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-blue-600 hover:to-purple-600 text-white font-semibold py-3 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl"
+                style={{ backgroundColor: mainPurple }}
+                className="text-white font-bold px-10 py-3 rounded-md transition-transform duration-200 hover:scale-105"
               >
                 Apply Now
               </Button>
-
-              <p className="text-xs text-gray-500 mt-4 text-center">
-                By applying, you agree to our terms and privacy policy
+              <p className="text-sm text-gray-500 mt-4 max-w-md mx-auto">
+                Join our team and be part of something amazing. We review all
+                applications within 48 hours.
               </p>
             </div>
-          </div>
+          </Section>
         </div>
       </div>
+
+      {showScrollTop && (
+        <button
+          onClick={scrollToTop}
+          style={{ backgroundColor: mainPurple }}
+          className="fixed bottom-8 right-8 text-white p-3 rounded-full transition-transform duration-200 hover:scale-110 z-50"
+        >
+          <ArrowUp className="h-5 w-5" />
+        </button>
+      )}
     </div>
+  );
+}
+
+function InfoCard({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
+  return (
+    <div className="bg-white border border-gray-200 rounded-md p-4">
+      <div className="flex items-center gap-2 mb-1">
+        <div className="h-4 w-4 text-[#834de3]">{icon}</div>
+        <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+          {label}
+        </span>
+      </div>
+      <p className="font-semibold text-gray-900">{value}</p>
+    </div>
+  );
+}
+
+function Section({
+  id,
+  title,
+  children,
+  color,
+}: {
+  id: string;
+  title: string;
+  children: React.ReactNode;
+  color: string;
+}) {
+  return (
+    <section
+      id={id}
+      className="bg-white rounded-md p-8 border border-gray-200 scroll-mt-28"
+    >
+      <div className="flex items-center gap-3 mb-6">
+        <div
+          className="w-1 h-8 rounded"
+          style={{ backgroundColor: color }}
+        ></div>
+        <h2
+          className="text-2xl font-bold"
+          style={{ color: color }}
+        >
+          {title}
+        </h2>
+      </div>
+      {children}
+    </section>
+  );
+}
+
+function Badge({ text }: { text: string }) {
+  return (
+    <span
+      className="px-3 py-1 text-sm font-semibold text-white rounded-md"
+      style={{ backgroundColor: mainPurple }}
+    >
+      {text}
+    </span>
+  );
+}
+
+function SimpleList({ items }: { items: string[] }) {
+  return (
+    <ul className="space-y-3">
+      {items.map((item, i) => (
+        <li key={i} className="flex items-start gap-3">
+          <div
+            className="w-5 h-5 bg-[#834de3] rounded flex items-center justify-center text-white flex-shrink-0"
+          >
+            <CheckCircle className="h-3 w-3" />
+          </div>
+          <span className="text-gray-700">{item}</span>
+        </li>
+      ))}
+    </ul>
   );
 }

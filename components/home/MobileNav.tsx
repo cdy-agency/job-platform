@@ -31,9 +31,9 @@ export function MobileNav() {
         <div className="flex h-full flex-col">
           <div className="flex items-center justify-between border-b border-gray-200 py-4">
             <Link href="/" className="text-2xl font-bold text-[#834de3]" onClick={() => setOpen(false)}>
-              tbd.
+              Akazi Link
             </Link>
-            <Button onClick={() => setOpen(false)} className="hover:bg-gray-100">
+            <Button onClick={() => setOpen(false)} className="hover:bg-gray-100 ">
               <X className="h-5 w-5 text-gray-700" />
               <span className="sr-only">Close menu</span>
             </Button>
@@ -58,9 +58,9 @@ export function MobileNav() {
               ))}
             </ul>
           </nav>
-          <div className="border-t border-gray-200 py-4 space-y-3">
+          <div className="border-t border-gray-200 py-4 space-y-3 gap-3 flex flex-col">
             <Link href="/login" onClick={() => setOpen(false)}>
-              <Button variant="outline" className="w-full border-[#834de3] text-[#834de3] hover:bg-[#834de3] hover:text-white">
+              <Button variant="outline" className="w-full border-[#834de3] text-[#834de3] hover:bg-[#834de3] hover:text-white bg-white">
                 Log in
               </Button>
             </Link>

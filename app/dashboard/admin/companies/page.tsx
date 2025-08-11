@@ -67,7 +67,7 @@ export default function ManageCompaniesPage() {
       {/* Companies table */}
       <div className="overflow-x-auto rounded-lg border border-gray-300">
         <table className="w-full divide-y divide-gray-200 text-sm">
-          <thead className="bg-gray-50">
+          <thead className="bg-gray-50 text-black">
             <tr>
               <th className="whitespace-nowrap px-4 py-3 text-left font-semibold text-gray-700">Company Name</th>
               <th className="whitespace-nowrap px-4 py-3 text-left font-semibold text-gray-700">Email</th>
@@ -79,7 +79,7 @@ export default function ManageCompaniesPage() {
           <tbody className="divide-y divide-gray-200 bg-white">
             {filteredCompanies.length > 0 ? (
               filteredCompanies.map((comp) => (
-                <tr key={comp.id} className="hover:bg-gray-50">
+                <tr key={comp.id} className="hover:bg-gray-50 text-black">
                   <td className="whitespace-nowrap px-4 py-3">{comp.name}</td>
                   <td className="whitespace-nowrap px-4 py-3">{comp.email}</td>
                   <td className="whitespace-nowrap px-4 py-3">{new Date(comp.registeredAt).toLocaleDateString()}</td>
@@ -94,7 +94,7 @@ export default function ManageCompaniesPage() {
                         <Button
                           size="sm"
                           variant="outline"
-                          className="text-green-600 border-green-600 hover:bg-green-100"
+                          className="text-green-600 border-green-600 hover:bg-green-100 bg-white"
                           aria-label={`Approve ${comp.name}`}
                         >
                           <Check className="h-4 w-4" />
@@ -102,7 +102,7 @@ export default function ManageCompaniesPage() {
                         <Button
                           size="sm"
                           variant="outline"
-                          className="text-yellow-600 border-yellow-600 hover:bg-yellow-100"
+                          className="text-yellow-600 border-yellow-600 hover:bg-yellow-100 bg-white"
                           aria-label={`Reject ${comp.name}`}
                         >
                           <X className="h-4 w-4" />
@@ -112,7 +112,7 @@ export default function ManageCompaniesPage() {
                     <Button
                       size="sm"
                       variant="outline"
-                      className="text-indigo-600 border-indigo-600 hover:bg-indigo-100"
+                      className="text-indigo-600 border-indigo-600 hover:bg-indigo-100 bg-white"
                       aria-label={`View ${comp.name}`}
                     >
                       <Eye className="h-4 w-4" />
@@ -120,7 +120,7 @@ export default function ManageCompaniesPage() {
                     <Button
                       size="sm"
                       variant="outline"
-                      className="text-red-600 border-red-600 hover:bg-red-100"
+                      className="text-red-600 border-red-600 hover:bg-red-100 bg-white"
                       aria-label={`Delete ${comp.name}`}
                     >
                       <Trash2 className="h-4 w-4" />
