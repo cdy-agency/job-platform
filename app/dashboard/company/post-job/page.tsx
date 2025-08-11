@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { toast } from "@/components/ui/use-toast"
-import { postCompanyJob, getCompanyProfile } from "@/lib/api"
+import { postCompanyJob } from "@/lib/api"
 
 const jobFormSchema = z.object({
   title: z.string().min(5, {
@@ -73,15 +73,6 @@ export default function PostJobPage() {
     setIsSubmitting(true)
 
     try {
-      // Ensure company is approved before allowing to post
-      const company = await getCompanyProfile()
-      if (!company.isApproved) {
-        toast({ title: "Awaiting approval", description: "Your company must be approved by admin before posting jobs." })
-        setIsSubmitting(false)
-        return
-      }
-
-      // Map requirements lines to skills array (fallback to a generic skill if empty)
       const skillsFromReq = data.requirements
         .split("\n")
         .map((s) => s.trim())
@@ -91,12 +82,10 @@ export default function PostJobPage() {
       const payload = {
         title: data.title,
         description: data.description,
-        skills, // required by backend
-        // optional fields in backend model
+        skills,
         employmentType: data.type as "fulltime" | "part-time" | "internship",
         salary: `${data.salaryMin}-${data.salaryMax}`,
         category: data.category,
-        // Do NOT send unsupported keys like location/requirements/responsibilities
       }
 
       await postCompanyJob(payload as any)
