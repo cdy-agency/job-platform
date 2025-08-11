@@ -56,19 +56,18 @@ export const loginUser = async (
     });
     user = res.data as EmployeeUser;
   } else if (!user && role === "company") {
-    const res = await api.get("/company/profile", {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    const company = res.data as CompanyProfile;
+    // Do NOT call /company/profile here to avoid 403 for unapproved companies.
+    // Construct a minimal company auth user from the JWT payload.
+    const payload = decodeJwtPayload(token);
     user = {
-      id: company._id,
-      companyName: company.companyName,
-      location: company.location || "",
-      phoneNumber: company.phoneNumber || "",
-      website: company.website || "",
-      logo: company.logo || "",
+      id: payload?.id || "",
+      companyName: "",
+      location: "",
+      phoneNumber: "",
+      website: "",
+      logo: "",
       role: "company",
-      isApproved: company.isApproved,
+      // isApproved unknown at login time; will be checked lazily on company pages
     } as any;
   } else if (!user && role === "superadmin") {
     const payload = decodeJwtPayload(token);
