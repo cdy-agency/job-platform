@@ -5,9 +5,13 @@ import Link from "next/link"
 import React, { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Phone, Mail, Linkedin, Instagram, Facebook, Twitter } from "lucide-react"
+import { useAuth } from "@/context/authContext"
+import { useRouter } from "next/navigation"
 
 const NavBar = () => {
   const [isScrolled, setIsScrolled] = useState(false)
+  const { user, logout } = useAuth()
+  const router = useRouter()
 
   useEffect(() => {
     const handleScroll = () => {
@@ -18,6 +22,15 @@ const NavBar = () => {
     window.addEventListener('scroll', handleScroll)
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
+
+  const dashboardPath = user?.role === 'superadmin'
+    ? '/dashboard/admin'
+    : user?.role === 'company'
+      ? '/dashboard/company'
+      : '/dashboard/user'
+
+  const displayName = (user as any)?.companyName || (user as any)?.name || 'Account'
+  const avatar = (user as any)?.logo || ''
 
   return (
     <div className="relative">
@@ -95,25 +108,59 @@ const NavBar = () => {
               </nav>
             </div>
             
-            {/* Desktop Auth Buttons - Right */}
+            {/* Desktop Auth/User - Right */}
             <div className="hidden md:flex items-center gap-4 flex-shrink-0">
-              <Link href="/login">
-                <Button 
-                  size="sm" 
-                  variant="outline"
-                  className="border-[#834de3] bg-[#834de3] hover:bg-[#8d6ee9] text-white font-medium px-6"
-                >
-                  Log in
-                </Button>
-              </Link>
-              <Link href="/register">
-                <Button 
-                  size="sm" 
-                  className="bg-[#834de3] hover:bg-[rgb(141,110,233)] text-white font-medium px-6"
-                >
-                  Create account
-                </Button>
-              </Link>
+              {user ? (
+                <div className="flex items-center gap-3">
+                  <Link href={dashboardPath}>
+                    <Button 
+                      size="sm"
+                      variant="outline"
+                      className="border-[#834de3] bg-white hover:bg-[#f5f0ff] text-[#834de3] font-medium px-4"
+                    >
+                      <span className="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-[#ece7fb] overflow-hidden">
+                        {avatar ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={avatar} alt="avatar" className="h-6 w-6 object-cover" />
+                        ) : (
+                          <span className="text-xs font-bold text-[#834de3]">
+                            {displayName?.charAt(0)?.toUpperCase() || 'U'}
+                          </span>
+                        )}
+                      </span>
+                      {displayName}
+                    </Button>
+                  </Link>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="border-gray-300 bg-white text-gray-700"
+                    onClick={() => { logout(); router.push('/') }}
+                  >
+                    Logout
+                  </Button>
+                </div>
+              ) : (
+                <>
+                  <Link href="/login">
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      className="border-[#834de3] bg-[#834de3] hover:bg-[#8d6ee9] text-white font-medium px-6"
+                    >
+                      Log in
+                    </Button>
+                  </Link>
+                  <Link href="/register">
+                    <Button 
+                      size="sm" 
+                      className="bg-[#834de3] hover:bg-[rgb(141,110,233)] text-white font-medium px-6"
+                    >
+                      Create account
+                    </Button>
+                  </Link>
+                </>
+              )}
             </div>
             
             {/* Mobile Navigation */}

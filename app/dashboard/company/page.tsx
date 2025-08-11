@@ -1,25 +1,46 @@
+"use client"
+
 import Link from "next/link"
+import { useEffect, useState } from "react"
 import { Bell, PlusCircle, Users } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { mockCompanies, mockJobs, mockApplications, mockUsers } from "@/lib/mock-data"
+import { fetchCompanyJobs, fetchCompanyProfile, fetchJobApplicants } from "@/lib/api"
 
 export default function CompanyDashboardPage() {
-  // Mock data for the current company
-  const currentCompany = mockCompanies[0]
+  const [profile, setProfile] = useState<any>(null)
+  const [jobs, setJobs] = useState<any[]>([])
+  const [applicants, setApplicants] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
 
-  // Get company's posted jobs
-  const companyJobs = mockJobs.filter((job) => job.company.id === currentCompany.id)
+  useEffect(() => {
+    fetchCompanyProfile()
+      .then((p) => setProfile(p || null))
+      .catch(() => setProfile(null))
+    fetchCompanyJobs()
+      .then(async (list) => {
+        setJobs(list || [])
+        if ((list || []).length > 0) {
+          const firstJobId = list[0]._id
+          try {
+            const apps = await fetchJobApplicants(firstJobId)
+            setApplicants(apps || [])
+          } catch {
+            setApplicants([])
+          }
+        }
+      })
+      .finally(() => setLoading(false))
+  }, [])
 
-  // Get applications for company's jobs
-  const jobApplications = mockApplications.filter((app) => companyJobs.some((job) => job.id === app.jobId))
+  if (loading) return <div className="p-6">Loading...</div>
 
   return (
     <div className="container space-y-8 p-6 pb-16">
       <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-gray-800">Company Dashboard</h1>
-          <p className="text-gray-600">Welcome back, {currentCompany.name}</p>
+          <p className="text-gray-600">Welcome back{profile?.companyName ? `, ${profile.companyName}` : ''}</p>
         </div>
         <div className="flex items-center gap-2">
           <Button
@@ -45,7 +66,7 @@ export default function CompanyDashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="flex items-center justify-between">
-              <div className="text-2xl font-bold text-gray-800">{companyJobs.length}</div>
+              <div className="text-2xl font-bold text-gray-800">{jobs.length}</div>
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="24"
@@ -74,11 +95,11 @@ export default function CompanyDashboardPage() {
         </Card>
         <Card className="border-gray-200">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">Total Applicants</CardTitle>
+            <CardTitle className="text-sm font-medium text-gray-600">Total Applicants (latest job)</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center justify-between">
-              <div className="text-2xl font-bold text-gray-800">{jobApplications.length}</div>
+              <div className="text-2xl font-bold text-gray-800">{applicants.length}</div>
               <Users className="h-5 w-5 text-gray-600" />
             </div>
           </CardContent>
@@ -143,23 +164,20 @@ export default function CompanyDashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {companyJobs.slice(0, 3).map((job) => (
-                <div key={job.id} className="flex items-center justify-between">
+              {jobs.slice(0, 3).map((job) => (
+                <div key={job._id} className="flex items-center justify-between">
                   <div>
                     <h4 className="font-medium text-gray-800">{job.title}</h4>
                     <div className="mt-1 flex flex-wrap gap-2">
                       <span className="rounded-full bg-blue-100 px-2 py-0.5 text-xs text-blue-800">{job.employmentType}</span>
-                      <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-800">{job.location}</span>
-                      <span className="text-xs text-gray-600">
-                        Posted on {new Date(job.postedDate).toLocaleDateString()}
-                      </span>
+                      {job.location && <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-800">{job.location}</span>}
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="rounded-full bg-green-100 px-2 py-0.5 text-xs text-green-800">
-                      {job.applicants.length} Applicants
+                      {Array.isArray(job.applicants) ? job.applicants.length : 0} Applicants
                     </span>
-                    <Link href={`/dashboard/company/jobs/${job.id}`}>
+                    <Link href={`/dashboard/company/jobs/${job._id}`}>
                       <Button size="sm" className="text-gray-600 hover:text-gray-800">
                         View
                       </Button>
@@ -185,39 +203,33 @@ export default function CompanyDashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {jobApplications.map((app) => {
-                const job = mockJobs.find((j) => j.id === app.jobId)
-                const user = mockUsers.find((u) => u.id === app.userId)
-                if (!job || !user) return null
-
-                return (
-                  <div key={app.id} className="flex items-center justify-between">
-                    <div className="flex items-start gap-3">
-                      <div className="h-10 w-10 overflow-hidden rounded-full">
-                        <img
-                          src={user.profilePicture || "/placeholder.svg"}
-                          alt={user.name}
-                          className="h-full w-full object-cover"
-                          width={40}
-                          height={40}
-                        />
-                      </div>
-                      <div>
-                        <h4 className="font-medium text-gray-800">{user.name}</h4>
-                        <p className="text-sm text-gray-600">Applied for {job.title}</p>
-                        <p className="text-xs text-gray-600">
-                          Applied on {new Date(app.appliedDate).toLocaleDateString()}
-                        </p>
-                      </div>
+              {applicants.map((app) => (
+                <div key={app._id} className="flex items-center justify-between">
+                  <div className="flex items-start gap-3">
+                    <div className="h-10 w-10 overflow-hidden rounded-full">
+                      <img
+                        src={(app.employeeId?.profilePicture) || "/placeholder.svg"}
+                        alt={(app.employeeId?.name) || 'Applicant'}
+                        className="h-full w-full object-cover"
+                        width={40}
+                        height={40}
+                      />
                     </div>
-                    <Link href={`/dashboard/company/applicants/${app.id}`}>
-                      <Button size="sm" className="text-gray-600 hover:text-gray-800">
-                        Review
-                      </Button>
-                    </Link>
+                    <div>
+                      <h4 className="font-medium text-gray-800">{app.employeeId?.name || 'Applicant'}</h4>
+                      <p className="text-sm text-gray-600">Applied for {app.jobId?.title || ''}</p>
+                      <p className="text-xs text-gray-600">
+                        Applied on {app.createdAt ? new Date(app.createdAt).toLocaleDateString() : '—'}
+                      </p>
+                    </div>
                   </div>
-                )
-              })}
+                  <Link href={`/dashboard/company/applicants`}>
+                    <Button size="sm" className="text-gray-600 hover:text-gray-800">
+                      Review
+                    </Button>
+                  </Link>
+                </div>
+              ))}
               <div className="pt-2 text-center">
                 <Link href="/dashboard/company/applicants">
                   <Button className="text-blue-500">

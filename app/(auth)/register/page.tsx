@@ -90,8 +90,10 @@ export default function RegisterPage() {
         })
         console.log("Employee registered:", response);
       }
-    } catch (error) {
-      console.error("Registration error:", error);
+    } catch (error: any) {
+      setError(error?.response?.data?.message || 'Registration failed')
+    } finally {
+      setLoading(false)
     }
   };
 
