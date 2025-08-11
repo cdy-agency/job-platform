@@ -2,6 +2,7 @@
 
 import { useState, ChangeEvent, FormEvent } from "react"
 import { Button } from "@/components/ui/button"
+import { adminUpdatePassword } from "@/lib/api"
 
 export default function AdminProfilePage() {
   const [name, setName] = useState("Admin User")
@@ -13,6 +14,7 @@ export default function AdminProfilePage() {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
+  const [saving, setSaving] = useState(false)
 
   function onImageChange(e: ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
@@ -25,7 +27,7 @@ export default function AdminProfilePage() {
     reader.readAsDataURL(file)
   }
 
-  function onSubmit(e: FormEvent) {
+  async function onSubmit(e: FormEvent) {
     e.preventDefault()
     setError(null)
     setSuccessMessage(null)
@@ -41,12 +43,20 @@ export default function AdminProfilePage() {
       }
     }
 
-    // TODO: Add API call to save profile info here
-    setSuccessMessage("Profile updated successfully!")
-
-    setOldPassword("")
-    setPassword("")
-    setConfirmPassword("")
+    try {
+      setSaving(true)
+      if (password) {
+        await adminUpdatePassword({ currentPassword: oldPassword, newPassword: password })
+      }
+      setSuccessMessage("Profile updated successfully!")
+      setOldPassword("")
+      setPassword("")
+      setConfirmPassword("")
+    } catch (e: any) {
+      setError(e?.response?.data?.message || 'Failed to update')
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (
@@ -166,8 +176,9 @@ export default function AdminProfilePage() {
           <Button
             type="submit"
             className="w-full bg-[#834de3] hover:bg-[#6b3ac2] text-white"
+            disabled={saving}
           >
-            Save Changes
+            {saving ? 'Saving...' : 'Save Changes'}
           </Button>
         </form>
       </div>

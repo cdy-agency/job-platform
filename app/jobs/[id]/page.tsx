@@ -19,9 +19,25 @@ import {
 import { getJobById } from "@/lib/mock-data";
 import { Button } from "@/components/ui/button";
 import NavBar from "@/components/home/NavBar";
-import { applyToJob } from "@/lib/api";
+import { applyToJob, fetchJobs } from "@/lib/api";
 
 const mainPurple = "#834de3";
+
+type JobShape = {
+  id: string;
+  title: string;
+  company: { name: string; logo?: string };
+  location: string;
+  employmentType: string;
+  salary?: string;
+  category: string;
+  description: string;
+  experience?: string;
+  responsibilities: string[];
+  requirements: string[];
+  skills: string[];
+  featured?: boolean;
+};
 
 export default function JobDetailsPage() {
   const router = useRouter();
@@ -31,8 +47,40 @@ export default function JobDetailsPage() {
   const [activeSection, setActiveSection] = useState("about-us");
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [applying, setApplying] = useState(false)
+  const [remoteJob, setRemoteJob] = useState<JobShape | null>(null)
 
-  const job = getJobById(id);
+  const mockJob = getJobById(id);
+
+  useEffect(() => {
+    // Try to load from API if token exists
+    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
+    if (!token) return
+    fetchJobs()
+      .then((list) => {
+        const found = (list || []).find((j: any) => j._id === id)
+        if (found) {
+          const mapped: JobShape = {
+            id: found._id,
+            title: found.title,
+            company: { name: found.companyId?.companyName || 'Company', logo: found.companyId?.logo },
+            location: found.location || '—',
+            employmentType: found.employmentType || 'fulltime',
+            salary: found.salary,
+            category: found.category || 'General',
+            description: found.description || '',
+            experience: found.experience,
+            responsibilities: [],
+            requirements: [],
+            skills: Array.isArray(found.skills) ? found.skills : [],
+            featured: false,
+          }
+          setRemoteJob(mapped)
+        }
+      })
+      .catch(() => setRemoteJob(null))
+  }, [id])
+
+  const job = remoteJob || mockJob
 
   useEffect(() => {
     const handleScroll = () => {
@@ -137,7 +185,7 @@ export default function JobDetailsPage() {
       <div className="relative overflow-hidden bg-white py-12 px-8 border-b border-gray-200">
         <div className="max-w-6xl mx-auto flex flex-col lg:flex-row items-start gap-8">
           <img
-            src={job.company.logo}
+            src={job.company.logo || '/placeholder.svg'}
             alt={job.company.name}
             className="w-24 h-24 rounded-md border border-gray-300 object-cover"
           />
@@ -175,17 +223,17 @@ export default function JobDetailsPage() {
               <InfoCard
                 icon={<Clock className="h-4 w-4" />}
                 label="Experience"
-                value={job.experience}
+                value={job.experience || '—'}
               />
               <InfoCard
                 icon={<DollarSign className="h-4 w-4" />}
                 label="Salary"
-                value="Competitive"
+                value={job.salary || '—'}
               />
               <InfoCard
                 icon={<Calendar className="h-4 w-4" />}
                 label="Posted"
-                value="2 days ago"
+                value=""
               />
             </div>
 
@@ -253,16 +301,16 @@ export default function JobDetailsPage() {
           </Section>
 
           <Section id="responsibilities" title="Responsibilities" color={mainPurple}>
-            <SimpleList items={job.responsibilities} />
+            <SimpleList items={job.responsibilities || []} />
           </Section>
 
           <Section id="requirements" title="Requirements" color={mainPurple}>
-            <SimpleList items={job.requirements} />
+            <SimpleList items={job.requirements || []} />
           </Section>
 
           <Section id="skills" title="Skills Required" color={mainPurple}>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-              {job.skills.map((skill, i) => (
+              {(job.skills || []).map((skill, i) => (
                 <div
                   key={i}
                   className="border border-gray-300 rounded-md p-3 text-gray-700 font-semibold text-sm text-center hover:bg-[#f3e8ff] cursor-default"

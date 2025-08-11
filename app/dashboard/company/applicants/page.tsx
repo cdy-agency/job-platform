@@ -1,124 +1,142 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { fetchCompanyJobs, fetchJobApplicants } from "@/lib/api";
 
 type Applicant = {
-  id: string;
-  name: string;
-  email: string;
-  phone: string;
-  appliedJob: string;
-  status: "Pending" | "Approved" | "Interview" | "Hired";
-  appliedAt: string;
+  _id: string;
+  employeeId: { name: string; email?: string; phoneNumber?: string } | string;
+  jobId: { title: string } | string;
+  status: "pending" | "reviewed" | "interview" | "hired" | "rejected";
+  createdAt?: string;
 };
 
-const mockApplicants: Applicant[] = [
-  {
-    id: "a1",
-    name: "Alice Johnson",
-    email: "alice@example.com",
-    phone: "+250 788 111 222",
-    appliedJob: "Frontend Developer",
-    status: "Pending",
-    appliedAt: "2025-08-01T09:00:00Z",
-  },
-  {
-    id: "a2",
-    name: "Bob Smith",
-    email: "bob@example.com",
-    phone: "+250 788 333 444",
-    appliedJob: "Backend Engineer",
-    status: "Approved",
-    appliedAt: "2025-07-28T14:20:00Z",
-  },
-  {
-    id: "a3",
-    name: "Clara Doe",
-    email: "clara@example.com",
-    phone: "+250 788 555 666",
-    appliedJob: "Frontend Developer",
-    status: "Interview",
-    appliedAt: "2025-07-30T16:10:00Z",
-  },
-];
-
 export default function ManageApplicantsPage() {
-  const [applicants, setApplicants] = useState<Applicant[]>(mockApplicants);
+  const [jobs, setJobs] = useState<Array<{ _id: string; title: string }>>([]);
+  const [selectedJobId, setSelectedJobId] = useState<string>("");
+  const [applicants, setApplicants] = useState<Applicant[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [loadingApplicants, setLoadingApplicants] = useState(false);
 
-  const updateStatus = (id: string, newStatus: Applicant["status"]) => {
-    setApplicants((prev) =>
-      prev.map((app) => (app.id === id ? { ...app, status: newStatus } : app))
-    );
-  };
+  useEffect(() => {
+    fetchCompanyJobs()
+      .then((list) => {
+        const mapped = (list || []).map((j: any) => ({ _id: j._id, title: j.title }))
+        setJobs(mapped)
+        if (mapped[0]?._id) setSelectedJobId(mapped[0]._id)
+      })
+      .finally(() => setLoading(false))
+  }, [])
+
+  useEffect(() => {
+    if (!selectedJobId) return
+    setLoadingApplicants(true)
+    fetchJobApplicants(selectedJobId)
+      .then((list) => setApplicants(list || []))
+      .finally(() => setLoadingApplicants(false))
+  }, [selectedJobId])
+
+  const updateStatusLocal = (id: string, status: Applicant["status"]) => {
+    setApplicants((prev) => prev.map((a) => a._id === id ? { ...a, status } as Applicant : a))
+  }
+
+  if (loading) return <div className="p-6">Loading...</div>
 
   return (
     <div className="min-h-screen bg-gray-50 px-4 py-10 flex justify-center">
       <div className="w-full max-w-5xl">
         <h1 className="text-xl font-semibold text-gray-900 mb-6">Manage Applicants</h1>
 
-        {applicants.length === 0 ? (
+        <div className="mb-4">
+          <label className="block text-sm text-gray-700 mb-1">Select Job</label>
+          <select
+            value={selectedJobId}
+            onChange={(e) => setSelectedJobId(e.target.value)}
+            className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-black"
+          >
+            {jobs.map((j) => (
+              <option key={j._id} value={j._id}>{j.title}</option>
+            ))}
+          </select>
+        </div>
+
+        {loadingApplicants ? (
+          <p className="text-gray-500">Loading applicants...</p>
+        ) : applicants.length === 0 ? (
           <p className="text-gray-500 text-center">No applicants found.</p>
         ) : (
           <div className="space-y-4">
             {applicants.map((app) => (
               <div
-                key={app.id}
+                key={app._id}
                 className="bg-white rounded-lg shadow border border-gray-200 p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between"
               >
                 <div className="flex-1">
-                  <h3 className="text-md font-semibold text-gray-900">{app.name}</h3>
+                  <h3 className="text-md font-semibold text-gray-900">{typeof app.employeeId === 'object' ? app.employeeId.name : 'Applicant'}</h3>
                   <p className="text-xs text-gray-500 mt-1">
-                    Applied for: <span className="font-medium">{app.appliedJob}</span>
+                    Applied for: <span className="font-medium">{typeof app.jobId === 'object' ? app.jobId.title : ''}</span>
                   </p>
-                  <p className="text-xs text-gray-500">
-                    Email: {app.email} | Phone: {app.phone}
-                  </p>
+                  {typeof app.employeeId === 'object' && (
+                    <p className="text-xs text-gray-500">
+                      Email: {app.employeeId.email || '—'} | Phone: {app.employeeId.phoneNumber || '—'}
+                    </p>
+                  )}
                   <p className="text-xs text-gray-400 mt-1">
-                    Applied on: {new Date(app.appliedAt).toLocaleDateString()}
+                    Applied on: {app.createdAt ? new Date(app.createdAt).toLocaleDateString() : '—'}
                   </p>
                 </div>
 
                 <div className="mt-4 sm:mt-0 flex flex-col sm:flex-row items-center gap-2">
                   <span
                     className={`text-sm font-semibold px-3 py-1 rounded-full ${
-                      app.status === "Pending"
+                      app.status === "pending"
                         ? "bg-yellow-100 text-yellow-800"
-                        : app.status === "Approved"
+                        : app.status === "reviewed"
                         ? "bg-blue-100 text-blue-800"
-                        : app.status === "Interview"
+                        : app.status === "interview"
                         ? "bg-purple-100 text-purple-800"
-                        : "bg-green-100 text-green-800"
+                        : app.status === "hired"
+                        ? "bg-green-100 text-green-800"
+                        : "bg-red-100 text-red-800"
                     }`}
                   >
                     {app.status}
                   </span>
 
-                  {/* Status buttons */}
                   <div className="flex gap-2 flex-wrap justify-center">
-                    {app.status !== "Approved" && (
+                    {app.status !== "reviewed" && (
                       <button
-                        onClick={() => updateStatus(app.id, "Approved")}
+                        onClick={() => updateStatusLocal(app._id, "reviewed")}
                         className="text-xs px-2 py-1 rounded border border-blue-300 text-blue-700 hover:bg-blue-100"
                       >
-                        Approve
+                        Mark Reviewed
                       </button>
                     )}
 
-                    {app.status !== "Interview" && (
+                    {app.status !== "interview" && (
                       <button
-                        onClick={() => updateStatus(app.id, "Interview")}
+                        onClick={() => updateStatusLocal(app._id, "interview")}
                         className="text-xs px-2 py-1 rounded border border-purple-300 text-purple-700 hover:bg-purple-100"
                       >
                         Call Interview
                       </button>
                     )}
 
-                    {app.status !== "Hired" && (
+                    {app.status !== "hired" && (
                       <button
-                        onClick={() => updateStatus(app.id, "Hired")}
+                        onClick={() => updateStatusLocal(app._id, "hired")}
                         className="text-xs px-2 py-1 rounded border border-green-300 text-green-700 hover:bg-green-100"
                       >
                         Mark Hired
+                      </button>
+                    )}
+
+                    {app.status !== "rejected" && (
+                      <button
+                        onClick={() => updateStatusLocal(app._id, "rejected")}
+                        className="text-xs px-2 py-1 rounded border border-red-300 text-red-700 hover:bg-red-100"
+                      >
+                        Reject
                       </button>
                     )}
                   </div>
