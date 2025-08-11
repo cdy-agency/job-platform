@@ -76,6 +76,7 @@ export default function PostJobPage() {
         employmentType: data.type as "fulltime" | "part-time" | "internship",
         salary: `${data.salaryMin}-${data.salaryMax}`,
         category: data.category,
+        image: "", // optional per schema
       }
 
       await postCompanyJob(payload as any)
@@ -85,8 +86,11 @@ export default function PostJobPage() {
       })
       router.push("/dashboard/company/jobs")
     } catch (e: any) {
-      const msg = e?.response?.data?.message || "Server error. Please check your inputs or approval status."
+      const backend = e?.response?.data
+      const msg = backend?.message || backend?.error || JSON.stringify(backend) || e.message || "Server error. Please check your inputs or approval status."
       toast({ title: "Failed to post job", description: msg })
+      // eslint-disable-next-line no-console
+      console.error("Post job error:", backend || e)
     } finally {
       setIsSubmitting(false)
     }
