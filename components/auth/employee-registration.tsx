@@ -76,7 +76,7 @@ const EmployeeRegistration = ({
             type="tel"
             placeholder="Phone Number (Optional)"
             value={formData.phoneNumber}
-            onChange={(e) => onInputChange("phoneNumber", e.target.value)}
+            onChange={(e) => onInputChange("employeePhoneNumber", e.target.value)}
             className="bg-white text-black"
           />
         </div>
