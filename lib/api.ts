@@ -14,7 +14,6 @@ export const registerEmployee = async (data: EmployeeRegisterType) => {
 export const registerCompany = async (
   data: CompanyRegisterType
 ): Promise<AuthResponse<CompanyUser>> => {
-  // Backend may accept multipart or JSON; keep JSON simple per current form usage
   const response = await api.post("/auth/register/company", data);
   return response.data;
 };
@@ -56,8 +55,6 @@ export const loginUser = async (
     });
     user = res.data as EmployeeUser;
   } else if (!user && role === "company") {
-    // Do NOT call /company/profile here to avoid 403 for unapproved companies.
-    // Construct a minimal company auth user from the JWT payload.
     const payload = decodeJwtPayload(token);
     user = {
       id: payload?.id || "",
@@ -67,7 +64,6 @@ export const loginUser = async (
       website: "",
       logo: "",
       role: "company",
-      // isApproved unknown at login time; will be checked lazily on company pages
     } as any;
   } else if (!user && role === "superadmin") {
     const payload = decodeJwtPayload(token);
@@ -139,7 +135,14 @@ export const listApplicantsForJob = async (jobId: string) => {
 // Admin endpoints
 export const adminLogin = async (data: LoginType): Promise<AuthResponse<AdminUser>> => {
   const response = await api.post("/admin/login", data);
-  return response.data;
+  const token = (response.data as any)?.token as string;
+  const payload = token ? decodeJwtPayload(token) : null;
+  const user: AdminUser = {
+    id: payload?.id || "",
+    email: payload?.email || data.email,
+    role: "superadmin",
+  };
+  return { user, token } as AuthResponse<AdminUser>;
 };
 
 export const adminUpdatePassword = async (data: { currentPassword: string; newPassword: string }) => {
