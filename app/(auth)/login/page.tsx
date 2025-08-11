@@ -8,16 +8,49 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
 import NavBar from "@/components/home/NavBar"
+import { loginUser, adminLogin } from "@/lib/api"
+import { useRouter } from "next/navigation"
+import { useAuth } from "@/context/authContext"
 
 export default function LoginPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [rememberMe, setRememberMe] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const router = useRouter()
+  const { login } = useAuth()
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    // Handle login logic here
-    console.log("Login attempt:", { email, password, rememberMe })
+    setError(null)
+    setLoading(true)
+    try {
+      let auth
+      try {
+        auth = await loginUser({ email, password })
+      } catch (err: any) {
+        // fallback to admin login
+        auth = await adminLogin({ email, password })
+      }
+      const { user, token } = auth
+      // @ts-ignore allow superadmin
+      login(user, token)
+      // Simple redirect by role
+      // @ts-ignore role comes from backend
+      if (user.role === 'superadmin') {
+        router.push('/dashboard/admin')
+      // @ts-ignore
+      } else if (user.role === 'company') {
+        router.push('/dashboard/company')
+      } else {
+        router.push('/dashboard/user')
+      }
+    } catch (err: any) {
+      setError(err?.response?.data?.message || 'Login failed')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -80,11 +113,16 @@ export default function LoginPage() {
                   </Link>
                 </div>
 
+                {error && (
+                  <p className="text-sm text-red-600">{error}</p>
+                )}
+
                 <Button
                   type="submit"
                   className="w-full h-12 bg-purple-600 hover:bg-purple-700 text-white rounded font-medium"
+                  disabled={loading}
                 >
-                  Sign In
+                  {loading ? 'Signing In...' : 'Sign In'}
                 </Button>
 
                 <p className="text-center text-sm text-gray-500">

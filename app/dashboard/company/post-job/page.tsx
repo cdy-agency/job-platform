@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { toast } from "@/components/ui/use-toast"
+import { postJob } from "@/lib/api"
 
 const jobFormSchema = z.object({
   title: z.string().min(5, {
@@ -68,18 +69,38 @@ export default function PostJobPage() {
     },
   })
 
-  function onSubmit(data: JobFormValues) {
+  async function onSubmit(data: JobFormValues) {
     setIsSubmitting(true)
 
-    // Simulate API call
-    setTimeout(() => {
-      setIsSubmitting(false)
+    try {
+      const employmentType = data.type.toLowerCase() === 'full-time' ? 'fulltime'
+        : data.type.toLowerCase() === 'part-time' ? 'part-time'
+        : data.type.toLowerCase() === 'internship' ? 'internship'
+        : 'fulltime'
+
+      const salary = `${data.salaryMin}-${data.salaryMax}`
+      // Derive skills from requirements (comma separated) for simplicity
+      const skills = data.requirements.split(/,|\n/).map(s => s.trim()).filter(Boolean)
+
+      await postJob({
+        title: data.title,
+        description: data.description,
+        skills,
+        employmentType,
+        salary,
+        category: data.category,
+      })
+
       toast({
         title: "Job posted successfully!",
         description: "Your job has been posted and is now live.",
       })
       router.push("/dashboard/company/jobs")
-    }, 1500)
+    } catch (e: any) {
+      toast({ title: "Failed to post job", description: e?.response?.data?.message || 'Please try again', variant: "destructive" })
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -159,9 +180,7 @@ export default function PostJobPage() {
                           <SelectContent>
                             <SelectItem value="Full-time">Full-time</SelectItem>
                             <SelectItem value="Part-time">Part-time</SelectItem>
-                            <SelectItem value="Contract">Contract</SelectItem>
                             <SelectItem value="Internship">Internship</SelectItem>
-                            <SelectItem value="Remote">Remote</SelectItem>
                           </SelectContent>
                         </Select>
                         <FormMessage />
@@ -201,7 +220,6 @@ export default function PostJobPage() {
                       </FormItem>
                     )}
                   />
-
                   <FormField
                     control={form.control}
                     name="salaryMax"
@@ -209,11 +227,8 @@ export default function PostJobPage() {
                       <FormItem>
                         <FormLabel className="text-gray-800">Maximum Salary</FormLabel>
                         <FormControl>
-                          <Input placeholder="e.g. 70000" {...field} className="border-gray-300" />
+                          <Input placeholder="e.g. 90000" {...field} className="border-gray-300" />
                         </FormControl>
-                        <FormDescription className="text-gray-600">
-                          Enter amount in USD without commas or currency symbol
-                        </FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -227,11 +242,7 @@ export default function PostJobPage() {
                     <FormItem>
                       <FormLabel className="text-gray-800">Job Description</FormLabel>
                       <FormControl>
-                        <Textarea
-                          placeholder="Describe the job role, responsibilities, and company culture..."
-                          className="min-h-[150px] border-gray-300"
-                          {...field}
-                        />
+                        <Textarea placeholder="Describe the role, team, and impact" {...field} className="border-gray-300" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -243,15 +254,10 @@ export default function PostJobPage() {
                   name="requirements"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-gray-800">Requirements</FormLabel>
+                      <FormLabel className="text-gray-800">Requirements (comma separated)</FormLabel>
                       <FormControl>
-                        <Textarea
-                          placeholder="List the skills, qualifications, and experience required..."
-                          className="min-h-[150px] border-gray-300"
-                          {...field}
-                        />
+                        <Textarea placeholder="e.g. React, TypeScript, REST APIs" {...field} className="border-gray-300" />
                       </FormControl>
-                      <FormDescription className="text-gray-600">Use a new line for each requirement</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -264,15 +270,8 @@ export default function PostJobPage() {
                     <FormItem>
                       <FormLabel className="text-gray-800">Responsibilities</FormLabel>
                       <FormControl>
-                        <Textarea
-                          placeholder="List the key responsibilities and duties..."
-                          className="min-h-[150px] border-gray-300"
-                          {...field}
-                        />
+                        <Textarea placeholder="List key responsibilities" {...field} className="border-gray-300" />
                       </FormControl>
-                      <FormDescription className="text-gray-600">
-                        Use a new line for each responsibility
-                      </FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -293,12 +292,9 @@ export default function PostJobPage() {
                 />
               </div>
 
-              <CardFooter className="flex justify-between px-0">
-                <Button type="button" variant="outline" className="border-gray-300 bg-transparent text-gray-800">
-                  Save as Draft
-                </Button>
-                <Button type="submit" className="bg-blue-500 text-white hover:bg-blue-600" disabled={isSubmitting}>
-                  {isSubmitting ? "Posting..." : "Post Job"}
+              <CardFooter className="flex justify-end">
+                <Button type="submit" className="bg-[#834de3] text-white" disabled={isSubmitting}>
+                  {isSubmitting ? 'Posting...' : 'Post Job'}
                 </Button>
               </CardFooter>
             </form>

@@ -6,7 +6,7 @@ export const storeToken = (token: string):void =>{
 
 export const getToken = (): string | null =>{
     if(typeof window !== 'undefined'){
-        localStorage.getItem('token')
+        return localStorage.getItem('token')
     }
     return null
 }

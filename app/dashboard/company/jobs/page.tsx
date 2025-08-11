@@ -1,54 +1,40 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { fetchCompanyJobs } from "@/lib/api";
 
 type Job = {
-  id: string;
+  _id: string;
   title: string;
-  location: string;
-  status: "Open" | "Closed";
-  postedAt: string;
+  category?: string;
+  employmentType?: string;
+  createdAt?: string;
 };
 
-const mockJobs: Job[] = [
-  {
-    id: "1",
-    title: "Frontend Developer",
-    location: "Kigali, Rwanda",
-    status: "Open",
-    postedAt: "2025-07-25T12:00:00Z",
-  },
-  {
-    id: "2",
-    title: "Backend Engineer",
-    location: "Remote",
-    status: "Closed",
-    postedAt: "2025-07-10T08:30:00Z",
-  },
-  {
-    id: "3",
-    title: "UI/UX Designer",
-    location: "Kigali, Rwanda",
-    status: "Open",
-    postedAt: "2025-08-01T15:45:00Z",
-  },
-];
-
 export default function ManageJobsPage() {
-  const [jobs, setJobs] = useState<Job[]>(mockJobs);
+  const [jobs, setJobs] = useState<Job[]>([]);
+  const [loading, setLoading] = useState(true);
   const router = useRouter();
+
+  useEffect(() => {
+    fetchCompanyJobs()
+      .then((list) => setJobs(list || []))
+      .finally(() => setLoading(false));
+  }, []);
 
   const handleDelete = (id: string) => {
     if (!confirm("Are you sure you want to delete this job?")) return;
-    setJobs((prev) => prev.filter((job) => job.id !== id));
+    // Placeholder: implement delete endpoint later
+    setJobs((prev) => prev.filter((job) => job._id !== id));
     alert("Job deleted");
   };
 
   const handleEdit = (id: string) => {
-    // Navigate to your existing post job form with job ID param for editing
     router.push(`/jobs/edit/${id}`);
   };
+
+  if (loading) return <div className="p-6">Loading...</div>;
 
   return (
     <div className="min-h-screen bg-gray-50 px-4 py-10 flex justify-center">
@@ -60,33 +46,25 @@ export default function ManageJobsPage() {
         ) : (
           jobs.map((job) => (
             <div
-              key={job.id}
+              key={job._id}
               className="bg-white rounded-lg shadow border border-gray-200 p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4"
             >
               <div className="flex-1">
                 <h3 className="text-md font-semibold text-gray-900">{job.title}</h3>
                 <p className="text-xs text-gray-500 mt-1">
-                  Location: {job.location} | Status:{" "}
-                  <span
-                    className={`font-medium ${
-                      job.status === "Open" ? "text-green-600" : "text-red-600"
-                    }`}
-                  >
-                    {job.status}
-                  </span>{" "}
-                  | Posted: {new Date(job.postedAt).toLocaleDateString()}
+                  Type: {job.employmentType || 'N/A'} | Category: {job.category || 'N/A'} | Posted: {job.createdAt ? new Date(job.createdAt).toLocaleDateString() : '—'}
                 </p>
               </div>
 
               <div className="mt-4 sm:mt-0 flex gap-2">
                 <button
-                  onClick={() => handleEdit(job.id)}
+                  onClick={() => handleEdit(job._id)}
                   className="text-sm px-3 py-1 rounded-md border border-gray-300 text-[#834de3] hover:bg-[#834de3]/10"
                 >
                   Edit
                 </button>
                 <button
-                  onClick={() => handleDelete(job.id)}
+                  onClick={() => handleDelete(job._id)}
                   className="text-sm px-3 py-1 rounded-md border border-red-300 text-red-600 hover:bg-red-100"
                 >
                   Delete

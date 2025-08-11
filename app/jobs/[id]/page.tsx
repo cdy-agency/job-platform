@@ -19,6 +19,7 @@ import {
 import { getJobById } from "@/lib/mock-data";
 import { Button } from "@/components/ui/button";
 import NavBar from "@/components/home/NavBar";
+import { applyToJob } from "@/lib/api";
 
 const mainPurple = "#834de3";
 
@@ -29,6 +30,7 @@ export default function JobDetailsPage() {
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [activeSection, setActiveSection] = useState("about-us");
   const [showScrollTop, setShowScrollTop] = useState(false);
+  const [applying, setApplying] = useState(false)
 
   const job = getJobById(id);
 
@@ -82,8 +84,19 @@ export default function JobDetailsPage() {
     );
   }
 
-  const handleApply = () => {
-    alert("Application submitted successfully!");
+  const handleApply = async () => {
+    try {
+      setApplying(true)
+      const skillsInput = prompt('Enter your skills (comma separated):', '') || ''
+      const experienceInput = prompt('Years of experience (optional):', '') || ''
+      const skills = skillsInput.split(',').map(s => s.trim()).filter(Boolean)
+      await applyToJob(job.id, { skills, experience: experienceInput || undefined, appliedVia: 'normal' })
+      alert("Application submitted successfully!");
+    } catch (e: any) {
+      alert(e?.response?.data?.message || 'Failed to apply. Please log in as an employee.')
+    } finally {
+      setApplying(false)
+    }
   };
 
   const handleBookmark = () => {
@@ -260,19 +273,14 @@ export default function JobDetailsPage() {
             </div>
           </Section>
 
-          <Section id="apply" title="Ready to Apply?" color={mainPurple}>
-            <div className="text-center py-6">
-              <Button
-                onClick={handleApply}
-                style={{ backgroundColor: mainPurple }}
-                className="text-white font-bold px-10 py-3 rounded-md transition-transform duration-200 hover:scale-105"
-              >
-                Apply Now
-              </Button>
-              <p className="text-sm text-gray-500 mt-4 max-w-md mx-auto">
-                Join our team and be part of something amazing. We review all
-                applications within 48 hours.
+          <Section id="apply" title="How to Apply" color={mainPurple}>
+            <div className="bg-white border border-gray-200 rounded-md p-6">
+              <p className="text-gray-700 mb-4">
+                Ready to apply? Submit your application with your skills and experience.
               </p>
+              <Button onClick={handleApply} disabled={applying} style={{ backgroundColor: mainPurple }}>
+                {applying ? 'Submitting...' : 'Apply Now'}
+              </Button>
             </div>
           </Section>
         </div>
@@ -281,8 +289,8 @@ export default function JobDetailsPage() {
       {showScrollTop && (
         <button
           onClick={scrollToTop}
-          style={{ backgroundColor: mainPurple }}
-          className="fixed bottom-8 right-8 text-white p-3 rounded-full transition-transform duration-200 hover:scale-110 z-50"
+          className="fixed bottom-6 right-6 rounded-full bg-[#834de3] p-3 text-white shadow-lg hover:brightness-110"
+          aria-label="Scroll to top"
         >
           <ArrowUp className="h-5 w-5" />
         </button>

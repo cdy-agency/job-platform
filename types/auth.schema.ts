@@ -4,10 +4,10 @@ import { _email } from 'zod/v4/core'
 export const  CompanyRegistrationSchema = z.object({
     companyName: z.string().min(2, "Name must be at least 2 characters"),
     email: z.string().email("Invalid email"),
-    location: z.string().email(),
-    phoneNumber: z.string().min(6),
-    website: z.string().min(3),
-    logo: z.string().url("invalid url"),
+    location: z.string().optional(),
+    phoneNumber: z.string().optional(),
+    website: z.string().optional(),
+    logo: z.string().url("invalid url").optional(),
     password: z.string().min(6, "Password must be atleast 6 characters"),
     confirmPassword: z.string().min(6, "Confirm Password must be atleast 6 characters")
 }).refine((data)=> data.password === data.confirmPassword, {
@@ -18,9 +18,9 @@ export const  CompanyRegistrationSchema = z.object({
 export const EmployeeRegistrationSchema = z.object({
     name: z.string().min(2, "Name must be at least 2 characters"),
     email: z.string().email("Invalid Email"),
-    dateOfBirth: z.string(),
-    phoneNumber: z.string().min(10, "Phone number must be 10 digits").max(10, "Phone number must not exceed 10 digits"),
-    password: z.string().min(4, "Password must be atleast 6 characters"),
+    dateOfBirth: z.string().optional(),
+    phoneNumber: z.string().optional(),
+    password: z.string().min(6, "Password must be atleast 6 characters"),
     confirmPassword: z.string().min(6, "Confirm Password must be atleast 6 characters")
 }).refine((data)=> data.password === data.confirmPassword, {
     message:"Passwords do not match",

@@ -12,9 +12,11 @@ import EmployeRegistration from "@/components/auth/employee-registration";
 import NavBar from "@/components/home/NavBar";
 import { registerCompany, registerEmployee } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
+import { useRouter } from "next/navigation";
 
 export default function RegisterPage() {
   const {toast} = useToast()
+  const router = useRouter()
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -35,6 +37,9 @@ export default function RegisterPage() {
     logo: null as File | null,
   });
 
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
   const handleInputChange = (
     field: string,
     value: string | boolean | File | null
@@ -52,12 +57,14 @@ export default function RegisterPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    let logoString = "";
-    if (formData.logo) {
-      logoString = await fileToBase64(formData.logo);
-    }
+    setLoading(true)
+    setError(null)
     try {
       if (formData.userType === "company") {
+        let logoString = "";
+        if (formData.logo) {
+          logoString = await fileToBase64(formData.logo);
+        }
         const payload = {
           companyName: formData.companyName,
           email: formData.email,
@@ -66,14 +73,14 @@ export default function RegisterPage() {
           location: formData.location,
           phoneNumber: formData.companyPhoneNumber,
           website: formData.website,
-          logo: logoString,
+          logo: logoString || undefined,
         };
-        const response = await registerCompany(payload);
+        await registerCompany(payload as any);
         toast({
-          title: `${formData.companyName} Registered Well`,
-          description: "Welcome back! Redirecting you now...",
+          title: `${formData.companyName} registered successfully`,
+          description: "You can log in now. Company routes require admin approval.",
         })
-        console.log("Company registered:", response);
+        router.push('/login')
       } else {
         const payload = {
           name: formData.name,
@@ -83,15 +90,18 @@ export default function RegisterPage() {
           dateOfBirth: formData.dateOfBirth,
           phoneNumber: formData.employeePhoneNumber,
         };
-        const response = await registerEmployee(payload);
+        await registerEmployee(payload as any);
         toast({
-          title: `${formData.name} You registered Well`,
-          description: "Welcome back! Redirecting you now...",
+          title: `${formData.name} registered successfully`,
+          description: "Welcome! Please log in.",
         })
-        console.log("Employee registered:", response);
+        router.push('/login')
       }
-    } catch (error) {
+    } catch (error: any) {
+      setError(error?.response?.data?.message || 'Registration failed')
       console.error("Registration error:", error);
+    } finally {
+      setLoading(false)
     }
   };
 
@@ -184,7 +194,7 @@ export default function RegisterPage() {
                         dateOfBirth: formData.dateOfBirth,
                         phoneNumber: formData.employeePhoneNumber,
                       }}
-                      onInputChange={handleInputChange}
+                      onInputChange={handleInputChange as any}
                     />
                   )}
 
@@ -217,12 +227,15 @@ export default function RegisterPage() {
                     </Label>
                   </div>
 
+                  {error && <p className="text-sm text-red-600">{error}</p>}
+
                   {/* Submit */}
                   <Button
                     type="submit"
                     className="w-full h-12 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-medium"
+                    disabled={loading}
                   >
-                    Create Account
+                    {loading ? 'Creating Account...' : 'Create Account'}
                   </Button>
 
                   <p className="text-center text-sm text-gray-500">
