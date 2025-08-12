@@ -17,7 +17,7 @@ import NavBar from "@/components/home/NavBar";
 import { Footer } from "@/components/footer";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/authContext";
-import { fetchAdminEmployees } from "@/lib/api";
+import { fetchUsersDirectory } from "@/lib/api";
 
 // Type definitions
 interface User {
@@ -37,9 +37,8 @@ export default function UsersDirectoryPage() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
-  const [restricted, setRestricted] = useState(false);
   const router = useRouter()
-  const { token, user: authUser } = useAuth();
+  const { token } = useAuth();
 
   useEffect(() => {
     if (!token) {
@@ -47,14 +46,8 @@ export default function UsersDirectoryPage() {
       return;
     }
 
-    if (!authUser || (authUser as any).role !== 'superadmin') {
-      setRestricted(true)
-      setLoading(false)
-      return
-    }
-
     setLoading(true);
-    fetchAdminEmployees()
+    fetchUsersDirectory()
       .then((list: any[]) => {
         const mapped: User[] = (Array.isArray(list) ? list : []).map((u: any) => ({
           id: u._id || u.id,
@@ -69,7 +62,7 @@ export default function UsersDirectoryPage() {
         setUsers(mapped)
       })
       .finally(() => setLoading(false))
-  }, [token, authUser, router])
+  }, [token, router])
 
   const filteredUsers = useMemo(() => {
     return users.filter((user) => {
@@ -279,19 +272,6 @@ export default function UsersDirectoryPage() {
                 <p className="text-sm sm:text-base text-gray-600 mb-4 sm:mb-6 max-w-md mx-auto px-4">
                   Please wait while we fetch the community members.
                 </p>
-              </div>
-            ) : restricted ? (
-              <div className="text-center py-12 sm:py-16 bg-white rounded-2xl border border-gray-200">
-                <div className="text-4xl sm:text-6xl mb-4">🔒</div>
-                <h3 className="text-lg sm:text-xl font-semibold text-gray-800 mb-2">
-                  Access restricted
-                </h3>
-                <p className="text-sm sm:text-base text-gray-600 mb-4 sm:mb-6 max-w-md mx-auto px-4">
-                  Only administrators can view the employees directory.
-                </p>
-                <Button onClick={() => router.push('/dashboard/user')} className="bg-[#834de3] hover:bg-[#9260e7] text-white">
-                  Go to Dashboard
-                </Button>
               </div>
             ) : filteredUsers.length > 0 ? (
               <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
