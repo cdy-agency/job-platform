@@ -345,7 +345,7 @@ export default function JobsPage() {
   }
 
   // Not logged in state
-  if (!user || user.role !== 'employee') {
+  if (!user || Users.role !== 'employee') {
     return (
       <div className="min-h-screen bg-gray-50">
         <NavBar />
