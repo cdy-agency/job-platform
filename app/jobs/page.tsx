@@ -12,6 +12,8 @@ import {
   GraduationCap,
   ChevronDown,
   ChevronUp,
+  Building,
+  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -31,13 +33,14 @@ import {
 import { Badge } from "@/components/ui/badge";
 import NavBar from "@/components/home/NavBar";
 import { Footer } from "@/components/footer";
-import { mockJobs } from "@/lib/mock-data";
 import { fetchJobs } from "@/lib/api";
+import { useAuth } from "@/context/authContext";
 
 // Type definitions
 interface Company {
   name: string;
   logo?: string;
+  companyName?: string;
 }
 
 interface JobDisplay {
@@ -48,6 +51,9 @@ interface JobDisplay {
   employmentType: string;
   salary: string;
   description: string;
+  category?: string;
+  createdAt?: string;
+  featured?: boolean;
 }
 
 interface CollapsibleSectionProps {
@@ -64,37 +70,11 @@ export default function JobsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [location, setLocation] = useState("all");
   const [salaryRange, setSalaryRange] = useState("all");
-  const [remoteJobs, setRemoteJobs] = useState<JobDisplay[] | null>(null)
-
-  // Load from API if logged-in employee
-  useEffect(() => {
-    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
-    if (!token) return
-    fetchJobs()
-      .then((list) => {
-        const mapped: JobDisplay[] = (list || []).map((j: any) => ({
-          id: j._id,
-          title: j.title,
-          company: { name: j.companyId?.companyName || 'Company', logo: j.companyId?.logo },
-          location: j.location || '—',
-          employmentType: j.employmentType || 'fulltime',
-          salary: j.salary || '—',
-          description: j.description || '',
-        }))
-        setRemoteJobs(mapped)
-      })
-      .catch(() => setRemoteJobs(null))
-  }, [])
-
-  const dataSource: JobDisplay[] = remoteJobs ?? mockJobs.map((m: any) => ({
-    id: m.id,
-    title: m.title,
-    company: m.company,
-    location: m.location,
-    employmentType: m.employmentType,
-    salary: m.salary,
-    description: m.description,
-  }))
+  const [category, setCategory] = useState("all");
+  const [jobs, setJobs] = useState<JobDisplay[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const { user } = useAuth();
 
   // State for collapsible sections
   const [expandedSections, setExpandedSections] = useState({
@@ -103,8 +83,55 @@ export default function JobsPage() {
     internship: false,
   });
 
+  // Load jobs from database
+  useEffect(() => {
+    const loadJobs = async () => {      
+      setLoading(true);
+      setError(null);
+      
+      try {
+        // Only fetch if user is logged in as employee, otherwise show empty state
+        if (!user || user.role !== 'employee') {
+          setJobs([]);
+          setLoading(false);
+          return;
+        }
+
+        const jobsData = await fetchJobs(category === 'all' ? undefined : category);
+        
+        // Transform the API response to match our JobDisplay interface
+        const transformedJobs: JobDisplay[] = (jobsData || []).map((job: any) => ({
+          id: job._id || job.id,
+          title: job.title || 'Untitled Position',
+          company: {
+            name: job.companyId?.companyName || job.company?.name || 'Company',
+            logo: job.companyId?.logo || job.company?.logo,
+            companyName: job.companyId?.companyName || job.company?.name || 'Company',
+          },
+          location: job.location || 'Location not specified',
+          employmentType: job.employmentType || 'Full-time',
+          salary: job.salary || 'Competitive',
+          description: job.description || 'Job description not available.',
+          category: job.category,
+          createdAt: job.createdAt,
+          featured: job.featured,
+        }));
+
+        setJobs(transformedJobs);
+      } catch (err) {
+        console.error('Error loading jobs:', err);
+        setError('Failed to load jobs. Please try again later.');
+        setJobs([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadJobs();
+  }, [user, category]);
+
   const filteredJobs = useMemo(() => {
-    return dataSource.filter((job) => {
+    return jobs.filter((job) => {
       const matchesSearch =
         job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         job.company.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -115,22 +142,29 @@ export default function JobsPage() {
         job.location.toLowerCase().includes(location.toLowerCase());
 
       let matchesSalary = true;
-      const salaryNum = parseInt((job.salary || '').replace(/[^0-9]/g, ""));
-      if (salaryRange === "under-50k") matchesSalary = salaryNum < 50000;
-      if (salaryRange === "50k-100k")
-        matchesSalary = salaryNum >= 50000 && salaryNum <= 100000;
-      if (salaryRange === "over-100k") matchesSalary = salaryNum > 100000;
+      if (salaryRange !== "all") {
+        const salaryText = job.salary.toLowerCase();
+        const salaryNum = parseInt((job.salary || '').replace(/[^0-9]/g, ""));
+        
+        if (salaryRange === "under-50k") {
+          matchesSalary = salaryNum > 0 && salaryNum < 50000;
+        } else if (salaryRange === "50k-100k") {
+          matchesSalary = salaryNum >= 50000 && salaryNum <= 100000;
+        } else if (salaryRange === "over-100k") {
+          matchesSalary = salaryNum > 100000;
+        }
+      }
 
       return matchesSearch && matchesLocation && matchesSalary;
     });
-  }, [searchTerm, location, salaryRange, dataSource]);
+  }, [searchTerm, location, salaryRange, jobs]);
 
   const jobsByType = useMemo(() => {
     const fullTime = filteredJobs.filter(
-      (job) => job.employmentType.toLowerCase() === "fulltime" || job.employmentType.toLowerCase() === "full-time"
+      (job) => job.employmentType.toLowerCase().includes("full") || job.employmentType.toLowerCase() === "fulltime"
     );
     const partTime = filteredJobs.filter(
-      (job) => job.employmentType.toLowerCase() === "part-time"
+      (job) => job.employmentType.toLowerCase().includes("part")
     );
     const internship = filteredJobs.filter(
       (job) => job.employmentType.toLowerCase() === "internship"
@@ -179,11 +213,21 @@ export default function JobsPage() {
       <CardHeader className="pb-3">
         <div className="flex items-start gap-3">
           <div className="relative">
-            <img
-              src={job.company.logo || "/placeholder.svg"}
-              alt={job.company.name}
-              className="h-12 w-12 rounded-lg object-cover ring-2 ring-gray-100 group-hover:ring-[#834de3] transition-all"
-            />
+            {job.company.logo ? (
+              <img
+                src={job.company.logo}
+                alt={job.company.name}
+                className="h-12 w-12 rounded-lg object-cover ring-2 ring-gray-100 group-hover:ring-[#834de3] transition-all"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.style.display = 'none';
+                  target.nextElementSibling?.classList.remove('hidden');
+                }}
+              />
+            ) : null}
+            <div className={`h-12 w-12 rounded-lg bg-gray-100 flex items-center justify-center ring-2 ring-gray-100 group-hover:ring-[#834de3] transition-all ${job.company.logo ? 'hidden' : ''}`}>
+              <Building className="h-6 w-6 text-gray-400" />
+            </div>
           </div>
           <div className="flex-1 min-w-0">
             <h3 className="font-bold text-gray-900 text-lg leading-tight mb-1 group-hover:text-[#834de3] transition-colors">
@@ -192,14 +236,19 @@ export default function JobsPage() {
             <p className="text-sm text-gray-600 font-medium">
               {job.company.name}
             </p>
-            <Badge
-              className={`mt-2 text-xs ${getEmploymentColor(
-                job.employmentType
-              )}`}
-            >
-              {getEmploymentIcon(job.employmentType)}
-              <span className="ml-1">{job.employmentType}</span>
-            </Badge>
+            <div className="flex items-center gap-2 mt-2">
+              <Badge
+                className={`text-xs ${getEmploymentColor(job.employmentType)}`}
+              >
+                {getEmploymentIcon(job.employmentType)}
+                <span className="ml-1">{job.employmentType}</span>
+              </Badge>
+              {job.featured && (
+                <Badge className="text-xs bg-yellow-500 text-white">
+                  Featured
+                </Badge>
+              )}
+            </div>
           </div>
         </div>
       </CardHeader>
@@ -211,8 +260,15 @@ export default function JobsPage() {
             {job.location}
           </div>
           <div className="flex items-center text-sm text-gray-600">
+            <DollarSign className="w-4 h-4 mr-2 text-[#834de3]" />
             <span className="font-semibold text-gray-800">{job.salary}</span>
           </div>
+          {job.category && (
+            <div className="flex items-center text-sm text-gray-600">
+              <span className="text-gray-500">Category:</span>
+              <span className="ml-1 font-medium">{job.category}</span>
+            </div>
+          )}
         </div>
         <p className="text-sm text-gray-600 line-clamp-2 leading-relaxed">
           {job.description}
@@ -244,7 +300,7 @@ export default function JobsPage() {
           <div className={`rounded-md p-2 ${badgeColor}`}>{icon}</div>
           <div>
             <h2 className="text-lg font-bold text-gray-900">{title}</h2>
-            <p className="text-sm text-gray-600">{description}</p>
+            <p className="text-sm text-gray-600">{description} ({jobs.length} positions)</p>
           </div>
         </div>
         <button
@@ -257,67 +313,169 @@ export default function JobsPage() {
             </span>
           ) : (
             <span className="flex items-center gap-2">
-              <ChevronDown className="h-4 w-4" /> Expand
+              <ChevronDown className="h-4 w-4" /> Expand ({jobs.length})
             </span>
           )}
         </button>
       </div>
       {isExpanded && (
-        <div className="grid grid-cols-1 gap-4 p-4 md:grid-cols-2 lg:grid-cols-3">
-          {jobs.map((job) => (
-            <JobCard key={job.id} job={job} />
-          ))}
+        <div className="p-4">
+          {jobs.length > 0 ? (
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {jobs.map((job) => (
+                <JobCard key={job.id} job={job} />
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <p className="text-gray-500">No {title.toLowerCase()} available at the moment.</p>
+            </div>
+          )}
         </div>
       )}
     </div>
   );
+
+  // Loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <NavBar />
+        <main className="container mx-auto px-4 py-10">
+          <div className="flex items-center justify-center min-h-[400px]">
+            <div className="text-center">
+              <Loader2 className="h-8 w-8 animate-spin text-[#834de3] mx-auto mb-4" />
+              <p className="text-gray-600">Loading job opportunities...</p>
+            </div>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  // Not logged in state
+  if (!user || user.role !== 'employee') {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <NavBar />
+        <main className="container mx-auto px-4 py-10">
+          <div className="text-center py-16">
+            <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+              <Briefcase className="h-8 w-8 text-gray-400" />
+            </div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">Access Required</h1>
+            <p className="text-gray-600 mb-6">
+              Please log in as an employee to view job opportunities.
+            </p>
+            <Link href="/login">
+              <Button className="bg-[#834de3] hover:bg-[#9260e7] text-white">
+                Login to View Jobs
+              </Button>
+            </Link>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <NavBar />
+        <main className="container mx-auto px-4 py-10">
+          <div className="text-center py-16">
+            <p className="text-red-600 mb-4">{error}</p>
+            <Button 
+              onClick={() => window.location.reload()}
+              className="bg-[#834de3] hover:bg-[#9260e7] text-white"
+            >
+              Try Again
+            </Button>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
       <NavBar />
 
       <main className="container mx-auto px-4 py-10">
-        <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-3">
-          <div className="md:col-span-2">
-            <div className="relative">
-              <Input
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Search for jobs, companies, or keywords"
-                className="h-12 rounded-lg border border-gray-300 bg-white pl-10 text-gray-900"
-              />
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
-            </div>
-          </div>
-          <div className="flex gap-4">
-            <Select value={location} onValueChange={setLocation}>
-              <SelectTrigger className="h-12 w-full rounded-lg border border-gray-300 bg-white text-gray-900">
-                <SelectValue placeholder="Location" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Locations</SelectItem>
-                <SelectItem value="kigali">Kigali</SelectItem>
-                <SelectItem value="remote">Remote</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select value={salaryRange} onValueChange={setSalaryRange}>
-              <SelectTrigger className="h-12 w-full rounded-lg border border-gray-300 bg-white text-gray-900">
-                <SelectValue placeholder="Salary" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All</SelectItem>
-                <SelectItem value="under-50k">Under $50k</SelectItem>
-                <SelectItem value="50k-100k">$50k - $100k</SelectItem>
-                <SelectItem value="over-100k">Over $100k</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+        {/* Header */}
+        <div className="mb-8 text-center">
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">Find Your Dream Job</h1>
+          <p className="text-gray-600">Discover amazing opportunities from top companies</p>
         </div>
 
+        {/* Filters */}
+        <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <div className="relative">
+            <Input
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Search jobs, companies..."
+              className="h-12 rounded-lg border border-gray-300 bg-white pl-10 text-gray-900"
+            />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
+          </div>
+          
+          <Select value={location} onValueChange={setLocation}>
+            <SelectTrigger className="h-12 rounded-lg border border-gray-300 bg-white text-gray-900">
+              <SelectValue placeholder="Location" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Locations</SelectItem>
+              <SelectItem value="kigali">Kigali</SelectItem>
+              <SelectItem value="remote">Remote</SelectItem>
+              <SelectItem value="hybrid">Hybrid</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Select value={category} onValueChange={setCategory}>
+            <SelectTrigger className="h-12 rounded-lg border border-gray-300 bg-white text-gray-900">
+              <SelectValue placeholder="Category" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Categories</SelectItem>
+              <SelectItem value="technology">Technology</SelectItem>
+              <SelectItem value="marketing">Marketing</SelectItem>
+              <SelectItem value="finance">Finance</SelectItem>
+              <SelectItem value="healthcare">Healthcare</SelectItem>
+              <SelectItem value="education">Education</SelectItem>
+            </SelectContent>
+          </Select>
+          
+          <Select value={salaryRange} onValueChange={setSalaryRange}>
+            <SelectTrigger className="h-12 rounded-lg border border-gray-300 bg-white text-gray-900">
+              <SelectValue placeholder="Salary Range" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Ranges</SelectItem>
+              <SelectItem value="under-50k">Under $50k</SelectItem>
+              <SelectItem value="50k-100k">$50k - $100k</SelectItem>
+              <SelectItem value="over-100k">Over $100k</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Results Summary */}
+        <div className="mb-6">
+          <p className="text-gray-600">
+            Found <span className="font-semibold text-[#834de3]">{filteredJobs.length}</span> job{filteredJobs.length !== 1 ? 's' : ''} 
+            {searchTerm && <span> matching "{searchTerm}"</span>}
+          </p>
+        </div>
+
+        {/* Job Sections */}
         <div className="space-y-6">
           <CollapsibleSection
             title="Full-time Jobs"
-            description="Opportunities for full-time positions"
+            description="Full-time positions with complete benefits"
             jobs={jobsByType.fullTime}
             isExpanded={expandedSections.fullTime}
             onToggle={() => toggleSection("fullTime")}
@@ -345,6 +503,19 @@ export default function JobsPage() {
             badgeColor="bg-gray-800"
           />
         </div>
+
+        {/* Empty State */}
+        {jobs.length === 0 && (
+          <div className="text-center py-16">
+            <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+              <Briefcase className="h-8 w-8 text-gray-400" />
+            </div>
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">No Jobs Available</h3>
+            <p className="text-gray-600">
+              There are currently no job postings available. Check back later for new opportunities!
+            </p>
+          </div>
+        )}
       </main>
 
       <Footer />
