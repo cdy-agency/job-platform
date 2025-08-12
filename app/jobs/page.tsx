@@ -34,7 +34,6 @@ import { Badge } from "@/components/ui/badge";
 import NavBar from "@/components/home/NavBar";
 import { Footer } from "@/components/footer";
 import { fetchJobs } from "@/lib/api";
-import { useAuth } from "@/context/authContext";
 
 // Type definitions
 interface Company {
@@ -74,8 +73,6 @@ export default function JobsPage() {
   const [jobs, setJobs] = useState<JobDisplay[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { user } = useAuth();
-
   // State for collapsible sections
   const [expandedSections, setExpandedSections] = useState({
     fullTime: true,
@@ -90,13 +87,6 @@ export default function JobsPage() {
       setError(null);
       
       try {
-        // Only fetch if user is logged in as employee, otherwise show empty state
-        if (!user || user.role !== 'employee') {
-          setJobs([]);
-          setLoading(false);
-          return;
-        }
-
         const jobsData = await fetchJobs(category === 'all' ? undefined : category);
         
         // Transform the API response to match our JobDisplay interface
@@ -128,7 +118,7 @@ export default function JobsPage() {
     };
 
     loadJobs();
-  }, [user, category]);
+  }, [category]);
 
   const filteredJobs = useMemo(() => {
     return jobs.filter((job) => {

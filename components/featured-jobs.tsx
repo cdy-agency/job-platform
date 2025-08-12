@@ -11,8 +11,6 @@ export function FeaturedJobs() {
   const [jobs, setJobs] = useState<any[]>([])
 
   useEffect(() => {
-    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
-    if (!token) return
     fetchJobs()
       .then((list) => setJobs((list || []).slice(0, 4)))
       .catch(() => setJobs([]))
@@ -23,9 +21,9 @@ export function FeaturedJobs() {
       <section className="bg-gray-50 py-16">
         <div className="container px-4 sm:px-8 text-center">
           <h2 className="mb-2 text-3xl font-bold">Featured Jobs</h2>
-          <p className="text-muted-foreground mb-6">Log in to see featured jobs</p>
-          <Link href="/login">
-            <Button size="lg">Login</Button>
+          <p className="text-muted-foreground mb-6">No featured jobs available right now</p>
+          <Link href="/jobs">
+            <Button size="lg">Browse Jobs</Button>
           </Link>
         </div>
       </section>

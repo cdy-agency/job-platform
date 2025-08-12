@@ -2,14 +2,27 @@
 
 import React from "react";
 import { useParams, notFound } from "next/navigation";
-import { mockUsers } from "@/app/users/page";
+import { useEffect, useState } from "react";
+import { useAuth } from "@/context/authContext";
+import { fetchUserById } from "@/lib/api";
 import { Mail, Phone, MapPin, Calendar } from "lucide-react";
 import NavBar from "@/components/home/NavBar";
 
 export default function UserProfile() {
   const params = useParams();
   const id = params?.id as string;
-  const user = mockUsers.find((u) => u.id === id);
+  const { token } = useAuth();
+  const [user, setUser] = useState<any | null>(null);
+
+  React.useEffect(() => {
+    if (!token) {
+      window.location.href = "/auth/login";
+      return;
+    }
+    fetchUserById(id)
+      .then((u) => setUser(u || null))
+      .catch(() => setUser(null));
+  }, [id, token]);
 
   if (!user) return notFound();
 
@@ -40,7 +53,7 @@ export default function UserProfile() {
         {/* Center Profile Image */}
         <div className="flex flex-col items-center">
           <img
-            src={user.profileImage}
+            src={user.profileImage || user.avatar || "/placeholder.svg"}
             alt={user.name}
             className="w-40 h-40 rounded-full border-4 border-transparent shadow-lg bg-gradient-to-r from-[#834de3] to-[#9260e7] p-1 object-cover"
           />
@@ -57,25 +70,25 @@ export default function UserProfile() {
               <strong>Email:</strong> {user.email}
             </li>
             <li>
-              <strong>Phone:</strong> {user.phone}
+              <strong>Phone:</strong> {user.phone || user.phoneNumber}
             </li>
             <li>
-              <strong>Location:</strong> {user.location}
+              <strong>Location:</strong> {user.location || user.address}
             </li>
             <li>
               <strong>Joined:</strong>{" "}
-              {new Date(user.joinDate).toLocaleDateString()}
+              {new Date(user.createdAt || Date.now()).toLocaleDateString()}
             </li>
             <li>
               <strong>Status:</strong>{" "}
               <span
                 className={`px-2 py-1 rounded-full text-xs font-medium ${
-                  user.status === "active"
-                    ? "bg-green-100 text-green-700"
-                    : "bg-red-100 text-red-700"
+                  user.status === "inactive"
+                    ? "bg-red-100 text-red-700"
+                    : "bg-green-100 text-green-700"
                 }`}
               >
-                {user.status}
+                {user.status === "inactive" ? "inactive" : "active"}
               </span>
             </li>
           </ul>
