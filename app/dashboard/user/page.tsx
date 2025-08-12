@@ -5,7 +5,7 @@ import { useEffect, useState } from "react"
 import { Bell, Briefcase, Clock, Eye, FileText, Search } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { fetchEmployeeApplications, fetchEmployeeProfile, fetchJobs } from "@/lib/api"
+import { fetchEmployeeApplications, fetchEmployeeProfile, fetchJobs, applyToJob } from "@/lib/api"
 
 export default function UserDashboardPage() {
   const [profile, setProfile] = useState<any>(null)
@@ -201,11 +201,30 @@ export default function UserDashboardPage() {
                       </div>
                     </div>
                   </div>
-                  <Link href={`/jobs/${job._id}`}>
-                    <Button size="sm" className="text-black hover:bg-gray-100">
-                      View
+                  <div className="flex items-center gap-2">
+                    <Link href={`/jobs/${job._id}`}>
+                      <Button size="sm" className="text-black hover:bg-gray-100">
+                        View
+                      </Button>
+                    </Link>
+                    <Button
+                      size="sm"
+                      className="bg-blue-500 text-white hover:bg-blue-600"
+                      onClick={async () => {
+                        try {
+                          const skillsInput = prompt('Enter your skills (comma separated):', '') || ''
+                          const experienceInput = prompt('Years of experience (optional):', '') || ''
+                          const skills = skillsInput.split(',').map(s => s.trim()).filter(Boolean)
+                          await applyToJob(job._id, { skills, experience: experienceInput || undefined, appliedVia: 'normal' })
+                          alert('Application submitted successfully!')
+                        } catch (e: any) {
+                          alert(e?.response?.data?.message || 'Failed to apply. Please log in as an employee.')
+                        }
+                      }}
+                    >
+                      Apply
                     </Button>
-                  </Link>
+                  </div>
                 </div>
               ))}
               <div className="pt-2 text-center">
