@@ -16,7 +16,7 @@ export default function UserProfile() {
 
   React.useEffect(() => {
     if (!token) {
-      window.location.href = "/auth/login";
+      window.location.href = "/login";
       return;
     }
     fetchUserById(id)

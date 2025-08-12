@@ -42,7 +42,7 @@ export default function UsersDirectoryPage() {
 
   useEffect(() => {
     if (!token) {
-      router.push("/auth/login");
+      router.push("/login");
       return;
     }
     setLoading(true);

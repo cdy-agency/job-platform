@@ -38,13 +38,20 @@ export const fetchEmployeeProfile = async () => {
 };
 
 export const fetchJobs = async (category?: string) => {
-  // Try public jobs endpoint first, then fall back to employee endpoint
+  const normalizeJobs = (payload: any): any[] => {
+    if (!payload) return []
+    if (Array.isArray(payload)) return payload
+    if (Array.isArray(payload?.jobs)) return payload.jobs
+    if (Array.isArray(payload?.data?.jobs)) return payload.data.jobs
+    if (Array.isArray(payload?.data)) return payload.data
+    return []
+  }
   try {
     const res = await api.get("/jobs", { params: { category } });
-    return res.data;
+    return normalizeJobs(res.data)
   } catch (publicErr) {
     const res = await api.get("/employee/jobs", { params: { category } });
-    return res.data;
+    return normalizeJobs(res.data)
   }
 };
 
@@ -131,12 +138,18 @@ export const approveCompany = async (companyId: string) => {
 };
 
 export const fetchJobById = async (jobId: string) => {
+  const extractJob = (payload: any): any | null => {
+    if (!payload) return null
+    if (payload?.job) return payload.job
+    if (payload?.data?.job) return payload.data.job
+    if (payload?._id || payload?.id) return payload
+    return null
+  }
   try {
     const res = await api.get(`/jobs/${jobId}`);
-    return res.data;
+    return extractJob(res.data)
   } catch (err) {
     try {
-      // Fallback: fetch all then find
       const allJobs = await fetchJobs();
       return (Array.isArray(allJobs) ? allJobs : []).find(
         (j: any) => j?._id === jobId || j?.id === jobId
@@ -148,35 +161,53 @@ export const fetchJobById = async (jobId: string) => {
 };
 
 export const fetchUsersDirectory = async (): Promise<any[]> => {
-  // Prefer public users endpoint, fallback to admin list
-  try {
-    const res = await api.get("/users");
-    return Array.isArray(res.data) ? res.data : [];
-  } catch (publicErr) {
+  const normalizeUsers = (payload: any): any[] => {
+    if (!payload) return []
+    if (Array.isArray(payload)) return payload
+    if (Array.isArray(payload?.users)) return payload.users
+    if (Array.isArray(payload?.data?.users)) return payload.data.users
+    if (Array.isArray(payload?.data)) return payload.data
+    return []
+  }
+  const tryPaths = [
+    "/users",
+    "/employees",
+    "/employee/employees",
+    "/employee/directory",
+    "/employee/list",
+  ]
+  for (const path of tryPaths) {
     try {
-      const res2 = await api.get("/admin/employees");
-      return Array.isArray(res2.data) ? res2.data : [];
-    } catch {
-      return [];
+      const res = await api.get(path)
+      return normalizeUsers(res.data)
+    } catch (e) {
+      // try next
     }
   }
+  return []
 };
 
 export const fetchUserById = async (userId: string) => {
-  try {
-    const res = await api.get(`/admin/employees/${userId}`);
-    return res.data;
-  } catch (adminErr) {
+  const candidates = [
+    `/users/${userId}`,
+    `/employees/${userId}`,
+    `/employee/employees/${userId}`,
+  ]
+  for (const path of candidates) {
     try {
-      const res2 = await api.get(`/users/${userId}`);
-      return res2.data;
-    } catch {
-      try {
-        const list = await fetchUsersDirectory();
-        return (Array.isArray(list) ? list : []).find((u: any) => u?._id === userId || u?.id === userId) || null;
-      } catch {
-        return null;
-      }
+      const res = await api.get(path)
+      const data = res.data
+      if (data?.user) return data.user
+      if (data?.data?.user) return data.data.user
+      if (data?._id || data?.id) return data
+    } catch (e) {
+      // try next
     }
+  }
+  try {
+    const list = await fetchUsersDirectory();
+    return (Array.isArray(list) ? list : []).find((u: any) => u?._id === userId || u?.id === userId) || null;
+  } catch {
+    return null
   }
 };
