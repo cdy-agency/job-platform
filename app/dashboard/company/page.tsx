@@ -164,7 +164,7 @@ export default function CompanyDashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {jobs.slice(0, 3).map((job) => (
+              {Array.isArray(jobs) && jobs.slice(0, 3).map((job) => (
                 <div key={job._id} className="flex items-center justify-between">
                   <div>
                     <h4 className="font-medium text-gray-800">{job.title}</h4>

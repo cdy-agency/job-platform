@@ -10,7 +10,7 @@ import { User, Building2 } from "lucide-react";
 import CompanyRegistration from "@/components/auth/company-registration";
 import EmployeRegistration from "@/components/auth/employee-registration";
 import NavBar from "@/components/home/NavBar";
-import { registerCompany, registerEmployee } from "@/lib/api";
+import { createCompanyFormData, registerCompany, registerEmployee } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 
 export default function RegisterPage() {
@@ -26,6 +26,7 @@ export default function RegisterPage() {
     name: "",
     dateOfBirth: "",
     employeePhoneNumber: "",
+    jobPreferences: [] as string[],
 
     // Company fields
     companyName: "",
@@ -42,58 +43,51 @@ export default function RegisterPage() {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const fileToBase64 = (file: File): Promise<string> =>
-    new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = () => resolve(reader.result as string);
-      reader.onerror = (error) => reject(error);
-    });
-
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    let logoString = "";
-    if (formData.logo) {
-      logoString = await fileToBase64(formData.logo);
-    }
-    try {
-      if (formData.userType === "company") {
-        const payload = {
-          companyName: formData.companyName,
-          email: formData.email,
-          password: formData.password,
-          confirmPassword: formData.confirmPassword,
-          location: formData.location,
-          phoneNumber: formData.companyPhoneNumber,
-          website: formData.website,
-          logo: logoString,
-        };
-        const response = await registerCompany(payload);
-        toast({
-          title: `${formData}`,
-          description: "Welcome back! Redirecting you now...",
-        })
-        console.log("Company registered:", response);
-      } else {
-        const payload = {
-          name: formData.name,
-          email: formData.email,
-          password: formData.password,
-          confirmPassword: formData.confirmPassword,
-          dateOfBirth: formData.dateOfBirth,
-          phoneNumber: formData.employeePhoneNumber,
-        };
-        const response = await registerEmployee(payload);
-        toast({
-          title: `${formData.name} You registered Well`,
-          description: "Welcome back! Redirecting you now...",
-        })
-        console.log("Employee registered:", response);
+  e.preventDefault();
+  try {
+    if (formData.userType === "company") {
+      // Convert to FormData before sending
+      const companyFormData = createCompanyFormData(formData);
+      
+      // Debug: Log FormData contents (optional)
+      console.log("FormData contents:",companyFormData);
+      for (let pair of companyFormData.entries()) {
+        console.log(pair[0], pair[1]);
       }
-    } catch (error) {
-      console.error("Registration error:", error);
+      
+      const response = await registerCompany(companyFormData);
+      toast({
+        title: `${formData.companyName} registered successfully!`,
+        description: "Welcome to our platform!",
+      });
+      console.log("Company registered:", response);
+    } else {
+      const payload = {
+        name: formData.name,
+        email: formData.email,
+        password: formData.password,
+        confirmPassword: formData.confirmPassword,
+        dateOfBirth: formData.dateOfBirth,
+        phoneNumber: formData.employeePhoneNumber,
+        jobPreferences: formData.jobPreferences,
+      };
+      const response = await registerEmployee(payload);
+      toast({
+        title: `${formData.name} registered successfully!`,
+        description: "Welcome to our platform!",
+      });
+      console.log("Employee registered:", response);
     }
-  };
+  } catch (error) {
+    console.error("Registration error:", error);
+    toast({
+      title: "Registration failed",
+      description: "Please check your information and try again.",
+      variant: "destructive",
+    });
+  }
+};
 
   return (
     <div>
@@ -182,7 +176,8 @@ export default function RegisterPage() {
                         password: formData.password,
                         confirmPassword: formData.confirmPassword,
                         dateOfBirth: formData.dateOfBirth,
-                        phoneNumber: formData.employeePhoneNumber,
+                        employeePhoneNumber: formData.employeePhoneNumber,
+                        jobPreferences: formData.jobPreferences
                       }}
                       onInputChange={handleInputChange}
                     />

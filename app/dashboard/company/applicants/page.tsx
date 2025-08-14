@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { fetchCompanyJobs, fetchJobApplicants } from "@/lib/api";
+import { fetchCompanyJobs, fetchJobApplicants, updateApplicantStatus } from "@/lib/api";
 
 type Applicant = {
   _id: string;
@@ -36,8 +36,13 @@ export default function ManageApplicantsPage() {
       .finally(() => setLoadingApplicants(false))
   }, [selectedJobId])
 
-  const updateStatusLocal = (id: string, status: Applicant["status"]) => {
-    setApplicants((prev) => prev.map((a) => a._id === id ? { ...a, status } as Applicant : a))
+  const updateStatus = async (id: string, status: Applicant["status"]) => {
+    try {
+      await updateApplicantStatus(id, status)
+      setApplicants((prev) => prev.map((a) => a._id === id ? { ...a, status } as Applicant : a))
+    } catch (e: any) {
+      alert(e?.response?.data?.message || 'Failed to update status')
+    }
   }
 
   if (loading) return <div className="p-6">Loading...</div>
@@ -106,7 +111,7 @@ export default function ManageApplicantsPage() {
                   <div className="flex gap-2 flex-wrap justify-center">
                     {app.status !== "reviewed" && (
                       <button
-                        onClick={() => updateStatusLocal(app._id, "reviewed")}
+                        onClick={() => updateStatus(app._id, "reviewed")}
                         className="text-xs px-2 py-1 rounded border border-blue-300 text-blue-700 hover:bg-blue-100"
                       >
                         Mark Reviewed
@@ -115,7 +120,7 @@ export default function ManageApplicantsPage() {
 
                     {app.status !== "interview" && (
                       <button
-                        onClick={() => updateStatusLocal(app._id, "interview")}
+                        onClick={() => updateStatus(app._id, "interview")}
                         className="text-xs px-2 py-1 rounded border border-purple-300 text-purple-700 hover:bg-purple-100"
                       >
                         Call Interview
@@ -124,7 +129,7 @@ export default function ManageApplicantsPage() {
 
                     {app.status !== "hired" && (
                       <button
-                        onClick={() => updateStatusLocal(app._id, "hired")}
+                        onClick={() => updateStatus(app._id, "hired")}
                         className="text-xs px-2 py-1 rounded border border-green-300 text-green-700 hover:bg-green-100"
                       >
                         Mark Hired
@@ -133,7 +138,7 @@ export default function ManageApplicantsPage() {
 
                     {app.status !== "rejected" && (
                       <button
-                        onClick={() => updateStatusLocal(app._id, "rejected")}
+                        onClick={() => updateStatus(app._id, "rejected")}
                         className="text-xs px-2 py-1 rounded border border-red-300 text-red-700 hover:bg-red-100"
                       >
                         Reject

@@ -5,7 +5,7 @@ import { useEffect, useState } from "react"
 import { Bell, Briefcase, Clock, Eye, FileText, Search } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { fetchEmployeeApplications, fetchEmployeeProfile, fetchJobs, applyToJob } from "@/lib/api"
+import { fetchEmployeeApplications, fetchEmployeeProfile, fetchJobs, applyToJob, fetchJobSuggestions } from "@/lib/api"
 
 export default function UserDashboardPage() {
   const [profile, setProfile] = useState<any>(null)
@@ -14,12 +14,11 @@ export default function UserDashboardPage() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    Promise.all([fetchEmployeeProfile(), fetchEmployeeApplications(), fetchJobs()])
-      .then(([p, apps, jobs]) => {
+    Promise.all([fetchEmployeeProfile(), fetchEmployeeApplications(), fetchJobSuggestions()])
+      .then(([p, apps, suggestions]) => {
         setProfile(p || null)
         setApplications(apps || [])
-        // Fix: Ensure jobs is an array before calling slice
-        const jobsArray = Array.isArray(jobs) ? jobs : []
+        const jobsArray = Array.isArray(suggestions) ? suggestions : []
         setRecommended(jobsArray.slice(0, 3))
       })
       .finally(() => setLoading(false))

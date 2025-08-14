@@ -13,11 +13,40 @@ export const registerEmployee = async (data: EmployeeRegisterType): Promise<Auth
 };
 
 export const registerCompany = async (
-  data: CompanyRegisterType
+  data: FormData
 ): Promise<AuthResponse<CompanyUser>> => {
-  // Backend accepts JSON payload per README
-  const response = await api.post("/auth/register/company", data);
+  const response = await api.post("/auth/register/company", data, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
   return response.data;
+}
+
+export const createCompanyFormData = (formData: any): FormData => {
+  const form = new FormData();
+  
+  form.append('companyName', formData.companyName);
+  form.append('email', formData.email);
+  form.append('password', formData.password);
+  form.append('confirmPassword', formData.confirmPassword);
+
+  if (formData.location) {
+    form.append('location', formData.location);
+  }
+  if (formData.companyPhoneNumber) {
+    form.append('phoneNumber', formData.companyPhoneNumber); // Note: using 'phoneNumber' to match your schema
+  }
+  if (formData.website) {
+    form.append('website', formData.website);
+  }
+  
+  // Add the file if it exists
+  if (formData.logo && formData.logo instanceof File) {
+    form.append('logo', formData.logo);
+  }
+  
+  return form;
 };
 
 export const loginUser = async (
@@ -34,7 +63,8 @@ export const loginUser = async (
 // Employee APIs
 export const fetchEmployeeProfile = async () => {
   const res = await api.get("/employee/profile");
-  return res.data;
+  const data = res.data;
+  return data?.employee || data?.data?.employee || data;
 };
 
 export const fetchJobs = async (category?: string) => {
@@ -76,11 +106,17 @@ export const fetchEmployeeNotifications = async () => {
 // Company APIs
 export const fetchCompanyProfile = async () => {
   const res = await api.get("/company/profile");
-  return res.data;
+  const data = res.data;
+  return data?.company || data?.data?.company || data;
 };
 
 export const updateCompanyProfile = async (data: Partial<CompanyUser>) => {
   const res = await api.patch("/company/profile", data);
+  return res.data;
+};
+
+export const updateEmployeeProfile = async (data: any) => {
+  const res = await api.patch("/employee/profile", data);
   return res.data;
 };
 
@@ -92,6 +128,7 @@ export const postJob = async (data: {
   employmentType: 'fulltime' | 'part-time' | 'internship';
   salary?: string;
   category: string;
+  benefits?: string[];
 }) => {
   const res = await api.post("/company/job", data);
   return res.data;
@@ -104,8 +141,26 @@ export const fetchCompanyJobs = async () => {
 
 export const fetchJobApplicants = async (jobId: string) => {
   const res = await api.get(`/company/applicants/${jobId}`);
-  return res.data;
+  const data = res.data;
+  return data?.applicants || data?.data?.applicants || data;
 };
+
+export const updateApplicantStatus = async (applicationId: string, status: 'pending' | 'reviewed' | 'interview' | 'hired' | 'rejected') => {
+  const res = await api.patch(`/company/applications/${applicationId}/status`, { status })
+  return res.data
+}
+
+export const fetchJobSuggestions = async () => {
+  const normalizeJobs = (payload: any): any[] => {
+    if (!payload) return []
+    if (Array.isArray(payload)) return payload
+    if (Array.isArray(payload?.jobs)) return payload.jobs
+    if (Array.isArray(payload?.data?.jobs)) return payload.data.jobs
+    return []
+  }
+  const res = await api.get('/employee/suggestions')
+  return normalizeJobs(res.data)
+}
 
 // Admin APIs
 export const adminLogin = async (data: LoginType) => {
@@ -134,6 +189,26 @@ export const fetchAdminCompanies = async () => {
 
 export const approveCompany = async (companyId: string) => {
   const res = await api.patch(`/admin/company/${companyId}/approve`);
+  return res.data;
+};
+
+export const rejectCompany = async (companyId: string, rejectionReason: string) => {
+  const res = await api.patch(`/admin/company/${companyId}/reject`, { rejectionReason });
+  return res.data;
+};
+
+export const disableCompany = async (companyId: string) => {
+  const res = await api.patch(`/admin/company/${companyId}/disable`);
+  return res.data;
+};
+
+export const enableCompany = async (companyId: string) => {
+  const res = await api.patch(`/admin/company/${companyId}/enable`);
+  return res.data;
+};
+
+export const deleteCompany = async (companyId: string) => {
+  const res = await api.delete(`/admin/company/${companyId}/delete`);
   return res.data;
 };
 
@@ -211,3 +286,21 @@ export const fetchUserById = async (userId: string) => {
     return null
   }
 };
+
+// Company missing info completion
+export const completeCompanyNextSteps = async (payload: { about?: string; documents?: string[] }) => {
+  const res = await api.patch('/auth/company/complete', payload)
+  return res.data
+}
+
+// Company browsing employees and sending work requests
+export const fetchEmployeesDirectory = async () => {
+  const res = await api.get('/company/employees')
+  const data = res.data
+  return data?.employees || data?.data?.employees || data
+}
+
+export const sendWorkRequest = async (employeeId: string, message?: string) => {
+  const res = await api.post('/company/work-requests', { employeeId, message })
+  return res.data
+}

@@ -93,7 +93,7 @@ const CompanyRegistration = ({ formData, onInputChange }: CompanyRegistrationPro
 
         <div className="space-y-2 md:col-span-2">
           <Label htmlFor="logo" className="text-sm font-medium text-gray-700">
-            Company Logo (Optional)
+            Company Logo 
           </Label>
           <Input
             id="logo"

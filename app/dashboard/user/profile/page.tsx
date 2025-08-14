@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Briefcase,
   Edit,
@@ -19,22 +19,35 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs";
-import { mockUsers } from "@/lib/mock-data";
 import { toast } from "@/components/ui/use-toast";
+import { fetchEmployeeProfile, updateEmployeeProfile } from "@/lib/api";
 
 export default function UserProfilePage() {
   const [isEditing, setIsEditing] = useState(false);
+  const [profile, setProfile] = useState<any | null>(null);
 
-  const currentUser = mockUsers[0];
+  useEffect(() => {
+    fetchEmployeeProfile().then((data) => setProfile(data || null)).catch(() => setProfile(null))
+  }, [])
 
-  const handleSaveProfile = () => {
-    setTimeout(() => {
-      setIsEditing(false);
-      toast({
-        title: "Profile updated",
-        description: "Your profile has been successfully updated.",
-      });
-    }, 500);
+  const handleSaveProfile = async () => {
+    try {
+      if (!profile) return
+      const payload: any = {
+        about: profile.about || '',
+        experience: profile.experience || '',
+        education: profile.education || '',
+        name: profile.name || '',
+        phoneNumber: profile.phoneNumber || '',
+        skills: Array.isArray(profile.skills) ? profile.skills : [],
+        jobPreferences: Array.isArray(profile.jobPreferences) ? profile.jobPreferences : [],
+      }
+      await updateEmployeeProfile(payload)
+      setIsEditing(false)
+      toast({ title: "Profile updated", description: "Your profile has been successfully updated." })
+    } catch (e: any) {
+      toast({ title: "Failed to update", description: e?.response?.data?.message || 'Try again', variant: 'destructive' })
+    }
   };
 
   return (
@@ -84,15 +97,15 @@ export default function UserProfilePage() {
               <div className="flex flex-col items-center text-center">
                 <div className="mb-4 h-32 w-32 overflow-hidden rounded-full">
                   <img
-                    src={currentUser.profilePicture || "/placeholder.svg"}
-                    alt={currentUser.name}
+                    src={profile?.profileImage || "/placeholder.svg"}
+                    alt={profile?.name || 'Profile'}
                     className="h-full w-full object-cover"
                     width={128}
                     height={128}
                   />
                 </div>
-                <h2 className="text-xl font-bold text-gray-800">{currentUser.name}</h2>
-                <p className="text-gray-600">{currentUser.experience[0].title}</p>
+                <h2 className="text-xl font-bold text-gray-800">{profile?.name || '—'}</h2>
+                <p className="text-gray-600">{profile?.experience || '—'}</p>
                 <div className="mt-4 flex items-center justify-center gap-2">
                   <Button variant="outline" size="sm" className="border-gray-300 bg-transparent text-gray-800">
                     Hindura ifoto ikuranga
@@ -105,11 +118,11 @@ export default function UserProfilePage() {
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
                   <Mail className="h-4 w-4 text-gray-600" />
-                  <span className="text-sm text-gray-600">{currentUser.email}</span>
+                  <span className="text-sm text-gray-600">{profile?.email || '—'}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Phone className="h-4 w-4 text-gray-600" />
-                  <span className="text-sm text-gray-600">+1 (555) 123-4567</span>
+                  <span className="text-sm text-gray-600">{profile?.phoneNumber || '—'}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <MapPin className="h-4 w-4 text-gray-600" />
@@ -125,7 +138,7 @@ export default function UserProfilePage() {
             </CardHeader>
             <CardContent>
               <div className="flex flex-wrap gap-2">
-                {currentUser.skills.map((skill) => (
+                {(profile?.skills || []).map((skill: string) => (
                   <span key={skill} className="rounded-full bg-blue-100 px-3 py-1 text-xs text-blue-800">
                     {skill}
                   </span>
@@ -222,22 +235,9 @@ export default function UserProfilePage() {
                       Add
                     </Button>
                   </div>
-                  {currentUser.experience.map((exp, index) => (
-                    <div key={index} className="space-y-2">
-                      <div className="flex items-start gap-3">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 text-blue-500">
-                          <Briefcase className="h-5 w-5" />
-                        </div>
-                        <div>
-                          <h4 className="font-semibold text-gray-800">{exp.title}</h4>
-                          <p className="text-sm text-gray-600">{exp.company}</p>
-                          <p className="text-sm text-gray-600">{exp.duration}</p>
-                          <p className="mt-2 text-gray-600">{exp.description}</p>
-                        </div>
-                      </div>
-                      {index < currentUser.experience.length - 1 && <Separator className="my-4 bg-gray-200" />}
-                    </div>
-                  ))}
+                  <div className="space-y-2 text-gray-700">
+                    {profile?.experience || '—'}
+                  </div>
                 </div>
               </TabsContent>
 
@@ -250,20 +250,9 @@ export default function UserProfilePage() {
                       Add
                     </Button>
                   </div>
-                  {currentUser.education.map((edu, index) => (
-                    <div key={index} className="space-y-2">
-                      <div className="flex items-start gap-3">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 text-blue-500">
-                          <GraduationCap className="h-5 w-5" />
-                        </div>
-                        <div>
-                          <h4 className="font-semibold text-gray-800">{edu.degree}</h4>
-                          <p className="text-sm text-gray-600">{edu.institution}</p>
-                          <p className="text-sm text-gray-600">{edu.year}</p>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
+                  <div className="space-y-2 text-gray-700">
+                    {profile?.education || '—'}
+                  </div>
                 </div>
               </TabsContent>
             </CardContent>

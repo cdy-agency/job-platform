@@ -45,6 +45,7 @@ const jobFormSchema = z.object({
   applicationDeadline: z.string().min(1, {
     message: "Application deadline is required.",
   }),
+  benefits: z.string().optional(),
 })
 
 type JobFormValues = z.infer<typeof jobFormSchema>
@@ -66,6 +67,7 @@ export default function PostJobPage() {
       requirements: "",
       responsibilities: "",
       applicationDeadline: "",
+      benefits: "",
     },
   })
 
@@ -81,6 +83,7 @@ export default function PostJobPage() {
       const salary = `${data.salaryMin}-${data.salaryMax}`
       // Derive skills from requirements (comma separated) for simplicity
       const skills = data.requirements.split(/,|\n/).map(s => s.trim()).filter(Boolean)
+      const benefits = (data.benefits || '').split(/,|\n/).map(s => s.trim()).filter(Boolean)
 
       await postJob({
         title: data.title,
@@ -89,6 +92,7 @@ export default function PostJobPage() {
         employmentType,
         salary,
         category: data.category,
+        benefits,
       })
 
       toast({
@@ -272,6 +276,23 @@ export default function PostJobPage() {
                       <FormControl>
                         <Textarea placeholder="List key responsibilities" {...field} className="border-gray-300" />
                       </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="benefits"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-gray-800">Benefits (comma separated)</FormLabel>
+                      <FormControl>
+                        <Textarea placeholder="e.g. Insurance, Transport allowance, Lunch" {...field} className="border-gray-300" />
+                      </FormControl>
+                      <FormDescription className="text-gray-600">
+                        Include perks like insurance, allowances, etc.
+                      </FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
