@@ -20,6 +20,8 @@ import { fetchJobById } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import NavBar from "@/components/home/NavBar";
 import { applyToJob } from "@/lib/api";
+import { toast } from "@/components/ui/use-toast";
+import ApplyJobModal from "@/components/employee/ApplyJobModal";
 
 const mainPurple = "#834de3";
 
@@ -48,6 +50,7 @@ export default function JobDetailsPage() {
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [applying, setApplying] = useState(false)
   const [job, setJob] = useState<JobShape | null>(null)
+  const [applyOpen, setApplyOpen] = useState(false)
 
   useEffect(() => {
     fetchJobById(id)
@@ -130,9 +133,9 @@ export default function JobDetailsPage() {
       const experienceInput = prompt('Years of experience (optional):', '') || ''
       const skills = skillsInput.split(',').map(s => s.trim()).filter(Boolean)
       await applyToJob(job.id, { skills, experience: experienceInput || undefined, appliedVia: 'normal' })
-      alert("Application submitted successfully!");
+      toast({ title: "Application submitted successfully!" })
     } catch (e: any) {
-      alert(e?.response?.data?.message || 'Failed to apply. Please log in as an employee.')
+      toast({ title: "Failed to apply", description: e?.response?.data?.message || 'Failed to apply. Please log in as an employee.', variant: "destructive" })
     } finally {
       setApplying(false)
     }
@@ -142,16 +145,12 @@ export default function JobDetailsPage() {
     setIsBookmarked(!isBookmarked);
   };
 
-  const handleShare = () => {
-    if (navigator.share) {
-      navigator.share({
-        title: job.title,
-        text: `Check out this job at ${job.company.name}`,
-        url: window.location.href,
-      });
-    } else {
-      navigator.clipboard.writeText(window.location.href);
-      alert("Link copied to clipboard!");
+  const handleShare = async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href)
+      toast({ title: "Link copied to clipboard" })
+    } catch (e: any) {
+      toast({ title: "Unable to copy link", description: e?.message, variant: "destructive" })
     }
   };
 
@@ -334,6 +333,14 @@ export default function JobDetailsPage() {
           <ArrowUp className="h-5 w-5" />
         </button>
       )}
+
+      <ApplyJobModal
+        jobId={id}
+        open={applyOpen}
+        onOpenChange={setApplyOpen}
+        jobTitle={job?.title}
+        companyName={job?.companyId?.companyName || job?.company?.name}
+      />
     </div>
   );
 }

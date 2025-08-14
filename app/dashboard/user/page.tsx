@@ -1,7 +1,9 @@
 "use client"
 
 import Link from "next/link"
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
+import { toast } from "@/components/ui/use-toast"
+import ApplyJobModal from "@/components/employee/ApplyJobModal"
 import { Bell, Briefcase, Clock, Eye, FileText, Search } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -12,6 +14,8 @@ export default function UserDashboardPage() {
   const [applications, setApplications] = useState<any[]>([])
   const [recommended, setRecommended] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [applyJobId, setApplyJobId] = useState<string | null>(null)
+  const [applyMeta, setApplyMeta] = useState<{ title?: string; company?: string } | null>(null)
 
   useEffect(() => {
     Promise.all([fetchEmployeeProfile(), fetchEmployeeApplications(), fetchJobSuggestions()])
@@ -25,6 +29,11 @@ export default function UserDashboardPage() {
   }, [])
 
   if (loading) return <div className="p-6">Loading...</div>
+
+  const openApply = (job: any) => {
+    setApplyJobId(job._id || job.id)
+    setApplyMeta({ title: job.title, company: job.companyId?.companyName || job.company?.name })
+  }
 
   return (
     <div className="container space-y-8 p-6 pb-16">
@@ -209,17 +218,7 @@ export default function UserDashboardPage() {
                     <Button
                       size="sm"
                       className="bg-blue-500 text-white hover:bg-blue-600"
-                      onClick={async () => {
-                        try {
-                          const skillsInput = prompt('Enter your skills (comma separated):', '') || ''
-                          const experienceInput = prompt('Years of experience (optional):', '') || ''
-                          const skills = skillsInput.split(',').map(s => s.trim()).filter(Boolean)
-                          await applyToJob(job._id, { skills, experience: experienceInput || undefined, appliedVia: 'normal' })
-                          alert('Application submitted successfully!')
-                        } catch (e: any) {
-                          alert(e?.response?.data?.message || 'Failed to apply. Please log in as an employee.')
-                        }
-                      }}
+                      onClick={() => openApply(job)}
                     >
                       Apply
                     </Button>
@@ -298,6 +297,14 @@ export default function UserDashboardPage() {
           </div>
         </CardContent>
       </Card>
+
+      <ApplyJobModal
+        jobId={applyJobId || ''}
+        open={!!applyJobId}
+        onOpenChange={(open) => { if (!open) setApplyJobId(null) }}
+        jobTitle={applyMeta?.title}
+        companyName={applyMeta?.company}
+      />
     </div>
   )
 }

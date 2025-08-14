@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { fetchCompanyJobs } from "@/lib/api";
+import { toast } from "sonner";
 
 type Job = {
   _id: string;
@@ -24,10 +25,9 @@ export default function ManageJobsPage() {
   }, []);
 
   const handleDelete = (id: string) => {
-    if (!confirm("Are you sure you want to delete this job?")) return;
-    // Placeholder: implement delete endpoint later
+    // TODO: integrate delete job API when available
     setJobs((prev) => prev.filter((job) => job._id !== id));
-    alert("Job deleted");
+    toast.success("Job removed from list")
   };
 
   const handleEdit = (id: string) => {
