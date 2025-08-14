@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { fetchCompanyJobs, fetchJobApplicants, updateApplicantStatus } from "@/lib/api";
+import { toast } from "sonner";
 
 type Applicant = {
   _id: string;
@@ -40,8 +41,9 @@ export default function ManageApplicantsPage() {
     try {
       await updateApplicantStatus(id, status)
       setApplicants((prev) => prev.map((a) => a._id === id ? { ...a, status } as Applicant : a))
+      toast.success("Status updated")
     } catch (e: any) {
-      alert(e?.response?.data?.message || 'Failed to update status')
+      toast.error(e?.response?.data?.message || e?.message)
     }
   }
 
@@ -97,9 +99,9 @@ export default function ManageApplicantsPage() {
                       app.status === "pending"
                         ? "bg-yellow-100 text-yellow-800"
                         : app.status === "reviewed"
-                        ? "bg-blue-100 text-blue-800"
-                        : app.status === "interview"
                         ? "bg-purple-100 text-purple-800"
+                        : app.status === "interview"
+                        ? "bg-purple-200 text-purple-900"
                         : app.status === "hired"
                         ? "bg-green-100 text-green-800"
                         : "bg-red-100 text-red-800"
@@ -112,7 +114,7 @@ export default function ManageApplicantsPage() {
                     {app.status !== "reviewed" && (
                       <button
                         onClick={() => updateStatus(app._id, "reviewed")}
-                        className="text-xs px-2 py-1 rounded border border-blue-300 text-blue-700 hover:bg-blue-100"
+                        className="text-xs px-2 py-1 rounded border border-purple-300 text-purple-700 hover:bg-purple-50"
                       >
                         Mark Reviewed
                       </button>
@@ -121,7 +123,7 @@ export default function ManageApplicantsPage() {
                     {app.status !== "interview" && (
                       <button
                         onClick={() => updateStatus(app._id, "interview")}
-                        className="text-xs px-2 py-1 rounded border border-purple-300 text-purple-700 hover:bg-purple-100"
+                        className="text-xs px-2 py-1 rounded border border-purple-300 text-purple-700 hover:bg-purple-50"
                       >
                         Call Interview
                       </button>
@@ -130,7 +132,7 @@ export default function ManageApplicantsPage() {
                     {app.status !== "hired" && (
                       <button
                         onClick={() => updateStatus(app._id, "hired")}
-                        className="text-xs px-2 py-1 rounded border border-green-300 text-green-700 hover:bg-green-100"
+                        className="text-xs px-2 py-1 rounded border border-green-300 text-green-700 hover:bg-green-50"
                       >
                         Mark Hired
                       </button>
@@ -139,7 +141,7 @@ export default function ManageApplicantsPage() {
                     {app.status !== "rejected" && (
                       <button
                         onClick={() => updateStatus(app._id, "rejected")}
-                        className="text-xs px-2 py-1 rounded border border-red-300 text-red-700 hover:bg-red-100"
+                        className="text-xs px-2 py-1 rounded border border-red-300 text-red-700 hover:bg-red-50"
                       >
                         Reject
                       </button>
