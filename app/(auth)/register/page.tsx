@@ -183,35 +183,6 @@ export default function RegisterPage() {
                     />
                   )}
 
-                  {/* Terms */}
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id="terms"
-                      checked={formData.agreeToTerms}
-                      onCheckedChange={(checked) =>
-                        handleInputChange("agreeToTerms", checked as boolean)
-                      }
-                      className="data-[state=checked]:bg-purple-600 data-[state=checked]:border-purple-600"
-                      required
-                    />
-                    <Label htmlFor="terms" className="text-sm text-gray-600">
-                      I agree to the{" "}
-                      <Link
-                        href="/terms"
-                        className="text-purple-600 hover:text-purple-700"
-                      >
-                        Terms of Service
-                      </Link>{" "}
-                      and{" "}
-                      <Link
-                        href="/privacy"
-                        className="text-purple-600 hover:text-purple-700"
-                      >
-                        Privacy Policy
-                      </Link>
-                    </Label>
-                  </div>
-
                   {/* Submit */}
                   <Button
                     type="submit"

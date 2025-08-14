@@ -7,6 +7,7 @@ import {
   Bell,
   Briefcase,
   Building,
+  File,
   Home,
   LogOut,
   Menu,
@@ -28,11 +29,7 @@ const navItems = [
     href: "/dashboard/company",
     icon: Home,
   },
-  {
-    title: "Company Profile",
-    href: "/dashboard/company/profile",
-    icon: Building,
-  },
+  
   {
     title: "Post Job",
     href: "/dashboard/company/post-job",
@@ -48,6 +45,12 @@ const navItems = [
     href: "/dashboard/company/applicants",
     icon: Users,
   },
+  {
+    title: "Company Profile",
+    href: "/dashboard/company/profile",
+    icon: Building,
+  },
+  
   // {
   //   title: "Analytics",
   //   href: "/dashboard/company/analytics",

@@ -14,11 +14,15 @@ interface EmployeeRegistrationProps {
     jobPreferences: string[];
   };
   onInputChange: (field: string, value: any) => void;
+  errors?: {
+    [key: string]: string;
+  };
 }
 
 const EmployeeRegistration = ({
   formData,
   onInputChange,
+  errors = {},
 }: EmployeeRegistrationProps) => {
   const jobOptions = [
     "Cleaner",
@@ -47,8 +51,8 @@ const EmployeeRegistration = ({
       ? selectedJobs.filter((pref) => pref !== job)
       : [...selectedJobs, job];
 
-    setSelectedJobs(updatedPreferences); // instant UI update
-    onInputChange("jobPreferences", updatedPreferences); // sync to parent
+    setSelectedJobs(updatedPreferences);
+    onInputChange("jobPreferences", updatedPreferences);
   };
 
   return (
@@ -68,7 +72,11 @@ const EmployeeRegistration = ({
             className="bg-white text-black"
             required
           />
+          {errors.name && (
+            <p className="text-sm text-red-500">{errors.name}</p>
+          )}
         </div>
+
         <div className="space-y-2">
           <Label htmlFor="email" className="text-sm font-medium text-gray-700">
             Email
@@ -82,7 +90,11 @@ const EmployeeRegistration = ({
             className="bg-white text-black"
             required
           />
+          {errors.email && (
+            <p className="text-sm text-red-500">{errors.email}</p>
+          )}
         </div>
+
         <div className="space-y-2">
           <Label
             htmlFor="dateOfBirth"
@@ -98,6 +110,7 @@ const EmployeeRegistration = ({
             className="bg-white text-black"
           />
         </div>
+
         <div className="space-y-2">
           <Label
             htmlFor="phoneNumber"
@@ -107,13 +120,18 @@ const EmployeeRegistration = ({
           </Label>
           <Input
             id="phoneNumber"
-            type="text" 
-            inputMode="tel" 
+            type="text"
+            inputMode="tel"
             placeholder="Phone Number (Optional)"
             value={formData.employeePhoneNumber}
-            onChange={(e) => onInputChange("phoneNumber", e.target.value)}
+            onChange={(e) => onInputChange("employeePhoneNumber", e.target.value)}
             className="bg-white text-black"
           />
+          {errors.employeePhoneNumber && (
+            <p className="text-sm text-red-500">
+              {errors.employeePhoneNumber}
+            </p>
+          )}
         </div>
       </div>
 
@@ -135,7 +153,11 @@ const EmployeeRegistration = ({
             className="bg-white text-black"
             required
           />
+          {errors.password && (
+            <p className="text-sm text-red-500">{errors.password}</p>
+          )}
         </div>
+
         <div className="space-y-2">
           <Label
             htmlFor="confirmPassword"
@@ -152,6 +174,10 @@ const EmployeeRegistration = ({
             required
             className="bg-white text-black"
           />
+          {formData.confirmPassword &&
+            formData.password !== formData.confirmPassword && (
+              <p className="text-sm text-red-500">Passwords do not match</p>
+            )}
         </div>
       </div>
 
@@ -172,7 +198,13 @@ const EmployeeRegistration = ({
               return (
                 <div
                   key={job}
+                  role="checkbox"
+                  aria-checked={isSelected}
+                  tabIndex={0}
                   onClick={() => handleJobPreferenceChange(job)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") handleJobPreferenceChange(job);
+                  }}
                   className={`
                     relative flex items-center justify-center p-3 rounded-lg border-2 cursor-pointer
                     transition-all duration-200 hover:shadow-md
@@ -207,7 +239,6 @@ const EmployeeRegistration = ({
             })}
           </div>
 
-          {/* Selected count indicator */}
           {selectedJobs.length > 0 && (
             <div className="mt-3 pt-3 border-t border-gray-200">
               <div className="flex flex-wrap gap-2">
@@ -224,6 +255,9 @@ const EmployeeRegistration = ({
             </div>
           )}
         </div>
+        {errors.jobPreferences && (
+          <p className="text-sm text-red-500">{errors.jobPreferences}</p>
+        )}
       </div>
     </>
   );

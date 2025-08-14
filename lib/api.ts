@@ -107,7 +107,11 @@ export const fetchEmployeeNotifications = async () => {
 export const fetchCompanyProfile = async () => {
   const res = await api.get("/company/profile");
   const data = res.data;
-  return data?.company || data?.data?.company || data;
+  const company = data?.company || data?.data?.company || data;
+  if (data?.statusNotice) {
+    (company as any).statusNotice = data.statusNotice;
+  }
+  return company;
 };
 
 export const updateCompanyProfile = async (data: Partial<CompanyUser>) => {
@@ -304,3 +308,102 @@ export const sendWorkRequest = async (employeeId: string, message?: string) => {
   const res = await api.post('/company/work-requests', { employeeId, message })
   return res.data
 }
+
+// Company file upload APIs
+export const uploadCompanyLogo = async (file: File) => {
+  const formData = new FormData();
+  formData.append('logo', file);
+  const res = await api.post('/company/upload/logo', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+  return res.data;
+};
+
+export const uploadCompanyDocuments = async (files: File[]) => {
+  const formData = new FormData();
+  files.forEach((file, index) => {
+    formData.append('documents', file);
+  });
+  const res = await api.post('/company/upload/documents', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+  return res.data;
+};
+
+export const updateCompanyLogo = async (file: File) => {
+  const formData = new FormData();
+  formData.append('logo', file);
+  const res = await api.patch('/company/update/logo', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+  return res.data;
+};
+
+export const updateCompanyDocuments = async (files: File[]) => {
+  const formData = new FormData();
+  files.forEach((file, index) => {
+    formData.append('documents', file);
+  });
+  const res = await api.patch('/company/update/documents', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+  return res.data;
+};
+
+export const deleteCompanyLogo = async () => {
+  const res = await api.delete('/company/delete/logo');
+  return res.data;
+};
+
+export const deleteCompanyDocument = async (index: number) => {
+  const res = await api.delete(`/company/delete/document/${index}`);
+  return res.data;
+};
+
+// Company profile completion
+export const completeCompanyProfile = async (data: { about?: string; logo?: File; documents?: File[] }) => {
+  const formData = new FormData();
+  if (data.about) formData.append('about', data.about);
+  if (data.logo) formData.append('logo', data.logo);
+  if (data.documents) {
+    data.documents.forEach((file) => {
+      formData.append('documents', file); // IMPORTANT: exact field name 'documents'
+    });
+  }
+  
+  const res = await api.patch('/company/complete-profile', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+  return res.data;
+};
+
+// Admin company review APIs
+export const fetchCompaniesPendingReview = async () => {
+  const res = await api.get('/admin/companies/pending-review');
+  return res.data;
+};
+
+export const fetchAllEmployees = async () => {
+  const res = await api.get('/admin/employees');
+  return res.data;
+};
+
+export const approveCompanyProfile = async (companyId: string) => {
+  const res = await api.patch(`/admin/company/${companyId}/approve-profile`);
+  return res.data;
+};
+
+export const rejectCompanyProfile = async (companyId: string, rejectionReason: string) => {
+  const res = await api.patch(`/admin/company/${companyId}/reject-profile`, { rejectionReason });
+  return res.data;
+};

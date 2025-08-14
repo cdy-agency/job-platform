@@ -3,8 +3,8 @@ import type React from "react";
 import { CompanyDashboardSidebar } from "@/components/company-dashboard-sidebar";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { completeCompanyNextSteps, fetchCompanyProfile } from "@/lib/api";
-import CompanyInfoForm from "@/components/auth/about-company";
+import { fetchCompanyProfile } from "@/lib/api";
+import Link from "next/link";
 
 export default function CompanyDashboardLayout({
   children,
@@ -12,11 +12,8 @@ export default function CompanyDashboardLayout({
   children: React.ReactNode;
 }) {
   const router = useRouter();
-  const [approved, setApproved] = useState<boolean | null>(null);
-  const [showForm, setShowForm] = useState(false);
-  const [about, setAbout] = useState("");
-  const [docs, setDocs] = useState<FileList | null>(null);
-  const [submitting, setSubmitting] = useState(false);
+  const [profileData, setProfileData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const userRaw =
@@ -37,61 +34,55 @@ export default function CompanyDashboardLayout({
       router.replace("/login");
       return;
     }
-    // Check approval status via profile
+    
+    // Fetch company profile data
     fetchCompanyProfile()
       .then((data) => {
-        if (data?.isApproved === true) setApproved(true);
-        else setApproved(false);
+        setProfileData(data);
+        setLoading(false);
       })
-      .catch(() => setApproved(false));
+      .catch(() => {
+        setLoading(false);
+      });
   }, [router]);
 
-  if (approved === null) {
+  if (loading) {
     return <div className="p-6">Loading...</div>;
-  }
-
-  if (!approved) {
-    if (showForm) {
-      return <CompanyInfoForm />;
-    }
-    
-    return (
-      <div className="min-h-screen flex items-start justify-center p-6 bg-gray-50">
-        <div className="w-full max-w-2xl bg-white p-8 rounded-lg border border-gray-200 text-center">
-          <div className="mb-6">
-            <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-yellow-100 mb-4">
-              <svg className="h-8 w-8 text-yellow-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
-              </svg>
-            </div>
-            <h2 className="text-2xl font-bold text-gray-800 mb-3">
-              Account Pending Approval
-            </h2>
-            <p className="text-gray-600 mb-6">
-              Your company account is currently under review. To complete the approval process, 
-              please provide additional information about your company and upload required documents.
-            </p>
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-              <p className="text-blue-800 text-sm">
-                <strong>Note:</strong> Approval may take up to 24 hours after you submit the required information.
-              </p>
-            </div>
-            <button
-              onClick={() => setShowForm(true)}
-              className="px-6 py-3 bg-purple-600 text-white font-medium rounded-lg hover:bg-purple-700 transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
-            >
-              Click Here to Submit Required Information
-            </button>
-          </div>
-        </div>
-      </div>
-    );
   }
 
   return (
     <div className="flex min-h-screen flex-col md:flex-row">
       <CompanyDashboardSidebar />
-      <main className="flex-1 bg-gray-50">{children}</main>
+      <main className="flex-1 bg-gray-50">
+        {/* Profile completion banner */}
+        {profileData && profileData.profileCompletionStatus !== 'complete' && (
+          <div className="bg-blue-50 border-b border-blue-200 px-4 py-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <div className="flex-shrink-0">
+                  <svg className="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <div className="ml-3">
+                  <p className="text-sm font-medium text-blue-800">
+                    {profileData.statusNotice || 'Complete your profile to unlock job posting and other features.'}
+                  </p>
+                </div>
+              </div>
+              <div className="ml-4 flex-shrink-0">
+                <Link
+                  href="/dashboard/company/profile"
+                  className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-blue-700 bg-blue-100 hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                >
+                  Complete Profile
+                </Link>
+              </div>
+            </div>
+          </div>
+        )}
+        {children}
+      </main>
     </div>
   );
 }
