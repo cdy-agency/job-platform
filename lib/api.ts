@@ -87,9 +87,24 @@ export const fetchJobs = async (category?: string) => {
 
 export const applyToJob = async (
   jobId: string,
-  payload: { skills: string[]; experience?: string; appliedVia?: 'normal' | 'whatsapp' | 'referral' }
+  payload: { skills: string[]; experience: string; appliedVia: 'normal' | 'whatsapp' | 'referral'; resume?: File }
 ) => {
-  const res = await api.post(`/employee/apply/${jobId}`, payload);
+  if (payload.resume instanceof File) {
+    const formData = new FormData();
+    formData.append('skills', JSON.stringify(payload.skills || []));
+    formData.append('experience', payload.experience || '');
+    formData.append('appliedVia', payload.appliedVia);
+    formData.append('resume', payload.resume);
+    const res = await api.post(`/employee/apply/${jobId}`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return res.data;
+  }
+  const res = await api.post(`/employee/apply/${jobId}`, {
+    skills: payload.skills,
+    experience: payload.experience,
+    appliedVia: payload.appliedVia,
+  });
   return res.data;
 };
 

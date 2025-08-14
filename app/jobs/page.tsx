@@ -34,6 +34,7 @@ import { Badge } from "@/components/ui/badge";
 import NavBar from "@/components/home/NavBar";
 import { Footer } from "@/components/footer";
 import { fetchJobs } from "@/lib/api";
+import ApplyJobModal from "@/components/employee/ApplyJobModal";
 
 // Type definitions
 interface Company {
@@ -73,6 +74,8 @@ export default function JobsPage() {
   const [jobs, setJobs] = useState<JobDisplay[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [applyJobId, setApplyJobId] = useState<string | null>(null);
+  const [applyJobMeta, setApplyJobMeta] = useState<{ title?: string; company?: string } | null>(null);
   // State for collapsible sections
   const [expandedSections, setExpandedSections] = useState({
     fullTime: true,
@@ -134,7 +137,8 @@ export default function JobsPage() {
           },
           location: job.location || 'Location not specified',
           employmentType: job.employmentType || job.type || 'Full-time',
-          salary: job.salary || job.salaryRange || 'Competitive',
+          salary: job.salary || job.salaryRange ||
+            (job.salaryMin && job.salaryMax ? `${job.salaryMin}-${job.salaryMax}` : 'Competitive'),
           description: job.description || job.summary || 'Job description not available.',
           category: job.category || job.jobCategory,
           createdAt: job.createdAt || job.datePosted,
@@ -300,12 +304,18 @@ export default function JobsPage() {
         </p>
       </CardContent>
 
-      <CardFooter className="pt-0">
-        <Link href={`/jobs/${job.id}`} className="w-full">
+      <CardFooter className="pt-0 space-x-2">
+        <Link href={`/jobs/${job.id}`} className="flex-1">
           <Button className="w-full bg-[#834de3] hover:bg-[#9260e7] text-white font-medium transition-all duration-200 transform hover:scale-[1.02]">
             View Details
           </Button>
         </Link>
+        <Button
+          onClick={() => { setApplyJobId(job.id); setApplyJobMeta({ title: job.title, company: job.company.name }) }}
+          className="w-36 bg-[#9260e7] hover:bg-[#834de3] text-white"
+        >
+          Apply Now
+        </Button>
       </CardFooter>
     </Card>
   );
@@ -512,6 +522,15 @@ export default function JobsPage() {
             badgeColor="bg-gray-800"
           />
         </div>
+
+        {/* Apply Drawer */}
+        <ApplyJobModal
+          jobId={applyJobId || ''}
+          open={!!applyJobId}
+          onOpenChange={(open) => { if (!open) setApplyJobId(null) }}
+          jobTitle={applyJobMeta?.title}
+          companyName={applyJobMeta?.company}
+        />
 
         {/* Empty State */}
         {jobs.length === 0 && !loading && (
