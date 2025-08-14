@@ -80,6 +80,35 @@ export default function JobsPage() {
     internship: false,
   });
 
+  // Helper function to safely extract jobs array from API response
+  const extractJobsArray = (data: any): any[] => {
+    console.log('API Response:', data); // Debug log
+    
+    // Handle different possible response structures
+    if (Array.isArray(data)) {
+      return data;
+    }
+    
+    if (data && Array.isArray(data.jobs)) {
+      return data.jobs;
+    }
+    
+    if (data && Array.isArray(data.data)) {
+      return data.data;
+    }
+    
+    if (data && data.results && Array.isArray(data.results)) {
+      return data.results;
+    }
+
+    // If data is an object with job-like properties, wrap it in an array
+    if (data && typeof data === 'object' && data._id) {
+      return [data];
+    }
+    
+    return [];
+  };
+
   // Load jobs from database
   useEffect(() => {
     const loadJobs = async () => {      
@@ -88,29 +117,35 @@ export default function JobsPage() {
       
       try {
         const jobsData = await fetchJobs(category === 'all' ? undefined : category);
+        console.log('Raw API response:', jobsData); // Debug log
+        
+        // Safely extract jobs array from response
+        const jobsArray = extractJobsArray(jobsData);
+        console.log('Extracted jobs array:', jobsArray); // Debug log
         
         // Transform the API response to match our JobDisplay interface
-        const transformedJobs: JobDisplay[] = (jobsData || []).map((job: any) => ({
-          id: job._id || job.id,
+        const transformedJobs: JobDisplay[] = jobsArray.map((job: any) => ({
+          id: job._id || job.id || `job-${Math.random()}`,
           title: job.title || 'Untitled Position',
           company: {
-            name: job.companyId?.companyName || job.company?.name || 'Company',
-            logo: job.companyId?.logo || job.company?.logo,
-            companyName: job.companyId?.companyName || job.company?.name || 'Company',
+            name: job.companyId?.companyName || job.company?.name || job.companyName || 'Company',
+            logo: job.companyId?.logo || job.company?.logo || job.logo,
+            companyName: job.companyId?.companyName || job.company?.name || job.companyName || 'Company',
           },
           location: job.location || 'Location not specified',
-          employmentType: job.employmentType || 'Full-time',
-          salary: job.salary || 'Competitive',
-          description: job.description || 'Job description not available.',
-          category: job.category,
-          createdAt: job.createdAt,
-          featured: job.featured,
+          employmentType: job.employmentType || job.type || 'Full-time',
+          salary: job.salary || job.salaryRange || 'Competitive',
+          description: job.description || job.summary || 'Job description not available.',
+          category: job.category || job.jobCategory,
+          createdAt: job.createdAt || job.datePosted,
+          featured: job.featured || job.isFeatured || false,
         }));
 
+        console.log('Transformed jobs:', transformedJobs); // Debug log
         setJobs(transformedJobs);
       } catch (err) {
         console.error('Error loading jobs:', err);
-        setError('Failed to load jobs. Please try again later.');
+        setError(`Failed to load jobs: ${err instanceof Error ? err.message : 'Unknown error'}`);
         setJobs([]);
       } finally {
         setLoading(false);
@@ -352,13 +387,22 @@ export default function JobsPage() {
         <NavBar />
         <main className="container mx-auto px-4 py-10">
           <div className="text-center py-16">
+            <div className="w-16 h-16 mx-auto mb-4 bg-red-100 rounded-full flex items-center justify-center">
+              <Briefcase className="h-8 w-8 text-red-400" />
+            </div>
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">Something went wrong</h3>
             <p className="text-red-600 mb-4">{error}</p>
-            <Button 
-              onClick={() => window.location.reload()}
-              className="bg-[#834de3] hover:bg-[#9260e7] text-white"
-            >
-              Try Again
-            </Button>
+            <div className="space-y-2">
+              <Button 
+                onClick={() => window.location.reload()}
+                className="bg-[#834de3] hover:bg-[#9260e7] text-white mr-2"
+              >
+                Try Again
+              </Button>
+              <p className="text-sm text-gray-500 mt-4">
+                Check the browser console for more details about the API response.
+              </p>
+            </div>
           </div>
         </main>
         <Footer />
@@ -470,7 +514,7 @@ export default function JobsPage() {
         </div>
 
         {/* Empty State */}
-        {jobs.length === 0 && (
+        {jobs.length === 0 && !loading && (
           <div className="text-center py-16">
             <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
               <Briefcase className="h-8 w-8 text-gray-400" />
