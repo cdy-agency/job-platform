@@ -32,9 +32,9 @@ export default function ManageEmployeesPage() {
       setLoading(true)
       const response = await fetchAllEmployees()
       setEmployees(response.employees || [])
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error loading employees:", error)
-      toast.error("Failed to load employees")
+      toast.error(error?.response?.data?.message)
     } finally {
       setLoading(false)
     }
@@ -61,7 +61,7 @@ export default function ManageEmployeesPage() {
             id="search"
             type="search"
             placeholder="Search employees..."
-            className="block w-full rounded-md border border-gray-300 bg-white py-2 pl-10 pr-4 text-sm placeholder-gray-400 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+            className="block w-full rounded-md border border-gray-300 bg-white py-2 pl-10 pr-4 text-sm placeholder-gray-400 focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -88,7 +88,7 @@ export default function ManageEmployeesPage() {
             <div key={employee._id} className="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-md transition-shadow">
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center space-x-3">
-                  <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                  <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-purple-700 rounded-full flex items-center justify-center">
                     <span className="text-white font-semibold text-lg">
                       {employee.name.charAt(0).toUpperCase()}
                     </span>
@@ -130,7 +130,7 @@ export default function ManageEmployeesPage() {
                     <h4 className="text-sm font-medium text-gray-700 mb-2">Skills</h4>
                     <div className="flex flex-wrap gap-1">
                       {employee.skills.slice(0, 3).map((skill, index) => (
-                        <span key={index} className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
+                        <span key={index} className="px-2 py-1 bg-purple-100 text-purple-800 text-xs rounded-full">
                           {skill}
                         </span>
                       ))}

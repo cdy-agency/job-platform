@@ -39,8 +39,10 @@ export default function AdminDashboardPage() {
     try {
       await approveCompany(id)
       setCompanies(prev => prev.map(c => c._id === id ? { ...c, isApproved: true } : c))
-    } catch (e) {
-      // noop
+    } catch (e: any) {
+      // surface backend error
+      // eslint-disable-next-line no-console
+      console.error(e)
     }
   }
 
@@ -71,7 +73,7 @@ export default function AdminDashboardPage() {
             <CardTitle className="text-sm font-medium text-black">Total Companies</CardTitle>
           </CardHeader>
           <CardContent className="flex items-center gap-3">
-            <Building className="h-5 w-5 text-blue-600" />
+            <Building className="h-5 w-5 text-purple-600" />
             <span className="text-xl font-semibold text-black">{totalCompanies}</span>
           </CardContent>
         </Card>
