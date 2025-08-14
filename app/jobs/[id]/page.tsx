@@ -126,19 +126,8 @@ export default function JobDetailsPage() {
     );
   }
 
-  const handleApply = async () => {
-    try {
-      setApplying(true)
-      const skillsInput = prompt('Enter your skills (comma separated):', '') || ''
-      const experienceInput = prompt('Years of experience (optional):', '') || ''
-      const skills = skillsInput.split(',').map(s => s.trim()).filter(Boolean)
-      await applyToJob(job.id, { skills, experience: experienceInput || undefined, appliedVia: 'normal' })
-      toast({ title: "Application submitted successfully!" })
-    } catch (e: any) {
-      toast({ title: "Failed to apply", description: e?.response?.data?.message || 'Failed to apply. Please log in as an employee.', variant: "destructive" })
-    } finally {
-      setApplying(false)
-    }
+  const handleApply = () => {
+    setApplyOpen(true)
   };
 
   const handleBookmark = () => {
