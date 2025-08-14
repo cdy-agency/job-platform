@@ -177,7 +177,17 @@ export const postJob = async (data: {
 
 export const fetchCompanyJobs = async () => {
   const res = await api.get("/company/jobs");
-  return res.data;
+  const data = res.data;
+  const candidates = [
+    Array.isArray(data) ? data : null,
+    data?.jobs,
+    data?.data?.jobs,
+    Array.isArray(data?.data) ? data?.data : null,
+    data?.companyJobs,
+    data?.data?.companyJobs,
+  ].filter(Boolean);
+  const firstArray = candidates.find((c: any) => Array.isArray(c));
+  return (firstArray as any[]) || [];
 };
 
 export const fetchJobApplicants = async (jobId: string) => {

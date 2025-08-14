@@ -44,20 +44,26 @@ export default function CompanyList() {
     load()
   }, [])
 
-  const pendingReview = useMemo(
-    () => companies.filter((c) => c.profileCompletionStatus === 'pending_review' && c.status === 'pending'),
-    [companies]
-  )
+  const pendingReview = useMemo(() => {
+    return companies.filter((c) => {
+      const pcs = (c.profileCompletionStatus || '').toLowerCase()
+      const st = (c.status || '').toLowerCase()
+      return (pcs === 'pending_review' || pcs === 'complete') && (st === 'pending' || st === '')
+    })
+  }, [companies])
 
   const incomplete = useMemo(
-    () => companies.filter((c) => c.profileCompletionStatus === 'incomplete'),
+    () => companies.filter((c) => (c.profileCompletionStatus || '').toLowerCase() === 'incomplete'),
     [companies]
   )
 
-  const approved = useMemo(
-    () => companies.filter((c) => c.profileCompletionStatus === 'approved'),
-    [companies]
-  )
+  const approved = useMemo(() => {
+    return companies.filter((c) => {
+      const pcs = (c.profileCompletionStatus || '').toLowerCase()
+      const st = (c.status || '').toLowerCase()
+      return st === 'approved' || pcs === 'approved' || (pcs === 'complete' && st !== 'pending' && st !== 'rejected')
+    })
+  }, [companies])
 
   const handleDisable = async (id: string) => {
     try {
