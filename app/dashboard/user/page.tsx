@@ -7,7 +7,7 @@ import ApplyJobModal from "@/components/employee/ApplyJobModal"
 import { Bell, Briefcase, Clock, Eye, FileText, Search } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { fetchEmployeeApplications, fetchEmployeeProfile, fetchJobs, applyToJob, fetchJobSuggestions } from "@/lib/api"
+import { fetchEmployeeApplications, fetchEmployeeProfile, fetchJobs, applyToJob, fetchJobSuggestions, fetchEmployeeNotifications } from "@/lib/api"
 
 export default function UserDashboardPage() {
   const [profile, setProfile] = useState<any>(null)
@@ -16,14 +16,16 @@ export default function UserDashboardPage() {
   const [loading, setLoading] = useState(true)
   const [applyJobId, setApplyJobId] = useState<string | null>(null)
   const [applyMeta, setApplyMeta] = useState<{ title?: string; company?: string } | null>(null)
+  const [notifications, setNotifications] = useState<any[]>([])
 
   useEffect(() => {
-    Promise.all([fetchEmployeeProfile(), fetchEmployeeApplications(), fetchJobSuggestions()])
-      .then(([p, apps, suggestions]) => {
+    Promise.all([fetchEmployeeProfile(), fetchEmployeeApplications(), fetchJobSuggestions(), fetchEmployeeNotifications()])
+      .then(([p, apps, suggestions, notifs]) => {
         setProfile(p || null)
         setApplications(apps || [])
         const jobsArray = Array.isArray(suggestions) ? suggestions : []
         setRecommended(jobsArray.slice(0, 3))
+        setNotifications(Array.isArray(notifs) ? notifs : (notifs?.notifications || []))
       })
       .finally(() => setLoading(false))
   }, [])
@@ -236,6 +238,26 @@ export default function UserDashboardPage() {
           </CardContent>
         </Card>
       </div>
+
+      <Card className="border-gray-200 bg-white">
+        <CardHeader>
+          <CardTitle className="text-black">Notifications</CardTitle>
+          <CardDescription className="text-black">Updates from your applications</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {notifications.length === 0 ? (
+            <p className="text-sm text-black">No notifications yet.</p>
+          ) : (
+            <ul className="space-y-2">
+              {notifications.slice(0, 5).map((n: any, idx: number) => (
+                <li key={idx} className="text-sm text-black">
+                  {n.message || n.text || n.title || 'Update'}
+                </li>
+              ))}
+            </ul>
+          )}
+        </CardContent>
+      </Card>
 
       <Card className="border-gray-200 bg-white">
         <CardHeader>

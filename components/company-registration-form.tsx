@@ -10,6 +10,7 @@ import { Button } from './ui/button';
 import { Select } from './ui/select';
 import { FileInput } from './ui/file-input';
 import { RegisterFormData } from '@/types/types';
+import { toast } from "@/components/ui/use-toast"
 
 const CompanyRegistrationForm: React.FC = () => {
   const [formData, setFormData] = useState<RegisterFormData>({
@@ -148,7 +149,10 @@ const CompanyRegistrationForm: React.FC = () => {
       console.log('Registration data:', formData);
       
       // Show success message and redirect
-      alert('Registration successful! Please check your email to verify your account.');
+      toast({
+        title: 'Registration successful!',
+        description: 'Please check your email to verify your account.',
+      });
       router.push('/login');
     } catch (error) {
       console.error('Registration error:', error);
