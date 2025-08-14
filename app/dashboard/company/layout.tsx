@@ -1,63 +1,88 @@
-"use client"
-import type React from "react"
-import { CompanyDashboardSidebar } from "@/components/company-dashboard-sidebar"
-import { useEffect, useState } from "react"
-import { useRouter } from "next/navigation"
-import { fetchCompanyProfile } from "@/lib/api"
+"use client";
+import type React from "react";
+import { CompanyDashboardSidebar } from "@/components/company-dashboard-sidebar";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { fetchCompanyProfile } from "@/lib/api";
+import Link from "next/link";
 
 export default function CompanyDashboardLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
-  const router = useRouter()
-  const [approved, setApproved] = useState<boolean | null>(null)
+  const router = useRouter();
+  const [profileData, setProfileData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const userRaw = typeof window !== 'undefined' ? localStorage.getItem('user') : null
-    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
+    const userRaw =
+      typeof window !== "undefined" ? localStorage.getItem("user") : null;
+    const token =
+      typeof window !== "undefined" ? localStorage.getItem("token") : null;
     if (!userRaw || !token) {
-      router.replace('/login')
-      return
+      router.replace("/login");
+      return;
     }
     try {
-      const user = JSON.parse(userRaw)
-      if (user.role !== 'company') {
-        router.replace('/dashboard/user')
-        return
+      const user = JSON.parse(userRaw);
+      if (user.role !== "company") {
+        router.replace("/dashboard/company");
+        return;
       }
     } catch {
-      router.replace('/login')
-      return
+      router.replace("/login");
+      return;
     }
-    // Check approval status via profile
+    
+    // Fetch company profile data
     fetchCompanyProfile()
       .then((data) => {
-        if (data?.isApproved === true) setApproved(true)
-        else setApproved(false)
+        setProfileData(data);
+        setLoading(false);
       })
-      .catch(() => setApproved(false))
-  }, [router])
+      .catch(() => {
+        setLoading(false);
+      });
+  }, [router]);
 
-  if (approved === null) {
-    return <div className="p-6">Loading...</div>
-  }
-
-  if (!approved) {
-    return (
-      <div className="min-h-screen flex items-center justify-center p-6 bg-gray-50">
-        <div className="max-w-md text-center bg-white p-8 rounded shadow border">
-          <h2 className="text-xl font-semibold text-gray-800 mb-2">Awaiting Admin Approval</h2>
-          <p className="text-gray-600">Your company account is pending approval. You will gain access once approved.</p>
-        </div>
-      </div>
-    )
+  if (loading) {
+    return <div className="p-6">Loading...</div>;
   }
 
   return (
     <div className="flex min-h-screen flex-col md:flex-row">
       <CompanyDashboardSidebar />
-      <main className="flex-1 bg-gray-50">{children}</main>
+      <main className="flex-1 bg-gray-50">
+        {/* Profile completion banner */}
+        {profileData && profileData.profileCompletionStatus !== 'complete' && (
+          <div className="bg-blue-50 border-b border-blue-200 px-4 py-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <div className="flex-shrink-0">
+                  <svg className="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <div className="ml-3">
+                  <p className="text-sm font-medium text-blue-800">
+                    {profileData.statusNotice || 'Complete your profile to unlock job posting and other features.'}
+                  </p>
+                </div>
+              </div>
+              <div className="ml-4 flex-shrink-0">
+                <Link
+                  href="/dashboard/company/profile"
+                  className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-blue-700 bg-blue-100 hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                >
+                  Complete Profile
+                </Link>
+              </div>
+            </div>
+          </div>
+        )}
+        {children}
+      </main>
     </div>
-  )
+  );
 }

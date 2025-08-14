@@ -1,28 +1,36 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
+import { fetchCompanyProfile, updateCompanyProfile, completeCompanyProfile, updateCompanyLogo, uploadCompanyDocuments } from "@/lib/api";
+import { toast } from "sonner";
 
 type DocumentItem = {
   id: string;
   file: File;
   url: string; // object URL for preview / download
+  isExisting?: boolean;
 };
 
 export default function CompanyProfilePage() {
   const [form, setForm] = useState({
-    name: "TechWave Solutions",
-    email: "contact@techwave.com",
-    contact: "+250 786 664 545",
-    location: "Kigali, Rwanda",
+    companyName: "",
+    email: "",
+    phoneNumber: "",
+    location: "",
+    website: "",
+    about: "",
     oldPassword: "",
-    password: "",
+    newPassword: "",
     confirmPassword: "",
   });
+
+  const [loading, setLoading] = useState(false);
+  const [profileData, setProfileData] = useState<any>(null);
 
   // Profile image state: file + preview url
   const [profileFile, setProfileFile] = useState<File | null>(null);
   const [profilePreview, setProfilePreview] = useState<string | null>(
-    "/placeholder-company.png"
+    "/placeholder-logo.png"
   );
   const [uploadError, setUploadError] = useState<string | null>(null);
 
@@ -33,16 +41,65 @@ export default function CompanyProfilePage() {
   // drag & drop state for styling
   const [dragActive, setDragActive] = useState(false);
 
+  // Load existing profile data
+  useEffect(() => {
+    const loadProfile = async () => {
+      try {
+        const data = await fetchCompanyProfile();
+        setProfileData(data);
+        
+        // Pre-fill form with existing data
+        setForm({
+          companyName: data.companyName || "",
+          email: data.email || "",
+          phoneNumber: data.phoneNumber || "",
+          location: data.location || "",
+          website: data.website || "",
+          about: data.about || "",
+          oldPassword: "",
+          newPassword: "",
+          confirmPassword: "",
+        });
+
+        // Set existing logo
+        if (data.logo?.url) {
+          setProfilePreview(data.logo.url);
+        }
+
+        // Set existing documents
+        if (data.documents && Array.isArray(data.documents)) {
+          // Convert existing documents to DocumentItem format for display
+          const existingDocs = data.documents.map((doc: any, index: number) => ({
+            id: `existing-${index}`,
+            file: new File([], doc.name || `Document ${index + 1}`),
+            url: doc.url,
+            isExisting: true,
+          }));
+          setDocuments(existingDocs);
+        }
+      } catch (error) {
+        console.error("Error loading profile:", error);
+        toast.error("Failed to load profile data");
+      }
+    };
+
+    loadProfile();
+  }, []);
+
   useEffect(() => {
     return () => {
       if (profilePreview && profilePreview.startsWith("blob:")) {
         URL.revokeObjectURL(profilePreview);
       }
-      documents.forEach((d) => URL.revokeObjectURL(d.url));
+      documents.forEach((d) => {
+        if (d.url.startsWith("blob:")) {
+          URL.revokeObjectURL(d.url);
+        }
+      });
     };
   }, []);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setForm((p) => ({ ...p, [name]: value }));
   };
@@ -94,7 +151,7 @@ export default function CompanyProfilePage() {
       URL.revokeObjectURL(profilePreview);
     }
     setProfileFile(null);
-    setProfilePreview("/placeholder-company.png");
+    setProfilePreview("/placeholder-logo.png");
     setUploadError(null);
   };
 
@@ -144,52 +201,82 @@ export default function CompanyProfilePage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true);
 
-    // Password validation logic
-    if (form.oldPassword || form.password || form.confirmPassword) {
-      if (!form.oldPassword) {
-        alert("Please enter your current password.");
-        return;
+    try {
+      // Password validation logic
+      if (form.oldPassword || form.newPassword || form.confirmPassword) {
+        if (!form.oldPassword) {
+          toast.error("Please enter your current password.");
+          setLoading(false);
+          return;
+        }
+        if (!form.newPassword) {
+          toast.error("Please enter a new password.");
+          setLoading(false);
+          return;
+        }
+        if (form.newPassword !== form.confirmPassword) {
+          toast.error("New passwords do not match.");
+          setLoading(false);
+          return;
+        }
       }
-      if (!form.password) {
-        alert("Please enter a new password.");
-        return;
+
+      // Prepare update data
+      const updateData: any = {
+        companyName: form.companyName,
+        phoneNumber: form.phoneNumber,
+        location: form.location,
+        website: form.website,
+        about: form.about,
+      };
+
+      // Add password fields if provided
+      if (form.oldPassword && form.newPassword) {
+        updateData.oldPassword = form.oldPassword;
+        updateData.newPassword = form.newPassword;
       }
-      if (form.password !== form.confirmPassword) {
-        alert("New passwords do not match.");
-        return;
+
+      // Update non-file fields/passwords via JSON endpoint first
+      await updateCompanyProfile(updateData);
+
+      // Handle file uploads separately using dedicated endpoints
+      const newDocs = documents.filter(d => !d.isExisting).map(d => d.file);
+      
+      if (profileFile) {
+        await updateCompanyLogo(profileFile);
       }
+      
+      if (newDocs.length > 0) {
+        await uploadCompanyDocuments(newDocs);
+      }
+
+      toast.success("Profile updated successfully");
+      
+      // Reset password fields
+      setForm((p) => ({
+        ...p,
+        oldPassword: "",
+        newPassword: "",
+        confirmPassword: "",
+      }));
+
+      // Reload profile data
+      const updatedData = await fetchCompanyProfile();
+      setProfileData(updatedData);
+
+    } catch (error: any) {
+      console.error("Error updating profile:", error);
+      toast.error(error.response?.data?.message || "Failed to update profile");
+    } finally {
+      setLoading(false);
     }
-
-    const payload = new FormData();
-    payload.append("name", form.name);
-    payload.append("email", form.email);
-    payload.append("contact", form.contact);
-    payload.append("location", form.location);
-
-    if (form.oldPassword) payload.append("oldPassword", form.oldPassword);
-    if (form.password) payload.append("password", form.password);
-
-    if (profileFile) payload.append("profileImage", profileFile);
-
-    documents.forEach((d, idx) => payload.append(`documents[${idx}]`, d.file));
-
-    // TODO: POST to your API endpoint
-
-    alert("Saved (demo). Hook payload to your backend API.");
-
-    // Reset password fields
-    setForm((p) => ({
-      ...p,
-      oldPassword: "",
-      password: "",
-      confirmPassword: "",
-    }));
   };
 
   return (
     <div className="min-h-screen bg-gray-50 px-4 py-10 flex justify-center">
-      <div className="w-full max-w-3xl">
+      <div className="w-full max-w-4xl">
         <h1 className="text-lg font-semibold text-gray-900 mb-6">
           Company Profile
         </h1>
@@ -271,8 +358,8 @@ export default function CompanyProfilePage() {
                   Company Name
                 </label>
                 <input
-                  name="name"
-                  value={form.name}
+                  name="companyName"
+                  value={form.companyName}
                   onChange={handleChange}
                   className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-[#834de3] focus:ring-[#834de3]/30"
                 />
@@ -287,8 +374,8 @@ export default function CompanyProfilePage() {
                     name="email"
                     type="email"
                     value={form.email}
-                    onChange={handleChange}
-                    className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-[#834de3] focus:ring-[#834de3]/30"
+                    disabled
+                    className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm bg-gray-50 text-gray-500"
                   />
                 </div>
 
@@ -297,8 +384,8 @@ export default function CompanyProfilePage() {
                     Contact Number
                   </label>
                   <input
-                    name="contact"
-                    value={form.contact}
+                    name="phoneNumber"
+                    value={form.phoneNumber}
                     onChange={handleChange}
                     className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-[#834de3] focus:ring-[#834de3]/30"
                   />
@@ -320,6 +407,34 @@ export default function CompanyProfilePage() {
 
                 <div>
                   <label className="block text-xs font-medium text-gray-700">
+                    Website
+                  </label>
+                  <input
+                    name="website"
+                    value={form.website}
+                    onChange={handleChange}
+                    className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-[#834de3] focus:ring-[#834de3]/30"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-gray-700">
+                  About Company
+                </label>
+                <textarea
+                  name="about"
+                  value={form.about}
+                  onChange={handleChange}
+                  rows={4}
+                  placeholder="Tell us about your company, mission, values, and what makes you unique..."
+                  className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-[#834de3] focus:ring-[#834de3]/30"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-medium text-gray-700">
                     Old Password
                   </label>
                   <input
@@ -331,40 +446,39 @@ export default function CompanyProfilePage() {
                     className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-[#834de3] focus:ring-[#834de3]/30"
                   />
                 </div>
-              </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-medium text-gray-700">
                     New Password
                   </label>
                   <input
-                    name="password"
+                    name="newPassword"
                     type="password"
-                    value={form.password}
+                    value={form.newPassword}
                     onChange={handleChange}
                     placeholder="Leave blank to keep current password"
                     className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-[#834de3] focus:ring-[#834de3]/30"
                   />
                 </div>
-                <div>
-                  <label className="block text-xs font-medium text-gray-700">
-                    Confirm New Password
-                  </label>
-                  <input
-                    name="confirmPassword"
-                    type="password"
-                    value={form.confirmPassword}
-                    onChange={handleChange}
-                    placeholder="Re-enter your new password"
-                    className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-[#834de3] focus:ring-[#834de3]/30"
-                  />
-                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-gray-700">
+                  Confirm New Password
+                </label>
+                <input
+                  name="confirmPassword"
+                  type="password"
+                  value={form.confirmPassword}
+                  onChange={handleChange}
+                  placeholder="Re-enter your new password"
+                  className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-[#834de3] focus:ring-[#834de3]/30"
+                />
               </div>
             </div>
           </div>
 
-          {/* Documents manager (unchanged) */}
+          {/* Documents manager */}
           <div>
             <label className="block text-xs font-medium text-gray-700 mb-2">
               Related Documents
@@ -410,7 +524,7 @@ export default function CompanyProfilePage() {
                         {d.file.name}
                       </div>
                       <div className="text-xs text-gray-500">
-                        {(d.file.size / 1024 / 1024).toFixed(2)} MB
+                        {d.file.size ? (d.file.size / 1024 / 1024).toFixed(2) + " MB" : "Existing file"}
                       </div>
                     </div>
                   </div>
@@ -441,21 +555,24 @@ export default function CompanyProfilePage() {
             <div className="flex gap-3">
               <button
                 type="submit"
-                className="flex-1 bg-gradient-to-r from-[#834de3] to-[#9260e7] text-white py-2 px-4 rounded-lg text-sm font-medium shadow-sm hover:opacity-95"
+                disabled={loading}
+                className="flex-1 bg-gradient-to-r from-[#834de3] to-[#9260e7] text-white py-2 px-4 rounded-lg text-sm font-medium shadow-sm hover:opacity-95 disabled:opacity-50"
               >
-                Save Changes
+                {loading ? "Saving..." : "Save Changes"}
               </button>
 
               <button
                 type="button"
                 onClick={() => {
                   setForm({
-                    name: "TechWave Solutions",
-                    email: "contact@techwave.com",
-                    contact: "+250 786 664 545",
-                    location: "Kigali, Rwanda",
+                    companyName: profileData?.companyName || "",
+                    email: profileData?.email || "",
+                    phoneNumber: profileData?.phoneNumber || "",
+                    location: profileData?.location || "",
+                    website: profileData?.website || "",
+                    about: profileData?.about || "",
                     oldPassword: "",
-                    password: "",
+                    newPassword: "",
                     confirmPassword: "",
                   });
                 }}
@@ -464,9 +581,6 @@ export default function CompanyProfilePage() {
                 Reset
               </button>
             </div>
-            <p className="text-xs text-gray-500 mt-2">
-              Tip: forms are demo-only — wire `handleSubmit` to your API to persist changes.
-            </p>
           </div>
         </form>
       </div>

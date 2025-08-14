@@ -49,14 +49,6 @@ export type AuthResponse<T extends AuthUser = AuthUser> = {
   token: string;
 } 
 
-
-
-
-
-
-
-
-
 export interface CompanyTypes {
   id: string;
   name: string;

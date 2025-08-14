@@ -43,8 +43,7 @@ export default function ManageJobsPage() {
 
         {jobs.length === 0 ? (
           <p className="text-gray-500 text-center">No jobs posted yet.</p>
-        ) : (
-          jobs.map((job) => (
+        ) : (Array.isArray(jobs) && jobs.map((job) => (
             <div
               key={job._id}
               className="bg-white rounded-lg shadow border border-gray-200 p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4"

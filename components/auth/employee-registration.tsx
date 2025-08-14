@@ -1,6 +1,7 @@
-// EmployeeRegistration.tsx
+import React, { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Check } from "lucide-react";
 
 interface EmployeeRegistrationProps {
   formData: {
@@ -9,17 +10,54 @@ interface EmployeeRegistrationProps {
     password: string;
     confirmPassword: string;
     dateOfBirth: string;
-    phoneNumber: string;
+    employeePhoneNumber: string;
+    jobPreferences: string[];
   };
-  onInputChange: (field: string, value: string) => void;
+  onInputChange: (field: string, value: any) => void;
+  errors?: {
+    [key: string]: string;
+  };
 }
 
 const EmployeeRegistration = ({
   formData,
   onInputChange,
+  errors = {},
 }: EmployeeRegistrationProps) => {
+  const jobOptions = [
+    "Cleaner",
+    "Clerk",
+    "Driver",
+    "Security",
+    "Cook",
+    "Gardener",
+    "Loader",
+    "Housekeeper",
+    "Receptionist",
+    "Other",
+  ];
+
+  const [selectedJobs, setSelectedJobs] = useState<string[]>([]);
+
+  // Sync with parent data when it changes
+  useEffect(() => {
+    if (Array.isArray(formData.jobPreferences)) {
+      setSelectedJobs(formData.jobPreferences);
+    }
+  }, [formData.jobPreferences]);
+
+  const handleJobPreferenceChange = (job: string) => {
+    const updatedPreferences = selectedJobs.includes(job)
+      ? selectedJobs.filter((pref) => pref !== job)
+      : [...selectedJobs, job];
+
+    setSelectedJobs(updatedPreferences);
+    onInputChange("jobPreferences", updatedPreferences);
+  };
+
   return (
     <>
+      {/* Basic Info Fields */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor="name" className="text-sm font-medium text-gray-700">
@@ -34,7 +72,11 @@ const EmployeeRegistration = ({
             className="bg-white text-black"
             required
           />
+          {errors.name && (
+            <p className="text-sm text-red-500">{errors.name}</p>
+          )}
         </div>
+
         <div className="space-y-2">
           <Label htmlFor="email" className="text-sm font-medium text-gray-700">
             Email
@@ -48,7 +90,11 @@ const EmployeeRegistration = ({
             className="bg-white text-black"
             required
           />
+          {errors.email && (
+            <p className="text-sm text-red-500">{errors.email}</p>
+          )}
         </div>
+
         <div className="space-y-2">
           <Label
             htmlFor="dateOfBirth"
@@ -64,6 +110,7 @@ const EmployeeRegistration = ({
             className="bg-white text-black"
           />
         </div>
+
         <div className="space-y-2">
           <Label
             htmlFor="phoneNumber"
@@ -73,15 +120,22 @@ const EmployeeRegistration = ({
           </Label>
           <Input
             id="phoneNumber"
-            type="tel"
+            type="text"
+            inputMode="tel"
             placeholder="Phone Number (Optional)"
-            value={formData.phoneNumber}
+            value={formData.employeePhoneNumber}
             onChange={(e) => onInputChange("employeePhoneNumber", e.target.value)}
             className="bg-white text-black"
           />
+          {errors.employeePhoneNumber && (
+            <p className="text-sm text-red-500">
+              {errors.employeePhoneNumber}
+            </p>
+          )}
         </div>
       </div>
 
+      {/* Password Fields */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
         <div className="space-y-2">
           <Label
@@ -99,7 +153,11 @@ const EmployeeRegistration = ({
             className="bg-white text-black"
             required
           />
+          {errors.password && (
+            <p className="text-sm text-red-500">{errors.password}</p>
+          )}
         </div>
+
         <div className="space-y-2">
           <Label
             htmlFor="confirmPassword"
@@ -116,7 +174,90 @@ const EmployeeRegistration = ({
             required
             className="bg-white text-black"
           />
+          {formData.confirmPassword &&
+            formData.password !== formData.confirmPassword && (
+              <p className="text-sm text-red-500">Passwords do not match</p>
+            )}
         </div>
+      </div>
+
+      {/* Job Preferences Multi-select */}
+      <div className="mt-4 space-y-3">
+        <Label className="text-sm font-medium text-gray-700">
+          Job Preferences
+          <span className="text-xs text-gray-500 ml-2">
+            (Select all that apply)
+          </span>
+        </Label>
+
+        <div className="bg-white border border-gray-300 rounded-md p-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+            {jobOptions.map((job) => {
+              const isSelected = selectedJobs.includes(job);
+
+              return (
+                <div
+                  key={job}
+                  role="checkbox"
+                  aria-checked={isSelected}
+                  tabIndex={0}
+                  onClick={() => handleJobPreferenceChange(job)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") handleJobPreferenceChange(job);
+                  }}
+                  className={`
+                    relative flex items-center justify-center p-3 rounded-lg border-2 cursor-pointer
+                    transition-all duration-200 hover:shadow-md
+                    ${
+                      isSelected
+                        ? "border-blue-500 bg-blue-50 text-[#834de3]"
+                        : "border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50"
+                    }
+                  `}
+                >
+                  <div className="flex items-center space-x-2">
+                    <div
+                      className={`
+                      w-5 h-5 rounded border-2 flex items-center justify-center
+                      ${
+                        isSelected
+                          ? "border-[#834de3] bg-[#834de3]"
+                          : "border-gray-300 bg-white"
+                      }
+                    `}
+                    >
+                      {isSelected && (
+                        <Check className="w-3 h-3 text-white" strokeWidth={3} />
+                      )}
+                    </div>
+                    <span className="text-sm font-medium select-none">
+                      {job}
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {selectedJobs.length > 0 && (
+            <div className="mt-3 pt-3 border-t border-gray-200">
+              <div className="flex flex-wrap gap-2">
+                <span className="text-xs text-gray-600">Selected:</span>
+                {selectedJobs.map((job) => (
+                  <span
+                    key={job}
+                    className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-blue-100 text-[#834de3]"
+                  >
+                    {job}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+        {errors.jobPreferences && (
+          <p className="text-sm text-red-500">{errors.jobPreferences}</p>
+        )}
       </div>
     </>
   );

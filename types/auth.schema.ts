@@ -7,7 +7,7 @@ export const  CompanyRegistrationSchema = z.object({
     location: z.string().optional(),
     phoneNumber: z.string().optional(),
     website: z.string().optional(),
-    logo: z.string().url("invalid url").optional(),
+    logo: z.union([z.string().url("invalid url"),z.instanceof(File)]),
     password: z.string().min(6, "Password must be atleast 6 characters"),
     confirmPassword: z.string().min(6, "Confirm Password must be atleast 6 characters")
 }).refine((data)=> data.password === data.confirmPassword, {
