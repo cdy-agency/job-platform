@@ -3,18 +3,24 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { User, Building2 } from "lucide-react";
+import { User, Building2, Router } from "lucide-react";
 import CompanyRegistration from "@/components/auth/company-registration";
 import EmployeRegistration from "@/components/auth/employee-registration";
 import NavBar from "@/components/home/NavBar";
-import { createCompanyFormData, registerCompany, registerEmployee } from "@/lib/api";
+import {
+  createCompanyFormData,
+  registerCompany,
+  registerEmployee,
+} from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
+import { useRouter } from "next/navigation";
 
 export default function RegisterPage() {
-  const {toast} = useToast()
+  const router = useRouter();
+  const { toast } = useToast();
+  const [isCreating, setIsCreating ] = useState<boolean>(false)
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -44,50 +50,44 @@ export default function RegisterPage() {
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-  try {
-    if (formData.userType === "company") {
-      // Convert to FormData before sending
-      const companyFormData = createCompanyFormData(formData);
-      
-      // Debug: Log FormData contents (optional)
-      console.log("FormData contents:",companyFormData);
-      for (let pair of companyFormData.entries()) {
-        console.log(pair[0], pair[1]);
+    e.preventDefault();
+    setIsCreating(true)
+    try {
+      if (formData.userType === "company") {
+        const companyFormData = createCompanyFormData(formData);
+        await registerCompany(companyFormData);
+        toast({
+          title: `${formData.companyName} registered successfully!`,
+          description: "Welcome to our platform!",
+        });
+        router.push("/dashboard/company");
+      } else {
+        const payload = {
+          name: formData.name,
+          email: formData.email,
+          password: formData.password,
+          confirmPassword: formData.confirmPassword,
+          dateOfBirth: formData.dateOfBirth,
+          phoneNumber: formData.employeePhoneNumber,
+          jobPreferences: formData.jobPreferences,
+        };
+        await registerEmployee(payload);
+        toast({
+          title: `${formData.name} registered successfully!`,
+          description: "Welcome to our platform!",
+        });
+        router.push("/dashboard/user");
       }
-      
-      const response = await registerCompany(companyFormData);
+    } catch (error) {
       toast({
-        title: `${formData.companyName} registered successfully!`,
-        description: "Welcome to our platform!",
+        title: "Registration failed",
+        description: "Please check your information and try again.",
+        variant: "destructive",
       });
-      console.log("Company registered:", response);
-    } else {
-      const payload = {
-        name: formData.name,
-        email: formData.email,
-        password: formData.password,
-        confirmPassword: formData.confirmPassword,
-        dateOfBirth: formData.dateOfBirth,
-        phoneNumber: formData.employeePhoneNumber,
-        jobPreferences: formData.jobPreferences,
-      };
-      const response = await registerEmployee(payload);
-      toast({
-        title: `${formData.name} registered successfully!`,
-        description: "Welcome to our platform!",
-      });
-      console.log("Employee registered:", response);
+    }finally{
+      setIsCreating(false)
     }
-  } catch (error) {
-    console.error("Registration error:", error);
-    toast({
-      title: "Registration failed",
-      description: "Please check your information and try again.",
-      variant: "destructive",
-    });
-  }
-};
+  };
 
   return (
     <div>
@@ -177,7 +177,7 @@ export default function RegisterPage() {
                         confirmPassword: formData.confirmPassword,
                         dateOfBirth: formData.dateOfBirth,
                         employeePhoneNumber: formData.employeePhoneNumber,
-                        jobPreferences: formData.jobPreferences
+                        jobPreferences: formData.jobPreferences,
                       }}
                       onInputChange={handleInputChange}
                     />
@@ -186,9 +186,12 @@ export default function RegisterPage() {
                   {/* Submit */}
                   <Button
                     type="submit"
-                    className="w-full h-12 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-medium"
+                    onClick={()=> setIsCreating(true)}
+                    className={`w-full h-12 hover:bg-purple-700 text-white rounded-xl font-medium ${
+                      isCreating ? "bg-purple-400" : "bg-purple-600" 
+                    }`}
                   >
-                    Create Account
+                    {isCreating ? "Creating..." : "Creating Account"}
                   </Button>
 
                   <p className="text-center text-sm text-gray-500">

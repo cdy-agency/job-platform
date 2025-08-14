@@ -16,7 +16,7 @@ export const getCompanyById = async (id: string) => {
     return res.data
   } catch (e: any) {
     try {
-      const resAlt = await api.get(`/admin/companies/${id}`)
+      const resAlt = await api.get(`/admin/company/${id}`)
       return resAlt.data
     } catch (e2: any) {
       throw e2 || e
