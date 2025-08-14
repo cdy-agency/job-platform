@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Search, MapPin, Phone, Mail, Filter, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -16,6 +16,8 @@ import { Badge } from "@/components/ui/badge";
 import NavBar from "@/components/home/NavBar";
 import { Footer } from "@/components/footer";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/context/authContext";
+import { fetchUsersDirectory } from "@/lib/api";
 
 // Type definitions
 interface User {
@@ -29,42 +31,41 @@ interface User {
   status: "active" | "inactive";
 }
 
-// Mock data - replace with your actual user data
-export const mockUsers: User[] = [
-  {
-    id: "1",
-    name: "Sarah Johnson",
-    email: "sarah.johnson@email.com",
-    phone: "0786664545",
-    location: "Western Province",
-    profileImage:
-      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face",
-    joinDate: "2024-01-15",
-    status: "active",
-  },
-
-  {
-    id: "3",
-    name: "Emily Rodriguez",
-    email: "emily.rodriguez@email.com",
-    phone: "0786664545",
-    location: "Northern Province",
-    profileImage:
-      "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face",
-    joinDate: "2024-01-08",
-    status: "active",
-  },
-
-];
-
 export default function UsersDirectoryPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [locationFilter, setLocationFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [users, setUsers] = useState<User[]>([]);
+  const [loading, setLoading] = useState(true);
   const router = useRouter()
+  const { token } = useAuth();
+
+  useEffect(() => {
+    if (!token) {
+      router.push("/login");
+      return;
+    }
+
+    setLoading(true);
+    fetchUsersDirectory()
+      .then((list: any[]) => {
+        const mapped: User[] = (Array.isArray(list) ? list : []).map((u: any) => ({
+          id: u._id || u.id,
+          name: u.name || `${u.firstName || ''} ${u.lastName || ''}`.trim() || 'User',
+          email: u.email || 'N/A',
+          phone: u.phone || u.phoneNumber || 'N/A',
+          location: u.location || u.address || 'N/A',
+          profileImage: u.avatar || u.profileImage || undefined,
+          joinDate: u.createdAt || new Date().toISOString(),
+          status: u.status === 'inactive' ? 'inactive' : 'active',
+        }))
+        setUsers(mapped)
+      })
+      .finally(() => setLoading(false))
+  }, [token, router])
 
   const filteredUsers = useMemo(() => {
-    return mockUsers.filter((user) => {
+    return users.filter((user) => {
       const matchesSearch =
         user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -80,7 +81,7 @@ export default function UsersDirectoryPage() {
 
       return matchesSearch && matchesLocation && matchesStatus;
     });
-  }, [searchTerm, locationFilter, statusFilter]);
+  }, [searchTerm, locationFilter, statusFilter, users]);
 
   const getInitials = (name: string) => {
     return name
@@ -262,7 +263,17 @@ export default function UsersDirectoryPage() {
               </p>
             </div>
 
-            {filteredUsers.length > 0 ? (
+            {loading ? (
+              <div className="text-center py-12 sm:py-16 bg-white rounded-2xl border border-gray-200">
+                <div className="text-4xl sm:text-6xl mb-4">👥</div>
+                <h3 className="text-lg sm:text-xl font-semibold text-gray-800 mb-2">
+                  Loading users...
+                </h3>
+                <p className="text-sm sm:text-base text-gray-600 mb-4 sm:mb-6 max-w-md mx-auto px-4">
+                  Please wait while we fetch the community members.
+                </p>
+              </div>
+            ) : filteredUsers.length > 0 ? (
               <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
                 {filteredUsers.map((user) => (
                   <UserCard key={user.id} user={user} />
@@ -270,24 +281,13 @@ export default function UsersDirectoryPage() {
               </div>
             ) : (
               <div className="text-center py-12 sm:py-16 bg-white rounded-2xl border border-gray-200">
-                <div className="text-4xl sm:text-6xl mb-4">👥</div>
+                <div className="text-4xl sm:text-6xl mb-4">🧑‍🤝‍🧑</div>
                 <h3 className="text-lg sm:text-xl font-semibold text-gray-800 mb-2">
                   No users found
                 </h3>
                 <p className="text-sm sm:text-base text-gray-600 mb-4 sm:mb-6 max-w-md mx-auto px-4">
-                  Try adjusting your search criteria or filters to find more
-                  community members
+                  Try adjusting your search or filters.
                 </p>
-                <Button
-                  onClick={() => {
-                    setSearchTerm("");
-                    setLocationFilter("all");
-                    setStatusFilter("all");
-                  }}
-                  className="bg-[#834de3] hover:bg-[#9260e7] text-white text-sm sm:text-base"
-                >
-                  Clear All Filters
-                </Button>
               </div>
             )}
           </div>

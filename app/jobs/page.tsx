@@ -34,7 +34,6 @@ import { Badge } from "@/components/ui/badge";
 import NavBar from "@/components/home/NavBar";
 import { Footer } from "@/components/footer";
 import { fetchJobs } from "@/lib/api";
-import { useAuth } from "@/context/authContext";
 
 // Type definitions
 interface Company {
@@ -74,8 +73,6 @@ export default function JobsPage() {
   const [jobs, setJobs] = useState<JobDisplay[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { user } = useAuth();
-
   // State for collapsible sections
   const [expandedSections, setExpandedSections] = useState({
     fullTime: true,
@@ -119,13 +116,6 @@ export default function JobsPage() {
       setError(null);
       
       try {
-        // Only fetch if user is logged in as employee, otherwise show empty state
-        if (!user || user.role !== 'employee') {
-          setJobs([]);
-          setLoading(false);
-          return;
-        }
-
         const jobsData = await fetchJobs(category === 'all' ? undefined : category);
         console.log('Raw API response:', jobsData); // Debug log
         
@@ -163,7 +153,7 @@ export default function JobsPage() {
     };
 
     loadJobs();
-  }, [user, category]);
+  }, [category]);
 
   const filteredJobs = useMemo(() => {
     return jobs.filter((job) => {
@@ -389,31 +379,6 @@ export default function JobsPage() {
     );
   }
 
-  // Not logged in state
-  if (!user || user.role !== 'employee') {
-    return (
-      <div className="min-h-screen bg-gray-50">
-        <NavBar />
-        <main className="container mx-auto px-4 py-10">
-          <div className="text-center py-16">
-            <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
-              <Briefcase className="h-8 w-8 text-gray-400" />
-            </div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Access Required</h1>
-            <p className="text-gray-600 mb-6">
-              Please log in as an employee to view job opportunities.
-            </p>
-            <Link href="/login">
-              <Button className="bg-[#834de3] hover:bg-[#9260e7] text-white">
-                Login to View Jobs
-              </Button>
-            </Link>
-          </div>
-        </main>
-        <Footer />
-      </div>
-    );
-  }
 
   // Error state
   if (error) {

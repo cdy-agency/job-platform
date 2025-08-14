@@ -149,7 +149,7 @@ const CompanyRegistrationForm: React.FC = () => {
       
       // Show success message and redirect
       alert('Registration successful! Please check your email to verify your account.');
-      router.push('/auth/login');
+      router.push('/login');
     } catch (error) {
       console.error('Registration error:', error);
       setErrors({ email: 'Registration failed. Please try again.' });
@@ -306,7 +306,7 @@ const CompanyRegistrationForm: React.FC = () => {
 
             <div className="mt-6 text-center">
               <Link
-                href="/auth/login"
+                href="/login"
                 className="font-medium text-blue-600 hover:text-blue-500"
               >
                 Sign in

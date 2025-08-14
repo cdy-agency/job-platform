@@ -38,8 +38,21 @@ export const fetchEmployeeProfile = async () => {
 };
 
 export const fetchJobs = async (category?: string) => {
-  const res = await api.get("/employee/jobs", { params: { category } });
-  return res.data;
+  const normalizeJobs = (payload: any): any[] => {
+    if (!payload) return []
+    if (Array.isArray(payload)) return payload
+    if (Array.isArray(payload?.jobs)) return payload.jobs
+    if (Array.isArray(payload?.data?.jobs)) return payload.data.jobs
+    if (Array.isArray(payload?.data)) return payload.data
+    return []
+  }
+  try {
+    const res = await api.get("/jobs", { params: { category } });
+    return normalizeJobs(res.data)
+  } catch (publicErr) {
+    const res = await api.get("/employee/jobs", { params: { category } });
+    return normalizeJobs(res.data)
+  }
 };
 
 export const applyToJob = async (
@@ -122,4 +135,79 @@ export const fetchAdminCompanies = async () => {
 export const approveCompany = async (companyId: string) => {
   const res = await api.patch(`/admin/company/${companyId}/approve`);
   return res.data;
+};
+
+export const fetchJobById = async (jobId: string) => {
+  const extractJob = (payload: any): any | null => {
+    if (!payload) return null
+    if (payload?.job) return payload.job
+    if (payload?.data?.job) return payload.data.job
+    if (payload?._id || payload?.id) return payload
+    return null
+  }
+  try {
+    const res = await api.get(`/jobs/${jobId}`);
+    return extractJob(res.data)
+  } catch (err) {
+    try {
+      const allJobs = await fetchJobs();
+      return (Array.isArray(allJobs) ? allJobs : []).find(
+        (j: any) => j?._id === jobId || j?.id === jobId
+      ) || null;
+    } catch {
+      return null;
+    }
+  }
+};
+
+export const fetchUsersDirectory = async (): Promise<any[]> => {
+  const normalizeUsers = (payload: any): any[] => {
+    if (!payload) return []
+    if (Array.isArray(payload)) return payload
+    if (Array.isArray(payload?.users)) return payload.users
+    if (Array.isArray(payload?.data?.users)) return payload.data.users
+    if (Array.isArray(payload?.data)) return payload.data
+    return []
+  }
+  const tryPaths = [
+    "/users",
+    "/employees",
+    "/employee/employees",
+    "/employee/directory",
+    "/employee/list",
+  ]
+  for (const path of tryPaths) {
+    try {
+      const res = await api.get(path)
+      return normalizeUsers(res.data)
+    } catch (e) {
+      // try next
+    }
+  }
+  return []
+};
+
+export const fetchUserById = async (userId: string) => {
+  const candidates = [
+    `/users/${userId}`,
+    `/employees/${userId}`,
+    `/employee/employees/${userId}`,
+  ]
+  for (const path of candidates) {
+    try {
+      const res = await api.get(path)
+      const data = res.data
+      if (data?.user) return data.user
+      if (data?.data?.user) return data.data.user
+      if (data?._id || data?.id) return data
+    } catch (e) {
+      // try next
+    }
+  }
+  try {
+    const list = await fetchUsersDirectory();
+    return (Array.isArray(list) ? list : []).find((u: any) => u?._id === userId || u?.id === userId) || null;
+  } catch {
+    return null
+  }
 };

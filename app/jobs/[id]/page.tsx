@@ -16,10 +16,10 @@ import {
   DollarSign,
   Calendar,
 } from "lucide-react";
-import { getJobById } from "@/lib/mock-data";
+import { fetchJobById } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import NavBar from "@/components/home/NavBar";
-import { applyToJob, fetchJobs } from "@/lib/api";
+import { applyToJob } from "@/lib/api";
 
 const mainPurple = "#834de3";
 
@@ -47,40 +47,31 @@ export default function JobDetailsPage() {
   const [activeSection, setActiveSection] = useState("about-us");
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [applying, setApplying] = useState(false)
-  const [remoteJob, setRemoteJob] = useState<JobShape | null>(null)
-
-  const mockJob = getJobById(id);
+  const [job, setJob] = useState<JobShape | null>(null)
 
   useEffect(() => {
-    // Try to load from API if token exists
-    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
-    if (!token) return
-    fetchJobs()
-      .then((list) => {
-        const found = (list || []).find((j: any) => j._id === id)
-        if (found) {
-          const mapped: JobShape = {
-            id: found._id,
-            title: found.title,
-            company: { name: found.companyId?.companyName || 'Company', logo: found.companyId?.logo },
-            location: found.location || '—',
-            employmentType: found.employmentType || 'fulltime',
-            salary: found.salary,
-            category: found.category || 'General',
-            description: found.description || '',
-            experience: found.experience,
-            responsibilities: [],
-            requirements: [],
-            skills: Array.isArray(found.skills) ? found.skills : [],
-            featured: false,
-          }
-          setRemoteJob(mapped)
-        }
+    fetchJobById(id)
+      .then((found: any) => {
+        if (!found) { setJob(null); return; }
+        const mapped: JobShape = {
+          id: found._id || found.id,
+          title: found.title,
+          company: { name: found.companyId?.companyName || found.company?.name || 'Company', logo: found.companyId?.logo || found.company?.logo },
+          location: found.location || '—',
+          employmentType: found.employmentType || 'fulltime',
+          salary: found.salary,
+          category: found.category || 'General',
+          description: found.description || '',
+          experience: found.experience,
+          responsibilities: Array.isArray(found.responsibilities) ? found.responsibilities : [],
+          requirements: Array.isArray(found.requirements) ? found.requirements : [],
+          skills: Array.isArray(found.skills) ? found.skills : [],
+          featured: Boolean(found.featured),
+        };
+        setJob(mapped)
       })
-      .catch(() => setRemoteJob(null))
+      .catch(() => setJob(null))
   }, [id])
-
-  const job = remoteJob || mockJob
 
   useEffect(() => {
     const handleScroll = () => {
