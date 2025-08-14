@@ -37,6 +37,12 @@ const extractCompany = (payload: any): CompanyDetailsData | null => {
   return null
 }
 
+const getErrorMessage = (e: any): string => {
+  const msg = e?.response?.data?.message || e?.message
+  if (typeof e?.response?.data === 'string') return e.response.data
+  return msg
+}
+
 export default function CompanyDetails({ companyId }: { companyId: string }) {
   const router = useRouter()
   const [company, setCompany] = useState<CompanyDetailsData | null>(null)
@@ -51,7 +57,7 @@ export default function CompanyDetails({ companyId }: { companyId: string }) {
       const res = await getCompanyById(companyId)
       setCompany(extractCompany(res))
     } catch (e: any) {
-      toast.error(e?.response?.data?.message)
+      toast.error(getErrorMessage(e))
     } finally {
       setLoading(false)
     }
@@ -78,7 +84,7 @@ export default function CompanyDetails({ companyId }: { companyId: string }) {
       toast.success('Approved successfully')
       await load()
     } catch (e: any) {
-      toast.error(e?.response?.data?.message)
+      toast.error(getErrorMessage(e))
     } finally {
       setActionLoading(false)
     }
@@ -97,7 +103,7 @@ export default function CompanyDetails({ companyId }: { companyId: string }) {
       setRejectionReason('')
       await load()
     } catch (e: any) {
-      toast.error(e?.response?.data?.message)
+      toast.error(getErrorMessage(e))
     } finally {
       setActionLoading(false)
     }
@@ -110,7 +116,7 @@ export default function CompanyDetails({ companyId }: { companyId: string }) {
       toast.success('Company disabled')
       await load()
     } catch (e: any) {
-      toast.error(e?.response?.data?.message)
+      toast.error(getErrorMessage(e))
     } finally {
       setActionLoading(false)
     }
@@ -123,7 +129,7 @@ export default function CompanyDetails({ companyId }: { companyId: string }) {
       toast.success('Company enabled')
       await load()
     } catch (e: any) {
-      toast.error(e?.response?.data?.message)
+      toast.error(getErrorMessage(e))
     } finally {
       setActionLoading(false)
     }
@@ -136,7 +142,7 @@ export default function CompanyDetails({ companyId }: { companyId: string }) {
       toast.success('Company deleted')
       router.push('/dashboard/admin/companies')
     } catch (e: any) {
-      toast.error(e?.response?.data?.message)
+      toast.error(getErrorMessage(e))
     } finally {
       setActionLoading(false)
     }
