@@ -25,6 +25,8 @@ import {
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import CategorySelect from "@/components/admin/CategorySelect"
+import { JOB_CATEGORIES, JobCategory } from "@/utils/jobCategories"
 import { Textarea } from "@/components/ui/textarea"
 import { toast } from "@/components/ui/use-toast"
 import { postJob } from "@/lib/api"
@@ -42,7 +44,7 @@ const jobFormSchema = z.object({
   employmentType: employmentEnum,
   salaryMin: z.string().optional(),
   salaryMax: z.string().optional(),
-  category: z.string().min(1, { message: "Category is required." }),
+  category: z.enum(JOB_CATEGORIES as unknown as [JobCategory, ...JobCategory[]]),
   responsibilities: z.array(z.string()).default([]),
   benefits: z.array(z.string()).default([]),
   applicationDeadline: z.string().optional(),
@@ -180,9 +182,7 @@ export default function PostJobPage() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className="text-gray-800">Job Category</FormLabel>
-                      <FormControl>
-                        <Input placeholder="e.g. Engineering, Marketing" {...field} className="border-gray-300" />
-                      </FormControl>
+                      <CategorySelect value={field.value} onChange={field.onChange} />
                       <FormMessage />
                     </FormItem>
                   )}
