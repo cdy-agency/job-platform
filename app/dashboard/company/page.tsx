@@ -51,7 +51,7 @@ export default function CompanyDashboardPage() {
             <span className="sr-only">Notifications</span>
           </Button>
           <Link href="/dashboard/company/post-job">
-            <Button className="bg-blue-500 text-white hover:bg-blue-600">
+            <Button className="bg-[#834de3] text-white hover:bg-[#6b3ac2]">
               <PlusCircle className="mr-2 h-4 w-4" />
               Post New Job
             </Button>

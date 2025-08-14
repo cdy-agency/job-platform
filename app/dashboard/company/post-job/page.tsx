@@ -208,18 +208,15 @@ export default function PostJobPage() {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="Engineering">Akazi rusange(General Labour)</SelectItem>
-                          <SelectItem value="Design">Akazi ko mu rugo (Domestic Work)</SelectItem>
-                          <SelectItem value="Product">Isuku (Cleaning & Janitorial)</SelectItem>
-                          <SelectItem value="Marketing">Ubwubatsi(Construction)</SelectItem>
-                          <SelectItem value="Sales">Abashoferi n’Abamotari (Drivers & Riders)</SelectItem>
-                          <SelectItem value="Customer Service">Abacuruzi/Marketing (Sales & Promotion)</SelectItem>
-                          <SelectItem value="Finance">Ubuvuzi n’Ububyaza (Health & Care)</SelectItem>
-                          <SelectItem value="HR">Abarezi n’abafasha mu mashuri (Education & Assistants)</SelectItem>
-                          <SelectItem value="Other">Abashinzwe ikoranabuhanga (IT & Digital Jobs)</SelectItem>
-                          <SelectItem value="Other">Gutunganya no gupakira (Packaging & Production)</SelectItem>
-                          <SelectItem value="Other">Akazi k’Ubuhanzi n’Imyidagaduro (Creative & Media)</SelectItem>
-                          <SelectItem value="Other">Gukora mu nganda (Factory/Workshop Jobs)</SelectItem>
+                          <SelectItem value="Engineering">Engineering</SelectItem>
+                          <SelectItem value="Design">Design</SelectItem>
+                          <SelectItem value="Product">Product</SelectItem>
+                          <SelectItem value="Marketing">Marketing</SelectItem>
+                          <SelectItem value="Sales">Sales</SelectItem>
+                          <SelectItem value="Customer Service">Customer Service</SelectItem>
+                          <SelectItem value="Finance">Finance</SelectItem>
+                          <SelectItem value="HR">HR</SelectItem>
+                          <SelectItem value="Other">Other</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />
