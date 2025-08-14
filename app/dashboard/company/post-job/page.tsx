@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
@@ -29,48 +29,34 @@ import { Textarea } from "@/components/ui/textarea"
 import { toast } from "@/components/ui/use-toast"
 import { postJob } from "@/lib/api"
 import { X } from "lucide-react"
+import { useAuth } from "@/context/authContext"
+
+const employmentEnum = z.enum(["fulltime", "part-time", "internship"]) // exact backend enum
 
 const jobFormSchema = z.object({
-  title: z.string().min(5, {
-    message: "Job title must be at least 5 characters.",
-  }),
-  category: z.string().min(1, {
-    message: "Please select a job category.",
-  }),
-  type: z.string().min(1, {
-    message: "Please select a job type.",
-  }),
-  location: z.string().min(2, {
-    message: "Location is required.",
-  }),
-  salaryMin: z.string().min(1, {
-    message: "Minimum salary is required.",
-  }),
-  salaryMax: z.string().min(1, {
-    message: "Maximum salary is required.",
-  }),
-  description: z.string().min(50, {
-    message: "Job description must be at least 50 characters.",
-  }),
-  requirements: z.array(z.string()).min(1, {
-    message: "Please add at least one requirement.",
-  }),
-  responsibilities: z.array(z.string()).min(1, {
-    message: "Please add at least one responsibility.",
-  }),
-  applicationDeadline: z.string().min(1, {
-    message: "Application deadline is required.",
-  }),
-  benefits: z.array(z.string()).optional(),
+  title: z.string().min(1, { message: "Title is required." }),
+  description: z.string().min(1, { message: "Description is required." }),
+  image: z.instanceof(File).optional(),
+  skills: z.array(z.string()).default([]),
+  experience: z.string().optional(),
+  employmentType: employmentEnum,
+  salaryMin: z.string().optional(),
+  salaryMax: z.string().optional(),
+  category: z.string().min(1, { message: "Category is required." }),
+  responsibilities: z.array(z.string()).default([]),
+  benefits: z.array(z.string()).default([]),
+  applicationDeadline: z.string().optional(),
 })
 
 type JobFormValues = z.infer<typeof jobFormSchema>
 
 export default function PostJobPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [requirementInput, setRequirementInput] = useState("")
+  const [skillsInput, setSkillsInput] = useState("")
   const [responsibilityInput, setResponsibilityInput] = useState("")
   const [benefitInput, setBenefitInput] = useState("")
+  const fileInputRef = useRef<HTMLInputElement | null>(null)
+  const { user } = useAuth()
 
   const router = useRouter()
 
@@ -78,59 +64,66 @@ export default function PostJobPage() {
     resolver: zodResolver(jobFormSchema),
     defaultValues: {
       title: "",
-      category: "",
-      type: "",
-      location: "",
+      description: "",
+      image: undefined,
+      skills: [],
+      experience: "",
+      employmentType: "fulltime",
       salaryMin: "",
       salaryMax: "",
-      description: "",
-      requirements: [],
+      category: "",
       responsibilities: [],
-      applicationDeadline: "",
       benefits: [],
+      applicationDeadline: "",
     },
   })
 
-  const addItem = (fieldName: "requirements" | "responsibilities" | "benefits", value: string, setValue: (v: string) => void) => {
+  const addItem = (
+    fieldName: "skills" | "responsibilities" | "benefits",
+    value: string,
+    setValue: (v: string) => void
+  ) => {
     if (!value.trim()) return
     const current = form.getValues(fieldName) || []
-    form.setValue(fieldName, [...current, value.trim()])
+    form.setValue(fieldName, [...current, value.trim()], { shouldDirty: true })
     setValue("")
   }
 
   const removeItem = (
-  fieldName: "requirements" | "responsibilities" | "benefits",
-  index: number
-) => {
-  const current = form.getValues(fieldName) || [] 
-  const updated = [...current]
-  updated.splice(index, 1)
-  form.setValue(fieldName, updated)
-}
+    fieldName: "skills" | "responsibilities" | "benefits",
+    index: number
+  ) => {
+    const current = form.getValues(fieldName) || []
+    const updated = [...current]
+    updated.splice(index, 1)
+    form.setValue(fieldName, updated, { shouldDirty: true })
+  }
 
-  async function onSubmit(data: JobFormValues) {
+  async function onSubmit(values: JobFormValues) {
     setIsSubmitting(true)
 
     try {
-      const employmentType =
-        data.type.toLowerCase() === "full-time"
-          ? "fulltime"
-          : data.type.toLowerCase() === "part-time"
-          ? "part-time"
-          : data.type.toLowerCase() === "internship"
-          ? "internship"
-          : "fulltime"
-
-      const salary = `${data.salaryMin}-${data.salaryMax}`
+      const companyId = (user as any)?.id || (user as any)?._id || ""
+      if (!companyId) {
+        toast({ title: "Missing company", description: "Company ID not found in session", variant: "destructive" })
+        setIsSubmitting(false)
+        return
+      }
 
       await postJob({
-        title: data.title,
-        description: data.description,
-        skills: data.requirements,
-        employmentType,
-        salary,
-        category: data.category,
-        benefits: data.benefits || [],
+        title: values.title,
+        description: values.description,
+        image: values.image,
+        skills: values.skills,
+        experience: values.experience,
+        employmentType: values.employmentType,
+        salaryMin: values.salaryMin,
+        salaryMax: values.salaryMax,
+        category: values.category,
+        responsibilities: values.responsibilities,
+        benefits: values.benefits,
+        companyId,
+        applicationDeadline: values.applicationDeadline,
       })
 
       toast({
@@ -141,7 +134,7 @@ export default function PostJobPage() {
     } catch (e: any) {
       toast({
         title: "Failed to post job",
-        description: e?.response?.data?.message || "Please try again",
+        description: e?.response?.data?.message || e?.message || "Please try again",
         variant: "destructive",
       })
     } finally {
@@ -153,24 +146,17 @@ export default function PostJobPage() {
     <div className="container space-y-6 p-6 pb-16">
       <div>
         <h1 className="text-3xl font-bold tracking-tight text-gray-800">Post a New Job</h1>
-        <p className="text-gray-600">
-          Create a new job listing to attract qualified candidates
-        </p>
+        <p className="text-gray-600">Create a new job listing to attract qualified candidates</p>
       </div>
 
       <Card className="border-gray-200 bg-white text-black">
         <CardHeader>
           <CardTitle className="text-gray-800">Job Details</CardTitle>
-          <CardDescription className="text-gray-600">
-            Fill out the form below to create a new job listing
-          </CardDescription>
+          <CardDescription className="text-gray-600">Fill out the form below to create a new job listing</CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
-            <form
-              onSubmit={form.handleSubmit(onSubmit)}
-              className="space-y-6"
-            >
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
               {/* Title */}
               <FormField
                 control={form.control}
@@ -179,18 +165,14 @@ export default function PostJobPage() {
                   <FormItem>
                     <FormLabel className="text-gray-800">Job Title</FormLabel>
                     <FormControl>
-                      <Input
-                        placeholder="e.g. Frontend Developer"
-                        {...field}
-                        className="border-gray-300"
-                      />
+                      <Input placeholder="e.g. Frontend Developer" {...field} className="border-gray-300" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
 
-              {/* Category & Type */}
+              {/* Category & Employment Type */}
               <div className="grid gap-4 md:grid-cols-2">
                 <FormField
                   control={form.control}
@@ -198,50 +180,29 @@ export default function PostJobPage() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className="text-gray-800">Job Category</FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                      >
-                        <FormControl>
-                          <SelectTrigger className="border-gray-300">
-                            <SelectValue placeholder="Select category" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="Engineering">Engineering</SelectItem>
-                          <SelectItem value="Design">Design</SelectItem>
-                          <SelectItem value="Product">Product</SelectItem>
-                          <SelectItem value="Marketing">Marketing</SelectItem>
-                          <SelectItem value="Sales">Sales</SelectItem>
-                          <SelectItem value="Customer Service">Customer Service</SelectItem>
-                          <SelectItem value="Finance">Finance</SelectItem>
-                          <SelectItem value="HR">HR</SelectItem>
-                          <SelectItem value="Other">Other</SelectItem>
-                        </SelectContent>
-                      </Select>
+                      <FormControl>
+                        <Input placeholder="e.g. Engineering, Marketing" {...field} className="border-gray-300" />
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
                 <FormField
                   control={form.control}
-                  name="type"
+                  name="employmentType"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-gray-800">Job Type</FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                      >
+                      <FormLabel className="text-gray-800">Employment Type</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
                           <SelectTrigger className="border-gray-300">
                             <SelectValue placeholder="Select type" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="Full-time">Full-time</SelectItem>
-                          <SelectItem value="Part-time">Part-time</SelectItem>
-                          <SelectItem value="Internship">Internship</SelectItem>
+                          <SelectItem value="fulltime">Full-time</SelectItem>
+                          <SelectItem value="part-time">Part-time</SelectItem>
+                          <SelectItem value="internship">Internship</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -250,26 +211,22 @@ export default function PostJobPage() {
                 />
               </div>
 
-              {/* Location */}
+              {/* Experience */}
               <FormField
                 control={form.control}
-                name="location"
+                name="experience"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-gray-800">Location</FormLabel>
+                    <FormLabel className="text-gray-800">Experience</FormLabel>
                     <FormControl>
-                      <Input
-                        placeholder="e.g. New York, NY or Remote"
-                        {...field}
-                        className="border-gray-300"
-                      />
+                      <Input placeholder="e.g. 3+ years, Mid-level" {...field} className="border-gray-300" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
 
-              {/* Salary */}
+              {/* Salary Range */}
               <div className="grid gap-4 md:grid-cols-2">
                 <FormField
                   control={form.control}
@@ -278,15 +235,9 @@ export default function PostJobPage() {
                     <FormItem>
                       <FormLabel className="text-gray-800">Minimum Salary</FormLabel>
                       <FormControl>
-                        <Input
-                          placeholder="e.g. 50000"
-                          {...field}
-                          className="border-gray-300"
-                        />
+                        <Input placeholder="e.g. 50000" {...field} className="border-gray-300" />
                       </FormControl>
-                      <FormDescription className="text-gray-600">
-                        Enter amount in USD without commas or currency symbol
-                      </FormDescription>
+                      <FormDescription className="text-gray-600">Enter amount without currency symbol</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -298,11 +249,7 @@ export default function PostJobPage() {
                     <FormItem>
                       <FormLabel className="text-gray-800">Maximum Salary</FormLabel>
                       <FormControl>
-                        <Input
-                          placeholder="e.g. 90000"
-                          {...field}
-                          className="border-gray-300"
-                        />
+                        <Input placeholder="e.g. 90000" {...field} className="border-gray-300" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -318,59 +265,67 @@ export default function PostJobPage() {
                   <FormItem>
                     <FormLabel className="text-gray-800">Job Description</FormLabel>
                     <FormControl>
-                      <Textarea
-                        placeholder="Describe the role, team, and impact"
-                        {...field}
-                        className="border-gray-300"
-                      />
+                      <Textarea placeholder="Describe the role, team, and impact" {...field} className="border-gray-300" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
 
-              {/* Requirements */}
+              {/* Image Upload */}
               <FormField
                 control={form.control}
-                name="requirements"
+                name="image"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-gray-800">Job Image/Banner</FormLabel>
+                    <FormControl>
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0]
+                          field.onChange(file)
+                        }}
+                        className="block w-full text-sm text-gray-900 file:mr-4 file:rounded-md file:border-0 file:bg-purple-600 file:px-4 file:py-2 file:text-sm file:font-medium file:text-white hover:file:bg-purple-700"
+                      />
+                    </FormControl>
+                    <FormDescription className="text-gray-600">Optional image to showcase the job</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Skills */}
+              <FormField
+                control={form.control}
+                name="skills"
                 render={() => (
                   <FormItem>
-                    <FormLabel className="text-gray-800">Requirements</FormLabel>
+                    <FormLabel className="text-gray-800">Skills</FormLabel>
                     <div className="flex gap-2">
                       <Input
-                        placeholder="Type a requirement and press Enter"
-                        value={requirementInput}
-                        onChange={(e) => setRequirementInput(e.target.value)}
+                        placeholder="Type a skill and press Enter"
+                        value={skillsInput}
+                        onChange={(e) => setSkillsInput(e.target.value)}
                         onKeyDown={(e) => {
                           if (e.key === "Enter") {
                             e.preventDefault()
-                            addItem("requirements", requirementInput, setRequirementInput)
+                            addItem("skills", skillsInput, setSkillsInput)
                           }
                         }}
                         className="border-gray-300"
                       />
-                      <Button
-                        type="button"
-                        onClick={() =>
-                          addItem("requirements", requirementInput, setRequirementInput)
-                        }
-                        className="bg-[#834de3] text-white"
-                      >
+                      <Button type="button" onClick={() => addItem("skills", skillsInput, setSkillsInput)} className="bg-[#834de3] text-white">
                         Add
                       </Button>
                     </div>
-                    <div className="flex flex-wrap gap-2 mt-2">
-                      {form.watch("requirements").map((req, idx) => (
-                        <span
-                          key={idx}
-                          className="bg-[#f1ebfc] text-[#834de3] px-3 py-1 rounded-full flex items-center gap-2 text-sm"
-                        >
-                          {req}
-                          <X
-                            size={16}
-                            className="cursor-pointer hover:text-red-500"
-                            onClick={() => removeItem("requirements", idx)}
-                          />
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {form.watch("skills").map((skill, idx) => (
+                        <span key={idx} className="bg-[#f1ebfc] text-[#834de3] px-3 py-1 rounded-full flex items-center gap-2 text-sm">
+                          {skill}
+                          <X size={16} className="cursor-pointer hover:text-red-500" onClick={() => removeItem("skills", idx)} />
                         </span>
                       ))}
                     </div>
@@ -399,28 +354,15 @@ export default function PostJobPage() {
                         }}
                         className="border-gray-300"
                       />
-                      <Button
-                        type="button"
-                        onClick={() =>
-                          addItem("responsibilities", responsibilityInput, setResponsibilityInput)
-                        }
-                        className="bg-[#834de3] text-white"
-                      >
+                      <Button type="button" onClick={() => addItem("responsibilities", responsibilityInput, setResponsibilityInput)} className="bg-[#834de3] text-white">
                         Add
                       </Button>
                     </div>
-                    <div className="flex flex-wrap gap-2 mt-2">
+                    <div className="mt-2 flex flex-wrap gap-2">
                       {form.watch("responsibilities").map((resp, idx) => (
-                        <span
-                          key={idx}
-                          className="bg-[#f1ebfc] text-[#834de3] px-3 py-1 rounded-full flex items-center gap-2 text-sm"
-                        >
+                        <span key={idx} className="bg-[#f1ebfc] text-[#834de3] px-3 py-1 rounded-full flex items-center gap-2 text-sm">
                           {resp}
-                          <X
-                            size={16}
-                            className="cursor-pointer hover:text-red-500"
-                            onClick={() => removeItem("responsibilities", idx)}
-                          />
+                          <X size={16} className="cursor-pointer hover:text-red-500" onClick={() => removeItem("responsibilities", idx)} />
                         </span>
                       ))}
                     </div>
@@ -449,36 +391,24 @@ export default function PostJobPage() {
                         }}
                         className="border-gray-300"
                       />
-                      <Button
-                        type="button"
-                        onClick={() =>
-                          addItem("benefits", benefitInput, setBenefitInput)
-                        }
-                        className="bg-[#834de3] text-white"
-                      >
+                      <Button type="button" onClick={() => addItem("benefits", benefitInput, setBenefitInput)} className="bg-[#834de3] text-white">
                         Add
                       </Button>
                     </div>
-                    <div className="flex flex-wrap gap-2 mt-2">
-                      {form.watch("benefits")?.map((benefit, idx) => (
-                        <span
-                          key={idx}
-                          className="bg-[#f1ebfc] text-[#834de3] px-3 py-1 rounded-full flex items-center gap-2 text-sm"
-                        >
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {form.watch("benefits").map((benefit, idx) => (
+                        <span key={idx} className="bg-[#f1ebfc] text-[#834de3] px-3 py-1 rounded-full flex items-center gap-2 text-sm">
                           {benefit}
-                          <X
-                            size={16}
-                            className="cursor-pointer hover:text-red-500"
-                            onClick={() => removeItem("benefits", idx)}
-                          />
+                          <X size={16} className="cursor-pointer hover:text-red-500" onClick={() => removeItem("benefits", idx)} />
                         </span>
                       ))}
                     </div>
+                    <FormMessage />
                   </FormItem>
                 )}
               />
 
-              {/* Deadline */}
+              {/* Application Deadline */}
               <FormField
                 control={form.control}
                 name="applicationDeadline"
@@ -494,11 +424,7 @@ export default function PostJobPage() {
               />
 
               <CardFooter className="flex justify-end">
-                <Button
-                  type="submit"
-                  className="bg-[#834de3] text-white"
-                  disabled={isSubmitting}
-                >
+                <Button type="submit" className="bg-[#834de3] text-white" disabled={isSubmitting}>
                   {isSubmitting ? "Posting..." : "Post Job"}
                 </Button>
               </CardFooter>

@@ -127,14 +127,36 @@ export const updateEmployeeProfile = async (data: any) => {
 export const postJob = async (data: {
   title: string;
   description: string;
-  skills: string[];
+  image?: File;
+  skills?: string[];
   experience?: string;
   employmentType: 'fulltime' | 'part-time' | 'internship';
-  salary?: string;
+  salaryMin?: string;
+  salaryMax?: string;
   category: string;
+  responsibilities?: string[];
   benefits?: string[];
+  companyId: string;
+  applicationDeadline?: string;
 }) => {
-  const res = await api.post("/company/job", data);
+  const formData = new FormData();
+  formData.append('title', data.title);
+  formData.append('description', data.description);
+  formData.append('employmentType', data.employmentType);
+  formData.append('category', data.category);
+  formData.append('companyId', data.companyId);
+  if (data.experience) formData.append('experience', data.experience);
+  if (data.salaryMin) formData.append('salaryMin', data.salaryMin);
+  if (data.salaryMax) formData.append('salaryMax', data.salaryMax);
+  if (data.applicationDeadline) formData.append('applicationDeadline', data.applicationDeadline);
+  if (data.image instanceof File) formData.append('image', data.image);
+  (data.skills || []).forEach((s) => formData.append('skills', s));
+  (data.responsibilities || []).forEach((r) => formData.append('responsibilities', r));
+  (data.benefits || []).forEach((b) => formData.append('benefits', b));
+
+  const res = await api.post('/company/job', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
   return res.data;
 };
 
