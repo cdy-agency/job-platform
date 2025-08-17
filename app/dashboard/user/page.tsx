@@ -14,7 +14,7 @@ export default function UserDashboardPage() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    Promise.all([fetchEmployeeProfile(), fetchEmployeeApplications(), fetchJobSuggestions()])
+    Promise.all([fetchEmployeeProfile(), fetchEmployeeApplications(), fetchJobSuggestions('IT & Software')])
       .then(([p, apps, suggestions]) => {
         setProfile(p || null)
         setApplications(apps || [])
@@ -34,15 +34,17 @@ export default function UserDashboardPage() {
           <p className="text-black">Welcome back{profile?.name ? `, ${profile.name}` : ''}</p>
         </div>
         <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            className="border-gray-300 bg-white text-black hover:bg-gray-50 hover:text-black"
-          >
-            <Bell className="h-4 w-4" />
-            <span className="sr-only">Notifications</span>
-          </Button>
+          <Link href="/dashboard/user/notifications">
+            <Button
+              variant="outline"
+              className="border-gray-300 bg-white text-black hover:bg-gray-50 hover:text-black"
+            >
+              <Bell className="h-4 w-4" />
+              <span className="sr-only">Notifications</span>
+            </Button>
+          </Link>
           <Link href="/jobs">
-            <Button className="bg-blue-500 text-white hover:bg-blue-600">
+            <Button className="bg-[#834de3] text-white hover:bg-[#6b3ac2]">
               <Search className="mr-2 h-4 w-4" />
               Find Jobs
             </Button>
@@ -161,7 +163,7 @@ export default function UserDashboardPage() {
                 <h3 className="mb-2 text-lg font-semibold text-black">No applications yet</h3>
                 <p className="mb-6 text-sm text-black">Start applying to jobs to see your applications here</p>
                 <Link href="/jobs">
-                  <Button className="bg-blue-500 text-white hover:bg-blue-600">Browse Jobs</Button>
+                  <Button className="bg-[#834de3] text-white hover:bg-[#6b3ac2]">Browse Jobs</Button>
                 </Link>
               </div>
             )}
@@ -202,13 +204,13 @@ export default function UserDashboardPage() {
                   </div>
                   <div className="flex items-center gap-2">
                     <Link href={`/jobs/${job._id}`}>
-                      <Button size="sm" className="text-black hover:bg-gray-100">
+                      <Button size="sm" className="bg-white text-[#834de3] border border-[#834de3] hover:bg-[#f5f0ff]">
                         View
                       </Button>
                     </Link>
                     <Button
                       size="sm"
-                      className="bg-blue-500 text-white hover:bg-blue-600"
+                      className="bg-[#834de3] text-white hover:bg-[#6b3ac2]"
                       onClick={async () => {
                         try {
                           const skillsInput = prompt('Enter your skills (comma separated):', '') || ''
@@ -228,7 +230,7 @@ export default function UserDashboardPage() {
               ))}
               <div className="pt-2 text-center">
                 <Link href="/jobs">
-                  <Button className="text-blue-500">
+                  <Button className="bg-white text-[#834de3] border border-[#834de3] hover:bg-[#f5f0ff]">
                     View more jobs
                   </Button>
                 </Link>

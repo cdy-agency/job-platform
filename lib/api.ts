@@ -177,7 +177,7 @@ export const updateApplicantStatus = async (applicationId: string, status: 'pend
   return res.data
 }
 
-export const fetchJobSuggestions = async () => {
+export const fetchJobSuggestions = async (category?: string) => {
   const normalizeJobs = (payload: any): any[] => {
     if (!payload) return []
     if (Array.isArray(payload)) return payload
@@ -185,7 +185,7 @@ export const fetchJobSuggestions = async () => {
     if (Array.isArray(payload?.data?.jobs)) return payload.data.jobs
     return []
   }
-  const res = await api.get('/employee/suggestions')
+  const res = await api.get('/employee/suggestions', { params: { category } })
   return normalizeJobs(res.data)
 }
 
@@ -430,3 +430,25 @@ export const rejectCompanyProfile = async (companyId: string, rejectionReason: s
   const res = await api.patch(`/admin/company/${companyId}/reject-profile`, { rejectionReason });
   return res.data;
 };
+
+export const fetchEmployeeWorkRequests = async () => {
+  const res = await api.get('/employee/work-requests')
+  return res.data
+}
+
+export const respondToWorkRequest = async (
+  id: string,
+  action: 'accept' | 'reject'
+) => {
+  const res = await api.patch(`/employee/work-requests/${id}/respond`, { action })
+  return res.data
+}
+
+export const markEmployeeNotificationRead = async (notificationId: string) => {
+  try {
+    const res = await api.patch(`/employee/notifications/${notificationId}/read`)
+    return res.data
+  } catch {
+    return null
+  }
+}

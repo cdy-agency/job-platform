@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils"
 const navItems = [
   {
     title: "Notifications",
-    href: "/dashboard/user/n  otifications",
+    href: "/dashboard/user/notifications",
     icon: Bell,
   },
   {
@@ -25,7 +25,7 @@ const navItems = [
   },
   {
     title: "Job Offers",
-    href: "/dashboard/user/Job Offers",
+    href: "/dashboard/user/job-offer",
     icon: HandshakeIcon,
   },
   {

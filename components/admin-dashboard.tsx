@@ -23,6 +23,11 @@ const navItems = [
     icon: Home,
   },
   {
+    title: "Notifications",
+    href: "/dashboard/admin/notifications",
+    icon: CheckCircle,
+  },
+  {
     title: "Manage Employees",
     href: "/dashboard/admin/employees",
     icon: Users,
