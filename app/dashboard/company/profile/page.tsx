@@ -1,7 +1,13 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import { fetchCompanyProfile, updateCompanyProfile, completeCompanyProfile, updateCompanyLogo, uploadCompanyDocuments } from "@/lib/api";
+import {
+  fetchCompanyProfile,
+  updateCompanyProfile,
+  completeCompanyProfile,
+  updateCompanyLogo,
+  uploadCompanyDocuments,
+} from "@/lib/api";
 import { toast } from "sonner";
 
 type DocumentItem = {
@@ -47,7 +53,7 @@ export default function CompanyProfilePage() {
       try {
         const data = await fetchCompanyProfile();
         setProfileData(data);
-        
+
         // Pre-fill form with existing data
         setForm({
           companyName: data.companyName || "",
@@ -69,12 +75,14 @@ export default function CompanyProfilePage() {
         // Set existing documents
         if (data.documents && Array.isArray(data.documents)) {
           // Convert existing documents to DocumentItem format for display
-          const existingDocs = data.documents.map((doc: any, index: number) => ({
-            id: `existing-${index}`,
-            file: new File([], doc.name || `Document ${index + 1}`),
-            url: doc.url,
-            isExisting: true,
-          }));
+          const existingDocs = data.documents.map(
+            (doc: any, index: number) => ({
+              id: `existing-${index}`,
+              file: new File([], doc.name || `Document ${index + 1}`),
+              url: doc.url,
+              isExisting: true,
+            })
+          );
           setDocuments(existingDocs);
         }
       } catch (error) {
@@ -99,7 +107,9 @@ export default function CompanyProfilePage() {
     };
   }, []);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     const { name, value } = e.target;
     setForm((p) => ({ ...p, [name]: value }));
   };
@@ -242,18 +252,14 @@ export default function CompanyProfilePage() {
       await updateCompanyProfile(updateData);
 
       // Handle file uploads separately using dedicated endpoints
-      const newDocs = documents.filter(d => !d.isExisting).map(d => d.file);
-      
+      const newDocs = documents.filter((d) => !d.isExisting).map((d) => d.file);
+
       if (profileFile) {
         await updateCompanyLogo(profileFile);
       }
-      
-      if (newDocs.length > 0) {
-        await uploadCompanyDocuments(newDocs);
-      }
 
       toast.success("Profile updated successfully");
-      
+
       // Reset password fields
       setForm((p) => ({
         ...p,
@@ -265,7 +271,6 @@ export default function CompanyProfilePage() {
       // Reload profile data
       const updatedData = await fetchCompanyProfile();
       setProfileData(updatedData);
-
     } catch (error: any) {
       console.error("Error updating profile:", error);
       toast.error(error.response?.data?.message || "Failed to update profile");
@@ -296,7 +301,9 @@ export default function CompanyProfilePage() {
                 onDragLeave={onDragLeave}
                 onDrop={onDrop}
                 className={`relative rounded-lg border-2 ${
-                  dragActive ? "border-dashed border-gray-400" : "border-transparent"
+                  dragActive
+                    ? "border-dashed border-gray-400"
+                    : "border-transparent"
                 } overflow-hidden bg-white p-2`}
                 aria-label="Upload company logo"
               >
@@ -316,7 +323,9 @@ export default function CompanyProfilePage() {
                   </div>
 
                   <div className="mt-3 flex flex-col gap-2 w-full">
-                    <label className="text-xs text-gray-600">PNG, JPG, WEBP — max 4MB</label>
+                    <label className="text-xs text-gray-600">
+                      PNG, JPG, WEBP — max 4MB
+                    </label>
 
                     <input
                       id="profileUpload"
@@ -328,7 +337,9 @@ export default function CompanyProfilePage() {
                     <div className="flex gap-2">
                       <button
                         type="button"
-                        onClick={() => document.getElementById("profileUpload")?.click()}
+                        onClick={() =>
+                          document.getElementById("profileUpload")?.click()
+                        }
                         className="flex-1 text-sm px-3 py-1 rounded-md border border-gray-200 bg-white text-gray-700 hover:shadow-sm"
                       >
                         Change
@@ -502,12 +513,16 @@ export default function CompanyProfilePage() {
                 Upload Documents
               </button>
 
-              <p className="text-xs text-gray-500">PDF, DOCX, PNG — max 6MB each</p>
+              <p className="text-xs text-gray-500">
+                PDF, DOCX, PNG — max 6MB each
+              </p>
             </div>
 
             <div className="mt-3 space-y-2">
               {documents.length === 0 && (
-                <div className="text-xs text-gray-500">No documents uploaded yet.</div>
+                <div className="text-xs text-gray-500">
+                  No documents uploaded yet.
+                </div>
               )}
 
               {documents.map((d) => (
@@ -524,7 +539,9 @@ export default function CompanyProfilePage() {
                         {d.file.name}
                       </div>
                       <div className="text-xs text-gray-500">
-                        {d.file.size ? (d.file.size / 1024 / 1024).toFixed(2) + " MB" : "Existing file"}
+                        {d.file.size
+                          ? (d.file.size / 1024 / 1024).toFixed(2) + " MB"
+                          : "Existing file"}
                       </div>
                     </div>
                   </div>

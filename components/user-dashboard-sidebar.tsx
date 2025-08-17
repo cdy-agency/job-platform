@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Bell, Briefcase, ChevronDown, FileText, Home, LogOut, Menu, MessageSquare, Settings, User } from "lucide-react"
+import { Bell, Briefcase, ChevronDown, FileText, HandshakeIcon, Home, LogOut, Menu, MessageSquare, Settings, User } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { cn } from "@/lib/utils"
@@ -22,6 +22,11 @@ const navItems = [
     title: "My Profile",
     href: "/dashboard/user/profile",
     icon: User,
+  },
+  {
+    title: "Job Offers",
+    href: "/dashboard/user/Job Offers",
+    icon: HandshakeIcon,
   },
   {
     title: "My Applications",
