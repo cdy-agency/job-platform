@@ -452,3 +452,39 @@ export const markEmployeeNotificationRead = async (notificationId: string) => {
     return null
   }
 }
+
+export const fetchCompanyNotifications = async () => {
+  try {
+    const res = await api.get('/company/notifications')
+    return res.data
+  } catch (e) {
+    return []
+  }
+}
+
+export const markCompanyNotificationRead = async (notificationId: string) => {
+  try {
+    const res = await api.patch(`/company/notifications/${notificationId}/read`)
+    return res.data
+  } catch {
+    return null
+  }
+}
+
+export const fetchAdminNotifications = async () => {
+  try {
+    const res = await api.get('/admin/notifications')
+    return res.data
+  } catch {
+    return []
+  }
+}
+
+export const markAdminNotificationRead = async (notificationId: string) => {
+  try {
+    const res = await api.patch(`/admin/notifications/${notificationId}/read`)
+    return res.data
+  } catch {
+    return null
+  }
+}

@@ -1,25 +1,57 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Bell, CheckCircle } from "lucide-react"
+import { fetchAdminNotifications, markAdminNotificationRead } from "@/lib/api"
 
 interface NotificationItem {
-  id: number
+  id: string
   message: string
-  date: string
+  date?: string
   read: boolean
 }
 
 export default function AdminNotificationsPage() {
-  const [items, setItems] = useState<NotificationItem[]>([
-    { id: 1, message: "New company registered awaiting approval.", date: new Date().toISOString(), read: false },
-    { id: 2, message: "Weekly report is ready.", date: new Date(Date.now() - 86400000).toISOString(), read: true },
-  ])
+  const [items, setItems] = useState<NotificationItem[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState("")
 
-  const markAsRead = (id: number) =>
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const res = await fetchAdminNotifications()
+        if (res?.message?.toLowerCase?.().includes("access denied")) {
+          setError("Access denied. Log in as an admin.")
+          setItems([])
+          return
+        }
+        const list = Array.isArray(res?.notifications) ? res.notifications : Array.isArray(res) ? res : []
+        const normalized: NotificationItem[] = list.map((n: any) => ({
+          id: String(n._id || n.id),
+          message: String(n.message || n.title || ""),
+          date: n.createdAt || n.date || undefined,
+          read: Boolean(n.read),
+        }))
+        setItems(normalized)
+      } catch (e: any) {
+        setError(e?.response?.data?.message || "Failed to load notifications")
+      } finally {
+        setLoading(false)
+      }
+    }
+    load()
+  }, [])
+
+  const markAsRead = async (id: string) => {
+    try {
+      await markAdminNotificationRead(id)
+    } catch {}
     setItems((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)))
+  }
 
   const unread = items.filter((i) => !i.read).length
+
+  if (loading) return <div className="p-6">Loading...</div>
 
   return (
     <div className="min-h-screen bg-gray-50 px-4 py-10">
@@ -31,7 +63,16 @@ export default function AdminNotificationsPage() {
         <span className="rounded-full bg-[#f5f0ff] px-3 py-1 text-xs font-medium text-[#834de3]">{unread} unread</span>
       </div>
 
+      {error && (
+        <div className="mb-4 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">{error}</div>
+      )}
+
       <div className="mx-auto max-w-2xl space-y-3">
+        {items.length === 0 && !error && (
+          <div className="rounded-lg border border-dashed border-gray-300 bg-white p-8 text-center text-sm text-gray-600">
+            No notifications.
+          </div>
+        )}
         {items.map((n) => (
           <div
             key={n.id}
@@ -46,7 +87,7 @@ export default function AdminNotificationsPage() {
             <div className="ml-3 flex-1">
               <div className="flex items-center justify-between">
                 <p className={`text-sm font-medium ${n.read ? "text-gray-900" : "text-gray-800"}`}>{n.message}</p>
-                <span className={`text-xs ${n.read ? "text-gray-500" : "text-gray-600"}`}>{new Date(n.date).toLocaleString()}</span>
+                <span className={`text-xs ${n.read ? "text-gray-500" : "text-gray-600"}`}>{n.date ? new Date(n.date).toLocaleString() : ""}</span>
               </div>
               {!n.read && (
                 <span className="mt-2 inline-flex items-center rounded-full bg-gradient-to-r from-[#834de3] to-[#9260e7] px-2 py-0.5 text-xs font-medium text-white">

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 import {
   Building,
   Users,
@@ -15,6 +16,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
+import { fetchAdminNotifications } from "@/lib/api";
 
 const navItems = [
   {
@@ -42,20 +44,33 @@ const navItems = [
     href: "/dashboard/admin/profile",
     icon: User,
   },
-  // {
-  //   title: "Pending Approvals",
-  //   href: "/dashboard/admin/pending-approvals",
-  //   icon: CheckCircle,
-  // },
-  // {
-  //   title: "Rejected Companies",
-  //   href: "/dashboard/admin/rejected-companies",
-  //   icon: XCircle,
-  // },
 ];
 
 export function AdminDashboardSidebar() {
   const pathname = usePathname();
+  const [unread, setUnread] = useState<number>(0);
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const res = await fetchAdminNotifications();
+        const list = Array.isArray(res?.notifications) ? res.notifications : Array.isArray(res) ? res : [];
+        setUnread(list.filter((n: any) => !n.read).length);
+      } catch {
+        setUnread(0);
+      }
+    };
+    load();
+  }, []);
+
+  const renderLabel = (title: string) => (
+    <span className="flex w-full items-center gap-2">
+      {title}
+      {title === "Notifications" && unread > 0 && (
+        <span className="ml-auto rounded-full bg-[#834de3] px-2 py-0.5 text-[10px] font-semibold text-white">{unread}</span>
+      )}
+    </span>
+  );
 
   return (
     <>
@@ -89,7 +104,12 @@ export function AdminDashboardSidebar() {
                       )}
                     >
                       <item.icon className="h-4 w-4" />
-                      <span>{item.title}</span>
+                      <span className="flex w-full items-center gap-2">
+                        {item.title}
+                        {item.title === 'Notifications' && unread > 0 && (
+                          <span className="ml-auto rounded-full bg-[#834de3] px-2 py-0.5 text-[10px] font-semibold text-white">{unread}</span>
+                        )}
+                      </span>
                     </Link>
                   ))}
                 </nav>
@@ -159,7 +179,12 @@ export function AdminDashboardSidebar() {
                 )}
               >
                 <item.icon className="h-4 w-4" />
-                <span>{item.title}</span>
+                <span className="flex w-full items-center gap-2">
+                  {item.title}
+                  {item.title === 'Notifications' && unread > 0 && (
+                    <span className="ml-auto rounded-full bg-[#834de3] px-2 py-0.5 text-[10px] font-semibold text-white">{unread}</span>
+                  )}
+                </span>
               </Link>
             ))}
           </nav>

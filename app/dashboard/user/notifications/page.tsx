@@ -14,11 +14,17 @@ interface EmployeeNotification {
 export default function EmployeeNotificationsPage() {
   const [notifications, setNotifications] = useState<EmployeeNotification[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string>("");
 
   useEffect(() => {
     const load = async () => {
       try {
         const res = await fetchEmployeeNotifications();
+        if (res?.message?.toLowerCase?.().includes("access denied")) {
+          setError("Access denied. Log in as an employee.");
+          setNotifications([]);
+          return;
+        }
         const list = Array.isArray(res?.notifications) ? res.notifications : Array.isArray(res) ? res : [];
         const normalized: EmployeeNotification[] = list.map((n: any) => ({
           id: String(n._id || n.id),
@@ -27,6 +33,8 @@ export default function EmployeeNotificationsPage() {
           createdAt: n.createdAt || n.date || undefined,
         }));
         setNotifications(normalized);
+      } catch (e: any) {
+        setError(e?.response?.data?.message || "Failed to load notifications");
       } finally {
         setLoading(false);
       }
@@ -57,8 +65,12 @@ export default function EmployeeNotificationsPage() {
         </span>
       </div>
 
+      {error && (
+        <div className="mb-4 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">{error}</div>
+      )}
+
       <div className="mx-auto max-w-2xl space-y-3">
-        {notifications.length === 0 && (
+        {notifications.length === 0 && !error && (
           <div className="rounded-lg border border-dashed border-gray-300 bg-white p-8 text-center text-sm text-gray-600">
             No notifications yet.
           </div>
