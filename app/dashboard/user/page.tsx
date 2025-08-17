@@ -6,12 +6,21 @@ import { Bell, Briefcase, Clock, Eye, FileText, Search } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { fetchEmployeeApplications, fetchEmployeeProfile, fetchJobs, applyToJob, fetchJobSuggestions } from "@/lib/api"
+import { useToast } from "@/components/ui/use-toast"
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
 
 export default function UserDashboardPage() {
   const [profile, setProfile] = useState<any>(null)
   const [applications, setApplications] = useState<any[]>([])
   const [recommended, setRecommended] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const { toast } = useToast()
+  const [applyOpen, setApplyOpen] = useState(false)
+  const [applyJobId, setApplyJobId] = useState<string>("")
+  const [applySkills, setApplySkills] = useState<string>("")
+  const [applyExperience, setApplyExperience] = useState<string>("")
+  const [applySubmitting, setApplySubmitting] = useState(false)
 
   useEffect(() => {
     Promise.all([fetchEmployeeProfile(), fetchEmployeeApplications(), fetchJobSuggestions('IT & Software')])
@@ -28,6 +37,46 @@ export default function UserDashboardPage() {
 
   return (
     <div className="container space-y-8 p-6 pb-16">
+      <Dialog open={applyOpen} onOpenChange={setApplyOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Apply to job</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <label className="text-sm text-gray-700">Skills (comma separated)</label>
+              <Input value={applySkills} onChange={(e) => setApplySkills(e.target.value)} placeholder="e.g. React, Node.js" />
+            </div>
+            <div>
+              <label className="text-sm text-gray-700">Experience (years)</label>
+              <Input value={applyExperience} onChange={(e) => setApplyExperience(e.target.value)} placeholder="e.g. 3" />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              onClick={async () => {
+                setApplySubmitting(true)
+                try {
+                  const skills = applySkills.split(',').map(s => s.trim()).filter(Boolean)
+                  await applyToJob(applyJobId, { skills, experience: applyExperience || undefined, appliedVia: 'normal' })
+                  toast({ title: 'Application submitted', description: 'Your application has been sent.' })
+                  setApplyOpen(false)
+                  setApplySkills("")
+                  setApplyExperience("")
+                } catch (e: any) {
+                  toast({ title: 'Failed to apply', description: e?.response?.data?.message || 'Please log in as an employee.', variant: 'destructive' })
+                } finally {
+                  setApplySubmitting(false)
+                }
+              }}
+              disabled={applySubmitting || !applyJobId}
+              className="bg-[#834de3] text-white hover:bg-[#6b3ac2]"
+            >
+              {applySubmitting ? 'Submitting...' : 'Submit'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-black">Dashboard</h1>
@@ -211,17 +260,7 @@ export default function UserDashboardPage() {
                     <Button
                       size="sm"
                       className="bg-[#834de3] text-white hover:bg-[#6b3ac2]"
-                      onClick={async () => {
-                        try {
-                          const skillsInput = prompt('Enter your skills (comma separated):', '') || ''
-                          const experienceInput = prompt('Years of experience (optional):', '') || ''
-                          const skills = skillsInput.split(',').map(s => s.trim()).filter(Boolean)
-                          await applyToJob(job._id, { skills, experience: experienceInput || undefined, appliedVia: 'normal' })
-                          alert('Application submitted successfully!')
-                        } catch (e: any) {
-                          alert(e?.response?.data?.message || 'Failed to apply. Please log in as an employee.')
-                        }
-                      }}
+                      onClick={() => { setApplyOpen(true); setApplyJobId(job._id); }}
                     >
                       Apply
                     </Button>

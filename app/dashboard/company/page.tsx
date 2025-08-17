@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { fetchCompanyJobs, fetchCompanyProfile, fetchJobApplicants, fetchEmployeesDirectory, sendWorkRequest } from "@/lib/api"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
+import { useToast } from "@/components/ui/use-toast"
 
 export default function CompanyDashboardPage() {
   const [profile, setProfile] = useState<any>(null)
@@ -18,6 +19,7 @@ export default function CompanyDashboardPage() {
   const [offerMessage, setOfferMessage] = useState<string>("")
   const [sending, setSending] = useState<boolean>(false)
   const [loading, setLoading] = useState(true)
+  const { toast } = useToast()
 
   useEffect(() => {
     const load = async () => {
@@ -211,15 +213,18 @@ export default function CompanyDashboardPage() {
             <div className="pt-2">
               <Button
                 onClick={async () => {
-                  if (!selectedEmployeeId) return alert("Please select an employee");
+                  if (!selectedEmployeeId) {
+                    toast({ title: "Select an employee", description: "Please pick an employee to send the offer.", variant: 'destructive' })
+                    return
+                  }
                   setSending(true)
                   try {
                     await sendWorkRequest(selectedEmployeeId, offerMessage || undefined)
                     setOfferMessage("")
                     setSelectedEmployeeId("")
-                    alert("Job offer sent successfully")
+                    toast({ title: "Offer sent", description: "Your job offer was sent successfully." })
                   } catch (e: any) {
-                    alert(e?.response?.data?.message || "Failed to send job offer")
+                    toast({ title: "Failed to send", description: e?.response?.data?.message || "Unable to send job offer", variant: 'destructive' })
                   } finally {
                     setSending(false)
                   }

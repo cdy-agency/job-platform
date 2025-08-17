@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { Bell, CheckCircle } from "lucide-react";
 import { fetchEmployeeNotifications, markEmployeeNotificationRead } from "@/lib/api";
+import { useToast } from "@/components/ui/use-toast";
 
 interface EmployeeNotification {
   id: string;
@@ -15,6 +16,7 @@ export default function EmployeeNotificationsPage() {
   const [notifications, setNotifications] = useState<EmployeeNotification[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>("");
+  const { toast } = useToast()
 
   useEffect(() => {
     const load = async () => {
@@ -25,9 +27,9 @@ export default function EmployeeNotificationsPage() {
           setNotifications([]);
           return;
         }
-        const list = Array.isArray(res?.notifications) ? res.notifications : Array.isArray(res) ? res : [];
-        const normalized: EmployeeNotification[] = list.map((n: any) => ({
-          id: String(n._id || n.id),
+        const raw = Array.isArray(res?.notifications) ? res.notifications : Array.isArray(res) ? res : [];
+        const normalized: EmployeeNotification[] = raw.map((n: any, idx: number) => ({
+          id: String(n._id || n.id || n.notificationId || `${n.message || ""}-${n.createdAt || n.date || Date.now()}-${idx}`),
           message: String(n.message || n.title || ""),
           read: Boolean(n.read),
           createdAt: n.createdAt || n.date || undefined,
@@ -45,7 +47,9 @@ export default function EmployeeNotificationsPage() {
   const markAsRead = async (id: string) => {
     try {
       await markEmployeeNotificationRead(id);
-    } catch {}
+    } catch (e: any) {
+      toast({ title: "Unable to mark as read", description: e?.response?.data?.message || "Permission issue", variant: "destructive" })
+    }
     setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)));
   };
 

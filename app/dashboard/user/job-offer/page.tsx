@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { respondToWorkRequest, fetchEmployeeWorkRequests } from "@/lib/api"
+import { useToast } from "@/components/ui/use-toast"
 
 interface WorkRequestItem {
   id: string
@@ -17,20 +18,29 @@ export default function JobOfferPage() {
   const [items, setItems] = useState<WorkRequestItem[]>([])
   const [loading, setLoading] = useState(true)
   const [actingId, setActingId] = useState<string>("")
+  const [error, setError] = useState<string>("")
+  const { toast } = useToast()
 
   useEffect(() => {
     const load = async () => {
       try {
         const res = await fetchEmployeeWorkRequests()
+        if (res?.message?.toLowerCase?.().includes('access denied')) {
+          setError('Access denied. Log in as an employee.')
+          setItems([])
+          return
+        }
         const list = Array.isArray(res?.workRequests) ? res.workRequests : Array.isArray(res) ? res : []
-        const normalized: WorkRequestItem[] = list.map((w: any) => ({
-          id: String(w._id || w.id),
-          companyName: w.companyId?.companyName || w.company?.companyName || w.companyName || 'Company',
+        const normalized: WorkRequestItem[] = list.map((w: any, idx: number) => ({
+          id: String(w._id || w.id || w.requestId || `wr-${idx}-${Date.now()}`),
+          companyName: w.companyId?.companyName || w.company?.companyName || w.companyName || w.company?.name || 'Company',
           message: w.message || '',
           status: (w.status === 'accepted' || w.status === 'rejected') ? w.status : 'pending',
-          createdAt: w.createdAt || undefined,
+          createdAt: w.createdAt || w.date || undefined,
         }))
         setItems(normalized)
+      } catch (e: any) {
+        setError(e?.response?.data?.message || 'Failed to load job offers')
       } finally {
         setLoading(false)
       }
@@ -43,8 +53,9 @@ export default function JobOfferPage() {
     try {
       await respondToWorkRequest(id, action)
       setItems((prev) => prev.map((w) => (w.id === id ? { ...w, status: action === 'accept' ? 'accepted' : 'rejected' } : w)))
+      toast({ title: action === 'accept' ? 'Offer accepted' : 'Offer rejected' })
     } catch (e: any) {
-      alert(e?.response?.data?.message || 'Failed to submit response')
+      toast({ title: 'Failed to submit response', description: e?.response?.data?.message || 'Try again later', variant: 'destructive' })
     } finally {
       setActingId("")
     }
@@ -67,7 +78,11 @@ export default function JobOfferPage() {
         </div>
       </div>
 
-      {items.length === 0 ? (
+      {error && (
+        <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">{error}</div>
+      )}
+
+      {items.length === 0 && !error ? (
         <Card className="border-gray-200 bg-white">
           <CardContent className="p-8 text-center text-sm text-gray-600">No job offers yet.</CardContent>
         </Card>

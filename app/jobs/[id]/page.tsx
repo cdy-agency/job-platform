@@ -20,6 +20,9 @@ import { fetchJobById } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import NavBar from "@/components/home/NavBar";
 import { applyToJob } from "@/lib/api";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { useToast } from "@/components/ui/use-toast";
 
 const mainPurple = "#834de3";
 
@@ -48,6 +51,10 @@ export default function JobDetailsPage() {
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [applying, setApplying] = useState(false)
   const [job, setJob] = useState<JobShape | null>(null)
+  const [applyOpen, setApplyOpen] = useState(false)
+  const [skills, setSkills] = useState("")
+  const [experience, setExperience] = useState("")
+  const { toast } = useToast()
 
   useEffect(() => {
     fetchJobById(id)
@@ -126,13 +133,14 @@ export default function JobDetailsPage() {
   const handleApply = async () => {
     try {
       setApplying(true)
-      const skillsInput = prompt('Enter your skills (comma separated):', '') || ''
-      const experienceInput = prompt('Years of experience (optional):', '') || ''
-      const skills = skillsInput.split(',').map(s => s.trim()).filter(Boolean)
-      await applyToJob(job.id, { skills, experience: experienceInput || undefined, appliedVia: 'normal' })
-      alert("Application submitted successfully!");
+      const skillsArr = skills.split(',').map(s => s.trim()).filter(Boolean)
+      await applyToJob(job!.id, { skills: skillsArr, experience: experience || undefined, appliedVia: 'normal' })
+      toast({ title: 'Application submitted', description: 'Your application has been sent.' })
+      setApplyOpen(false)
+      setSkills("")
+      setExperience("")
     } catch (e: any) {
-      alert(e?.response?.data?.message || 'Failed to apply. Please log in as an employee.')
+      toast({ title: 'Failed to apply', description: e?.response?.data?.message || 'Please log in as an employee.', variant: 'destructive' })
     } finally {
       setApplying(false)
     }
@@ -151,7 +159,7 @@ export default function JobDetailsPage() {
       });
     } else {
       navigator.clipboard.writeText(window.location.href);
-      alert("Link copied to clipboard!");
+      toast({ title: 'Link copied', description: 'The job link has been copied to your clipboard.' })
     }
   };
 
@@ -317,8 +325,8 @@ export default function JobDetailsPage() {
               <p className="text-gray-700 mb-4">
                 Ready to apply? Submit your application with your skills and experience.
               </p>
-              <Button onClick={handleApply} disabled={applying} style={{ backgroundColor: mainPurple }}>
-                {applying ? 'Submitting...' : 'Apply Now'}
+              <Button onClick={() => setApplyOpen(true)} disabled={applying} style={{ backgroundColor: mainPurple }}>
+                Apply Now
               </Button>
             </div>
           </Section>
@@ -334,6 +342,28 @@ export default function JobDetailsPage() {
           <ArrowUp className="h-5 w-5" />
         </button>
       )}
+      <Dialog open={applyOpen} onOpenChange={setApplyOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Apply to {job.title}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <label className="text-sm text-gray-700">Skills (comma separated)</label>
+              <Input value={skills} onChange={(e) => setSkills(e.target.value)} placeholder="e.g. React, Node.js" />
+            </div>
+            <div>
+              <label className="text-sm text-gray-700">Experience (years)</label>
+              <Input value={experience} onChange={(e) => setExperience(e.target.value)} placeholder="e.g. 3" />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button onClick={handleApply} disabled={applying} style={{ backgroundColor: mainPurple }}>
+              {applying ? 'Submitting...' : 'Submit Application'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
