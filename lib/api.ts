@@ -177,7 +177,7 @@ export const updateApplicantStatus = async (applicationId: string, status: 'pend
   return res.data
 }
 
-export const fetchJobSuggestions = async () => {
+export const fetchJobSuggestions = async (category?: string) => {
   const normalizeJobs = (payload: any): any[] => {
     if (!payload) return []
     if (Array.isArray(payload)) return payload
@@ -185,7 +185,7 @@ export const fetchJobSuggestions = async () => {
     if (Array.isArray(payload?.data?.jobs)) return payload.data.jobs
     return []
   }
-  const res = await api.get('/employee/suggestions')
+  const res = await api.get('/employee/suggestions', { params: { category } })
   return normalizeJobs(res.data)
 }
 
@@ -430,3 +430,88 @@ export const rejectCompanyProfile = async (companyId: string, rejectionReason: s
   const res = await api.patch(`/admin/company/${companyId}/reject-profile`, { rejectionReason });
   return res.data;
 };
+
+export const fetchEmployeeWorkRequests = async () => {
+  const res = await api.get('/employee/work-requests')
+  return res.data
+}
+
+export const respondToWorkRequest = async (
+  id: string,
+  action: 'accept' | 'reject'
+) => {
+  const res = await api.patch(`/employee/work-requests/${id}/respond`, { action })
+  return res.data
+}
+
+export const markEmployeeNotificationRead = async (notificationId: string) => {
+  try {
+    const res = await api.patch(`/employee/notifications/${notificationId}/read`)
+    return res.data
+  } catch {
+    return null
+  }
+}
+
+export const deleteEmployeeNotification = async (notificationId: string) => {
+  try {
+    const res = await api.delete(`/employee/notifications/${notificationId}`)
+    return res.data
+  } catch {
+    return null
+  }
+}
+
+export const fetchCompanyNotifications = async () => {
+  try {
+    const res = await api.get('/company/notifications')
+    return res.data
+  } catch (e) {
+    return []
+  }
+}
+
+export const markCompanyNotificationRead = async (notificationId: string) => {
+  try {
+    const res = await api.patch(`/company/notifications/${notificationId}/read`)
+    return res.data
+  } catch {
+    return null
+  }
+}
+
+export const deleteCompanyNotification = async (notificationId: string) => {
+  try {
+    const res = await api.delete(`/company/notifications/${notificationId}`)
+    return res.data
+  } catch {
+    return null
+  }
+}
+
+export const fetchAdminNotifications = async () => {
+  try {
+    const res = await api.get('/admin/notifications')
+    return res.data
+  } catch {
+    return []
+  }
+}
+
+export const markAdminNotificationRead = async (notificationId: string) => {
+  try {
+    const res = await api.patch(`/admin/notifications/${notificationId}/read`)
+    return res.data
+  } catch {
+    return null
+  }
+}
+
+export const deleteAdminNotification = async (notificationId: string) => {
+  try {
+    const res = await api.delete(`/admin/notifications/${notificationId}`)
+    return res.data
+  } catch {
+    return null
+  }
+}

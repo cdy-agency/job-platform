@@ -6,15 +6,24 @@ import { Bell, Briefcase, Clock, Eye, FileText, Search } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { fetchEmployeeApplications, fetchEmployeeProfile, fetchJobs, applyToJob, fetchJobSuggestions } from "@/lib/api"
+import { useToast } from "@/components/ui/use-toast"
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
 
 export default function UserDashboardPage() {
   const [profile, setProfile] = useState<any>(null)
   const [applications, setApplications] = useState<any[]>([])
   const [recommended, setRecommended] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const { toast } = useToast()
+  const [applyOpen, setApplyOpen] = useState(false)
+  const [applyJobId, setApplyJobId] = useState<string>("")
+  const [applySkills, setApplySkills] = useState<string>("")
+  const [applyExperience, setApplyExperience] = useState<string>("")
+  const [applySubmitting, setApplySubmitting] = useState(false)
 
   useEffect(() => {
-    Promise.all([fetchEmployeeProfile(), fetchEmployeeApplications(), fetchJobSuggestions()])
+    Promise.all([fetchEmployeeProfile(), fetchEmployeeApplications(), fetchJobSuggestions('IT & Software')])
       .then(([p, apps, suggestions]) => {
         setProfile(p || null)
         setApplications(apps || [])
@@ -28,21 +37,63 @@ export default function UserDashboardPage() {
 
   return (
     <div className="container space-y-8 p-6 pb-16">
+      <Dialog open={applyOpen} onOpenChange={setApplyOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Apply to job</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <label className="text-sm text-gray-700">Skills (comma separated)</label>
+              <Input value={applySkills} onChange={(e) => setApplySkills(e.target.value)} placeholder="e.g. React, Node.js" />
+            </div>
+            <div>
+              <label className="text-sm text-gray-700">Experience (years)</label>
+              <Input value={applyExperience} onChange={(e) => setApplyExperience(e.target.value)} placeholder="e.g. 3" />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              onClick={async () => {
+                setApplySubmitting(true)
+                try {
+                  const skills = applySkills.split(',').map(s => s.trim()).filter(Boolean)
+                  await applyToJob(applyJobId, { skills, experience: applyExperience || undefined, appliedVia: 'normal' })
+                  toast({ title: 'Application submitted', description: 'Your application has been sent.' })
+                  setApplyOpen(false)
+                  setApplySkills("")
+                  setApplyExperience("")
+                } catch (e: any) {
+                  toast({ title: 'Failed to apply', description: e?.response?.data?.message || 'Please log in as an employee.', variant: 'destructive' })
+                } finally {
+                  setApplySubmitting(false)
+                }
+              }}
+              disabled={applySubmitting || !applyJobId}
+              className="bg-[#834de3] text-white hover:bg-[#6b3ac2]"
+            >
+              {applySubmitting ? 'Submitting...' : 'Submit'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-black">Dashboard</h1>
           <p className="text-black">Welcome back{profile?.name ? `, ${profile.name}` : ''}</p>
         </div>
         <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            className="border-gray-300 bg-white text-black hover:bg-gray-50 hover:text-black"
-          >
-            <Bell className="h-4 w-4" />
-            <span className="sr-only">Notifications</span>
-          </Button>
+          <Link href="/dashboard/user/notifications">
+            <Button
+              variant="outline"
+              className="border-gray-300 bg-white text-black hover:bg-gray-50 hover:text-black"
+            >
+              <Bell className="h-4 w-4" />
+              <span className="sr-only">Notifications</span>
+            </Button>
+          </Link>
           <Link href="/jobs">
-            <Button className="bg-blue-500 text-white hover:bg-blue-600">
+            <Button className="bg-[#834de3] text-white hover:bg-[#6b3ac2]">
               <Search className="mr-2 h-4 w-4" />
               Find Jobs
             </Button>
@@ -161,7 +212,7 @@ export default function UserDashboardPage() {
                 <h3 className="mb-2 text-lg font-semibold text-black">No applications yet</h3>
                 <p className="mb-6 text-sm text-black">Start applying to jobs to see your applications here</p>
                 <Link href="/jobs">
-                  <Button className="bg-blue-500 text-white hover:bg-blue-600">Browse Jobs</Button>
+                  <Button className="bg-[#834de3] text-white hover:bg-[#6b3ac2]">Browse Jobs</Button>
                 </Link>
               </div>
             )}
@@ -202,24 +253,14 @@ export default function UserDashboardPage() {
                   </div>
                   <div className="flex items-center gap-2">
                     <Link href={`/jobs/${job._id}`}>
-                      <Button size="sm" className="text-black hover:bg-gray-100">
+                      <Button size="sm" className="bg-white text-[#834de3] border border-[#834de3] hover:bg-[#f5f0ff]">
                         View
                       </Button>
                     </Link>
                     <Button
                       size="sm"
-                      className="bg-blue-500 text-white hover:bg-blue-600"
-                      onClick={async () => {
-                        try {
-                          const skillsInput = prompt('Enter your skills (comma separated):', '') || ''
-                          const experienceInput = prompt('Years of experience (optional):', '') || ''
-                          const skills = skillsInput.split(',').map(s => s.trim()).filter(Boolean)
-                          await applyToJob(job._id, { skills, experience: experienceInput || undefined, appliedVia: 'normal' })
-                          alert('Application submitted successfully!')
-                        } catch (e: any) {
-                          alert(e?.response?.data?.message || 'Failed to apply. Please log in as an employee.')
-                        }
-                      }}
+                      className="bg-[#834de3] text-white hover:bg-[#6b3ac2]"
+                      onClick={() => { setApplyOpen(true); setApplyJobId(job._id); }}
                     >
                       Apply
                     </Button>
@@ -228,7 +269,7 @@ export default function UserDashboardPage() {
               ))}
               <div className="pt-2 text-center">
                 <Link href="/jobs">
-                  <Button className="text-blue-500">
+                  <Button className="bg-white text-[#834de3] border border-[#834de3] hover:bg-[#f5f0ff]">
                     View more jobs
                   </Button>
                 </Link>

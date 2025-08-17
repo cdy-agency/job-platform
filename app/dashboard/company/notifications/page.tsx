@@ -1,108 +1,118 @@
 "use client";
 
-import React, { useState } from "react";
-import { Bell, UserPlus, CheckCircle } from "lucide-react";
+import React, { useEffect, useMemo, useState } from "react";
+import { Bell, Trash2 } from "lucide-react";
+import { fetchCompanyNotifications, markCompanyNotificationRead, deleteCompanyNotification } from "@/lib/api";
 
-interface Notification {
-  id: number;
-  applicantName: string;
-  position: string;
-  date: string;
+interface CompanyNotification {
+  id: string;
+  message: string;
   read: boolean;
+  createdAt?: string;
 }
 
-export default function CompanyApplicantNotifications() {
-  const [notifications, setNotifications] = useState<Notification[]>([
-    {
-      id: 1,
-      applicantName: "Sarah Johnson",
-      position: "Frontend Developer",
-      date: "2025-08-08",
-      read: false,
-    },
-    {
-      id: 2,
-      applicantName: "Michael Smith",
-      position: "UI/UX Designer",
-      date: "2025-08-07",
-      read: true,
-    },
-    {
-      id: 3,
-      applicantName: "Emily Rodriguez",
-      position: "Backend Engineer",
-      date: "2025-08-06",
-      read: false,
-    },
-  ]);
+export default function CompanyNotificationsPage() {
+  const [notifications, setNotifications] = useState<CompanyNotification[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string>("");
 
-  const markAsRead = (id: number) => {
-    setNotifications((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, read: true } : n))
-    );
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const res = await fetchCompanyNotifications();
+        if (res?.message?.toLowerCase?.().includes("access denied")) {
+          setError("Access denied. Log in as a company user.");
+          setNotifications([]);
+          return;
+        }
+        const list = Array.isArray(res?.notifications) ? res.notifications : Array.isArray(res) ? res : [];
+        const normalized: CompanyNotification[] = list.map((n: any, index: number) => ({
+          // Generate unique ID if _id is not available
+          id: String(n._id || n.id || `notification-${Date.now()}-${index}`),
+          message: String(n.message || n.title || ""),
+          read: Boolean(n.read),
+          createdAt: n.createdAt || n.date || undefined,
+        }));
+        setNotifications(normalized);
+      } catch (e: any) {
+        setError(e?.response?.data?.message || "Failed to load notifications");
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, []);
+
+  const unread = useMemo(() => notifications.filter((n) => !n.read).length, [notifications]);
+
+  const markAsRead = async (id: string) => {
+    try {
+      await markCompanyNotificationRead(id);
+    } catch {}
+    setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)));
   };
+
+  const deleteNotification = async (id: string) => {
+    try {
+      await deleteCompanyNotification(id);
+      setNotifications((prev) => prev.filter((n) => n.id !== id));
+    } catch (error) {
+      console.error('Failed to delete notification:', error);
+    }
+  };
+
+  if (loading) return <div className="p-6">Loading...</div>;
 
   return (
     <div className="min-h-screen bg-gray-50 px-4 py-10">
-      {/* Header */}
-      <div className="flex items-center mb-6">
-        <Bell className="w-6 h-6 text-[#834de3]" />
-        <h1 className="text-lg font-semibold ml-2 text-gray-900">
-          Applicant Notifications
-        </h1>
+      <div className="mb-6 flex items-center justify-between">
+        <div className="flex items-center">
+          <Bell className="w-6 h-6 text-[#834de3]" />
+          <h1 className="text-lg font-semibold ml-2 text-gray-900">Notifications</h1>
+        </div>
+        <span className="rounded-full bg-[#f5f0ff] px-3 py-1 text-xs font-medium text-[#834de3]">{unread} unread</span>
       </div>
 
-      {/* List */}
+      {error && (
+        <div className="mb-4 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">{error}</div>
+      )}
+
       <div className="space-y-3 max-w-2xl">
+        {notifications.length === 0 && !error && (
+          <div className="rounded-lg border border-dashed border-gray-300 bg-white p-8 text-center text-sm text-gray-600">
+            No notifications.
+          </div>
+        )}
+
         {notifications.map((n) => (
           <div
             key={n.id}
-            className={`flex items-start p-3 rounded-lg shadow-sm border transition-all ${
-              n.read
-                ? "bg-white border-gray-200"
-                : "bg-gray-100 border-gray-300"
+            className={`flex w-full items-start rounded-lg border p-3 transition-all ${
+              n.read ? "bg-white border-gray-200" : "bg-[#fbf8ff] border-[#eadbff]"
             }`}
           >
-            {/* Icon */}
-            <div className="flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-r from-[#834de3] to-[#9260e7] text-white flex-shrink-0">
-              <UserPlus className="w-5 h-5" />
+            <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-r from-[#834de3] to-[#9260e7] text-white">
+              <Bell className="h-5 w-5" />
             </div>
-
-            {/* Content */}
             <div className="ml-3 flex-1">
               <div className="flex items-center justify-between">
-                <h2
-                  className={`text-sm font-medium ${
-                    n.read ? "text-gray-900" : "text-gray-800"
-                  }`}
-                >
-                  New Application from {n.applicantName}
-                </h2>
-                <span
-                  className={`text-xs ${
-                    n.read ? "text-gray-500" : "text-gray-600"
-                  }`}
-                >
-                  {new Date(n.date).toLocaleDateString()}
-                </span>
-              </div>
-              <p
-                className={`mt-0.5 text-xs ${
-                  n.read ? "text-gray-600" : "text-gray-700"
-                }`}
-              >
-                Applied for: {n.position}
-              </p>
-
-              {!n.read && (
                 <button
-                  onClick={() => markAsRead(n.id)}
-                  className="mt-2 flex items-center text-xs font-medium bg-gradient-to-r from-[#834de3] to-[#9260e7] text-white px-2 py-0.5 rounded-full shadow-sm hover:opacity-90"
+                  onClick={() => (!n.read ? markAsRead(n.id) : undefined)}
+                  className={`text-left flex-1 ${n.read ? "text-gray-900" : "text-gray-800"}`}
                 >
-                  <CheckCircle className="w-3 h-3 mr-1" />
-                  Mark as Read
+                  <p className="text-sm font-medium">{n.message}</p>
+                  <span className={`text-xs ${n.read ? "text-gray-500" : "text-gray-600"}`}>
+                    {n.createdAt ? new Date(n.createdAt).toLocaleString() : ""}
+                  </span>
                 </button>
-              )}
+                <button
+                  onClick={() => deleteNotification(n.id)}
+                  className="ml-2 p-1 text-gray-400 hover:text-red-500 transition-colors"
+                  title="Delete notification"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              </div>
             </div>
           </div>
         ))}

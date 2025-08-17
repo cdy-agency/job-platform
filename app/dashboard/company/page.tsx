@@ -5,20 +5,32 @@ import { useEffect, useState } from "react"
 import { Bell, PlusCircle, Users } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { fetchCompanyJobs, fetchCompanyProfile, fetchJobApplicants } from "@/lib/api"
+import { fetchCompanyJobs, fetchCompanyProfile, fetchJobApplicants, fetchEmployeesDirectory, sendWorkRequest } from "@/lib/api"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Textarea } from "@/components/ui/textarea"
+import { useToast } from "@/components/ui/use-toast"
 
 export default function CompanyDashboardPage() {
   const [profile, setProfile] = useState<any>(null)
   const [jobs, setJobs] = useState<any[]>([])
   const [applicants, setApplicants] = useState<any[]>([])
+  const [employees, setEmployees] = useState<any[]>([])
+  const [selectedEmployeeId, setSelectedEmployeeId] = useState<string>("")
+  const [offerMessage, setOfferMessage] = useState<string>("")
+  const [sending, setSending] = useState<boolean>(false)
   const [loading, setLoading] = useState(true)
+  const { toast } = useToast()
 
   useEffect(() => {
-    fetchCompanyProfile()
-      .then((p) => setProfile(p || null))
-      .catch(() => setProfile(null))
-    fetchCompanyJobs()
-      .then(async (list) => {
+    const load = async () => {
+      try {
+        const p = await fetchCompanyProfile()
+        setProfile(p || null)
+      } catch {
+        setProfile(null)
+      }
+      try {
+        const list = await fetchCompanyJobs()
         setJobs(list || [])
         if ((list || []).length > 0) {
           const firstJobId = list[0]._id
@@ -29,8 +41,18 @@ export default function CompanyDashboardPage() {
             setApplicants([])
           }
         }
-      })
-      .finally(() => setLoading(false))
+      } catch {
+        setJobs([])
+      }
+      try {
+        const emps = await fetchEmployeesDirectory()
+        setEmployees(Array.isArray(emps) ? emps : [])
+      } catch {
+        setEmployees([])
+      }
+      setLoading(false)
+    }
+    load()
   }, [])
 
   if (loading) return <div className="p-6">Loading...</div>
@@ -43,13 +65,15 @@ export default function CompanyDashboardPage() {
           <p className="text-gray-600">Welcome back{profile?.companyName ? `, ${profile.companyName}` : ''}</p>
         </div>
         <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            className="border-gray-300 bg-transparent text-gray-600 hover:text-gray-800"
-          >
-            <Bell className="h-4 w-4" />
-            <span className="sr-only">Notifications</span>
-          </Button>
+          <Link href="/dashboard/company/notifications">
+            <Button
+              variant="outline"
+              className="border-gray-300 bg-transparent text-gray-600 hover:text-gray-800"
+            >
+              <Bell className="h-4 w-4" />
+              <span className="sr-only">Notifications</span>
+            </Button>
+          </Link>
           <Link href="/dashboard/company/post-job">
             <Button className="bg-[#834de3] text-white hover:bg-[#6b3ac2]">
               <PlusCircle className="mr-2 h-4 w-4" />
@@ -60,7 +84,7 @@ export default function CompanyDashboardPage() {
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-        <Card className="border-gray-200">
+        {/* <Card className="border-gray-200">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-gray-600">Active Jobs</CardTitle>
           </CardHeader>
@@ -92,8 +116,8 @@ export default function CompanyDashboardPage() {
               </svg>
             </div>
           </CardContent>
-        </Card>
-        <Card className="border-gray-200">
+        </Card> */}
+        {/* <Card className="border-gray-200">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-gray-600">Total Applicants (latest job)</CardTitle>
           </CardHeader>
@@ -103,33 +127,8 @@ export default function CompanyDashboardPage() {
               <Users className="h-5 w-5 text-gray-600" />
             </div>
           </CardContent>
-        </Card>
-        <Card className="border-gray-200">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">Profile Views</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-between">
-              <div className="text-2xl font-bold text-gray-800">156</div>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="h-5 w-5 text-gray-600"
-              >
-                <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
-                <circle cx="12" cy="12" r="3" />
-              </svg>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="border-gray-200">
+        </Card> */}
+        {/* <Card className="border-gray-200">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-gray-600">Pending Reviews</CardTitle>
           </CardHeader>
@@ -153,7 +152,68 @@ export default function CompanyDashboardPage() {
               </svg>
             </div>
           </CardContent>
+        </Card> */}
+      </div>
+
+      <div className="grid gap-6 md:grid-cols-2">
+        <Card className="border-gray-200">
+          <CardHeader>
+            <CardTitle className="text-gray-800">Send Job Offer</CardTitle>
+            <CardDescription className="text-gray-600">Invite an employee to consider a role</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid gap-2">
+              <label className="text-sm text-gray-700">Select Employee</label>
+              <Select onValueChange={setSelectedEmployeeId}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Choose an employee" />
+                </SelectTrigger>
+                <SelectContent>
+                  {employees.map((e) => (
+                    <SelectItem key={e._id || e.id} value={String(e._id || e.id)}>
+                      {e.name || e.fullName || e.email || "Employee"}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid gap-2">
+              <label className="text-sm text-gray-700">Message (optional)</label>
+              <Textarea
+                placeholder="Write a short message..."
+                value={offerMessage}
+                onChange={(e) => setOfferMessage(e.target.value)}
+              />
+            </div>
+            <div className="pt-2">
+              <Button
+                onClick={async () => {
+                  if (!selectedEmployeeId) {
+                    toast({ title: "Select an employee", description: "Please pick an employee to send the offer.", variant: 'destructive' })
+                    return
+                  }
+                  setSending(true)
+                  try {
+                    await sendWorkRequest(selectedEmployeeId, offerMessage || undefined)
+                    setOfferMessage("")
+                    setSelectedEmployeeId("")
+                    toast({ title: "Offer sent", description: "Your job offer was sent successfully." })
+                  } catch (e: any) {
+                    toast({ title: "Failed to send", description: e?.response?.data?.message || "Unable to send job offer", variant: 'destructive' })
+                  } finally {
+                    setSending(false)
+                  }
+                }}
+                disabled={sending}
+                className="bg-[#834de3] text-white hover:bg-[#6b3ac2]"
+              >
+                {sending ? "Sending..." : "Send Offer"}
+              </Button>
+            </div>
+          </CardContent>
         </Card>
+
+        <div className="hidden md:block" />
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">

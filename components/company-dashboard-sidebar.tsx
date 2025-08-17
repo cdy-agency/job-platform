@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { useEffect, useState } from "react"
 import {
   BarChart,
   Bell,
@@ -17,6 +18,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { cn } from "@/lib/utils"
+import { fetchCompanyNotifications } from "@/lib/api"
 
 const navItems = [
   {
@@ -50,21 +52,34 @@ const navItems = [
     href: "/dashboard/company/profile",
     icon: Building,
   },
-  
-  // {
-  //   title: "Analytics",
-  //   href: "/dashboard/company/analytics",
-  //   icon: BarChart,
-  // },
-  // {
-  //   title: "Settings",
-  //   href: "/dashboard/company/settings",
-  //   icon: Settings,
-  // },
 ]
 
 export function CompanyDashboardSidebar() {
   const pathname = usePathname()
+  const [unread, setUnread] = useState<number>(0)
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const res = await fetchCompanyNotifications()
+        const list = Array.isArray(res?.notifications) ? res.notifications : Array.isArray(res) ? res : []
+        const count = list.filter((n: any) => !n.read).length
+        setUnread(count)
+      } catch {
+        setUnread(0)
+      }
+    }
+    load()
+  }, [])
+
+  const renderLabel = (itemTitle: string) => (
+    <span className="flex w-full items-center gap-2">
+      {itemTitle}
+      {itemTitle.toLowerCase().includes('notification') && unread > 0 && (
+        <span className="ml-auto rounded-full bg-[#834de3] px-2 py-0.5 text-[10px] font-semibold text-white">{unread}</span>
+      )}
+    </span>
+  )
 
   return (
     <>
@@ -81,7 +96,7 @@ export function CompanyDashboardSidebar() {
             <div className="flex h-full flex-col">
               <div className="flex items-center border-b py-4">
                 <Link href="/" className="flex items-center">
-                  <span className="text-xl font-bold text-gray-800">JobHub</span>
+                  <span className="text-xl font-bold text-gray-800">Akazi-Link</span>
                 </Link>
               </div>
               <div className="flex-1 overflow-auto py-2">
@@ -96,7 +111,7 @@ export function CompanyDashboardSidebar() {
                       )}
                     >
                       <item.icon className="h-4 w-4" />
-                      <span>{item.title}</span>
+                      {renderLabel(item.title)}
                     </Link>
                   ))}
                 </nav>
@@ -111,12 +126,6 @@ export function CompanyDashboardSidebar() {
                       width={32}
                       height={32}
                     />
-                  </div>
-                  <div className="flex flex-1 items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-gray-800">Acme Inc</p>
-                      <p className="text-xs text-gray-600">hr@acme.com</p>
-                    </div>
                   </div>
                 </div>
                 <Link href="/login">
@@ -166,7 +175,7 @@ export function CompanyDashboardSidebar() {
                 )}
               >
                 <item.icon className="h-4 w-4" />
-                <span>{item.title}</span>
+                {renderLabel(item.title)}
               </Link>
             ))}
           </nav>

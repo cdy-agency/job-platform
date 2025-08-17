@@ -2,15 +2,17 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { useEffect, useMemo, useState } from "react"
 import { Bell, Briefcase, ChevronDown, FileText, HandshakeIcon, Home, LogOut, Menu, MessageSquare, Settings, User } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { cn } from "@/lib/utils"
+import { fetchEmployeeNotifications } from "@/lib/api"
 
 const navItems = [
   {
     title: "Notifications",
-    href: "/dashboard/user/n  otifications",
+    href: "/dashboard/user/notifications",
     icon: Bell,
   },
   {
@@ -25,7 +27,7 @@ const navItems = [
   },
   {
     title: "Job Offers",
-    href: "/dashboard/user/Job Offers",
+    href: "/dashboard/user/job-offer",
     icon: HandshakeIcon,
   },
   {
@@ -33,20 +35,40 @@ const navItems = [
     href: "/dashboard/user/applications",
     icon: Briefcase,
   },
-  // {
-  //   title: "Saved Jobs",
-  //   href: "/dashboard/user/saved",
-  //   icon: FileText,
-  // },
-  // {
-  //   title: "Settings",
-  //   href: "/dashboard/user/settings",
-  //   icon: Settings,
-  // },
 ]
 
 export function UserDashboardSidebar() {
   const pathname = usePathname()
+  const [unread, setUnread] = useState<number>(0)
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const res = await fetchEmployeeNotifications()
+        const list = Array.isArray(res?.notifications) ? res.notifications : Array.isArray(res) ? res : []
+        const count = list.filter((n: any) => !n.read).length
+        setUnread(count)
+      } catch (e: any) {
+        // ignore permission or network errors
+        setUnread(0)
+      }
+    }
+    load()
+  }, [])
+
+  const renderTitle = (item: any) => {
+    if (item.title !== 'Notifications') return item.title
+    return (
+      <span className="flex items-center gap-2">
+        {item.title}
+        {unread > 0 && (
+          <span className="ml-auto rounded-full bg-[#834de3] px-2 py-0.5 text-[10px] font-semibold text-white">
+            {unread}
+          </span>
+        )}
+      </span>
+    )
+  }
 
   return (
     <>
@@ -63,7 +85,7 @@ export function UserDashboardSidebar() {
             <div className="flex h-full flex-col">
               <div className="flex items-center border-b py-4">
                 <Link href="/" className="flex items-center">
-                  <span className="text-xl font-bold text-gray-800">JobHub</span>
+                  <span className="text-xl font-bold text-gray-800">Akazi-Link</span>
                 </Link>
               </div>
               <div className="flex-1 overflow-auto py-2">
@@ -78,7 +100,14 @@ export function UserDashboardSidebar() {
                       )}
                     >
                       <item.icon className="h-4 w-4" />
-                      <span>{item.title}</span>
+                      <span className="flex w-full items-center gap-2">
+                        {item.title}
+                        {item.title === 'Notifications' && unread > 0 && (
+                          <span className="ml-auto rounded-full bg-[#834de3] px-2 py-0.5 text-[10px] font-semibold text-white">
+                            {unread}
+                          </span>
+                        )}
+                      </span>
                     </Link>
                   ))}
                 </nav>
@@ -148,7 +177,14 @@ export function UserDashboardSidebar() {
                 )}
               >
                 <item.icon className="h-4 w-4" />
-                <span>{item.title}</span>
+                <span className="flex w-full items-center gap-2">
+                  {item.title}
+                  {item.title === 'Notifications' && unread > 0 && (
+                    <span className="ml-auto rounded-full bg-[#834de3] px-2 py-0.5 text-[10px] font-semibold text-white">
+                      {unread}
+                    </span>
+                  )}
+                </span>
               </Link>
             ))}
           </nav>
