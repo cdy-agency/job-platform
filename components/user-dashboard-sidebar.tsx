@@ -25,7 +25,7 @@ const navItems = [
   },
   {
     title: "Job Offers",
-    href: "/dashboard/user/JobOffers",
+    href: "/dashboard/user/job-offer",
     icon: HandshakeIcon,
   },
   {
