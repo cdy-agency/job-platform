@@ -25,7 +25,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "@/components/ui/use-toast";
-import { fetchEmployeeProfile, updateEmployeeProfile } from "@/lib/api";
+import { fetchEmployeeProfile, updateEmployeeProfile, uploadEmployeeImage, uploadEmployeeDocuments } from "@/lib/api";
 
 // Define the profile type
 interface EmployeeProfile {
@@ -76,8 +76,7 @@ export default function UserProfilePage() {
       
       // Handle image upload if selected
       if (selectedImage) {
-        // Here you would upload the image and get the URL
-        // payload.profileImage = uploadedImageUrl
+        await uploadEmployeeImage(selectedImage)
       }
       
       await updateEmployeeProfile(payload)
@@ -85,6 +84,8 @@ export default function UserProfilePage() {
       setIsEditingContact(false)
       setSelectedImage(null)
       setImagePreview(null)
+      const fresh = await fetchEmployeeProfile()
+      setProfile(fresh || null)
       toast({ title: "Profile updated", description: "Your profile has been successfully updated." })
     } catch (e: any) {
       toast({ title: "Failed to update", description: e?.response?.data?.message || 'Try again', variant: 'destructive' })
@@ -135,22 +136,16 @@ export default function UserProfilePage() {
     }));
   };
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
-    if (files) {
-      const newDocuments = Array.from(files).map(file => ({
-        id: Date.now().toString() + Math.random(),
-        name: file.name,
-        type: file.type,
-        uploadedAt: new Date().toISOString(),
-      }));
-      
-      setProfile((prev: EmployeeProfile | null) => ({
-        ...prev,
-        documents: [...(prev?.documents || []), ...newDocuments]
-      }));
-      
-      toast({ title: "Files uploaded", description: `${files.length} file(s) uploaded successfully` });
+    if (!files || files.length === 0) return
+    try {
+      await uploadEmployeeDocuments(Array.from(files))
+      const fresh = await fetchEmployeeProfile()
+      setProfile(fresh || null)
+      toast({ title: "Files uploaded", description: `${files.length} file(s) uploaded successfully` })
+    } catch (e: any) {
+      toast({ title: "Upload failed", description: e?.response?.data?.message || 'Try again', variant: 'destructive' })
     }
   };
 

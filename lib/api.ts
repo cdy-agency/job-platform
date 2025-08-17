@@ -130,6 +130,31 @@ export const updateEmployeeProfile = async (data: any) => {
   return res.data;
 };
 
+// Employee file upload APIs
+export const uploadEmployeeImage = async (file: File) => {
+  const formData = new FormData();
+  formData.append('image', file);
+  const res = await api.post('/employee/upload/image', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+  return res.data;
+};
+
+export const uploadEmployeeDocuments = async (files: File[]) => {
+  const formData = new FormData();
+  files.forEach((file) => {
+    formData.append('documents', file);
+  });
+  const res = await api.post('/employee/upload/documents', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+  return res.data;
+};
+
 export const postJob = async (data: {
   title: string;
   description: string;

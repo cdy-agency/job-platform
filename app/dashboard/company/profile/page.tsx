@@ -258,6 +258,10 @@ export default function CompanyProfilePage() {
         await updateCompanyLogo(profileFile);
       }
 
+      if (newDocs.length > 0) {
+        await uploadCompanyDocuments(newDocs);
+      }
+
       toast.success("Profile updated successfully");
 
       // Reset password fields
