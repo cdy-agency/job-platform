@@ -115,23 +115,6 @@ export function AdminDashboardSidebar() {
                 </nav>
               </div>
               <div className="border-t p-4">
-                <div className="flex items-center gap-3 rounded-md px-3 py-2">
-                  <div className="h-8 w-8 rounded-full bg-gray-200">
-                    <img
-                      src="/placeholder.svg?height=32&width=32"
-                      alt="Admin"
-                      className="h-full w-full rounded-full"
-                      width={32}
-                      height={32}
-                    />
-                  </div>
-                  <div className="flex flex-1 items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-gray-800">Admin User</p>
-                      <p className="text-xs text-gray-600">admin@jobhub.com</p>
-                    </div>
-                  </div>
-                </div>
                 <Link href="/login">
                   <Button className="mt-2 w-full justify-start gap-3 bg-[#834de3] hover:bg-[#8d6ee9] text-white">
                     <LogOut className="h-4 w-4" />
@@ -144,7 +127,7 @@ export function AdminDashboardSidebar() {
         </Sheet>
         <div className="ml-4 flex-1">
           <Link href="/" className="flex items-center">
-            <span className="text-xl font-bold text-gray-800">JobHub Admin</span>
+            <span className="text-xl font-bold text-gray-800">Akazi-Link Admin</span>
           </Link>
         </div>
         <div className="flex items-center gap-2">

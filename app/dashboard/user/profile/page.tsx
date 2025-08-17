@@ -166,10 +166,10 @@ export default function UserProfilePage() {
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-gray-800">
-            Umwirondoro wanjye
+            My Profile
           </h1>
           <p className="text-gray-600">
-            Hindura umwirondoro wawe ma cv
+            Update your profile and CV
           </p>
         </div>
         <div>
@@ -185,13 +185,13 @@ export default function UserProfilePage() {
                 }}
                 className="border-gray-300 bg-transparent text-gray-800"
               >
-                Funga
+                Cancel
               </Button>
               <Button
                 onClick={handleSaveProfile}
                 className="bg-blue-500 text-white hover:bg-blue-600"
               >
-                Emeze
+                Save
               </Button>
             </div>
           ) : (
@@ -200,7 +200,7 @@ export default function UserProfilePage() {
               className="bg-blue-500 text-white hover:bg-blue-600"
             >
               <Edit className="mr-2 h-4 w-4" />
-              Hindura umwirondoro
+              Edit Profile
             </Button>
           )}
         </div>
@@ -242,7 +242,7 @@ export default function UserProfilePage() {
                     onClick={() => document.getElementById('profile-image-upload')?.click()}
                   >
                     <Camera className="mr-2 h-4 w-4" />
-                    Hindura ifoto ikuranga
+                    Change Profile Photo
                   </Button>
                 </div>
               </div>
@@ -314,7 +314,7 @@ export default function UserProfilePage() {
 
           <Card className="border-gray-200">
             <CardHeader>
-              <CardTitle className="text-gray-800">Ubemenyi</CardTitle>
+              <CardTitle className="text-gray-800">Skills</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="flex flex-wrap gap-2 mb-3">
@@ -368,7 +368,7 @@ export default function UserProfilePage() {
 
           <Card className="border-gray-200">
             <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle className="text-gray-800">Ibyangombwa</CardTitle>
+              <CardTitle className="text-gray-800">Documents</CardTitle>
               <div>
                 <input
                   type="file"
@@ -434,16 +434,16 @@ export default function UserProfilePage() {
           <Tabs defaultValue="about">
             <CardHeader>
               <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="about" className="text-gray-600">Ibinyerekeyeho</TabsTrigger>
-                <TabsTrigger value="experience" className="text-gray-600">Uburambe</TabsTrigger>
-                <TabsTrigger value="education" className="text-gray-600">Amashuri</TabsTrigger>
+                <TabsTrigger value="about" className="text-gray-600">About</TabsTrigger>
+                <TabsTrigger value="experience" className="text-gray-600">Experience</TabsTrigger>
+                <TabsTrigger value="education" className="text-gray-600">Education</TabsTrigger>
               </TabsList>
             </CardHeader>
             <CardContent>
               <TabsContent value="about" className="mt-0">
                 <div className="space-y-4">
                   <div>
-                    <h3 className="mb-2 text-lg font-semibold text-gray-800">Ibinyerekeyeho</h3>
+                    <h3 className="mb-2 text-lg font-semibold text-gray-800">About</h3>
                     {isEditing ? (
                       <textarea
                         value={profile?.about || ''}
@@ -453,7 +453,7 @@ export default function UserProfilePage() {
                       />
                     ) : (
                       <p className="text-gray-600">
-                        {profile?.about || 'Experienced Frontend Developer with a passion for creating responsive and user-friendly web applications. Skilled in React, TypeScript, and modern frontend tools. Looking for opportunities to work on innovative projects with a collaborative team.'}
+                        {profile?.about || ''}
                       </p>
                     )}
                   </div>
@@ -463,7 +463,7 @@ export default function UserProfilePage() {
               <TabsContent value="experience" className="mt-0">
                 <div className="space-y-6">
                   <div className="flex justify-between">
-                    <h3 className="text-lg font-semibold text-gray-800">Uburambe</h3>
+                    <h3 className="text-lg font-semibold text-gray-800">Experience</h3>
                     <Button size="sm" className="text-gray-600 hover:text-gray-800">
                       <Plus className="mr-1 h-4 w-4" />
                       Add

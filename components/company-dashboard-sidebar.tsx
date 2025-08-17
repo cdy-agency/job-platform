@@ -96,7 +96,7 @@ export function CompanyDashboardSidebar() {
             <div className="flex h-full flex-col">
               <div className="flex items-center border-b py-4">
                 <Link href="/" className="flex items-center">
-                  <span className="text-xl font-bold text-gray-800">JobHub</span>
+                  <span className="text-xl font-bold text-gray-800">Akazi-Link</span>
                 </Link>
               </div>
               <div className="flex-1 overflow-auto py-2">
@@ -126,12 +126,6 @@ export function CompanyDashboardSidebar() {
                       width={32}
                       height={32}
                     />
-                  </div>
-                  <div className="flex flex-1 items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-gray-800">Acme Inc</p>
-                      <p className="text-xs text-gray-600">hr@acme.com</p>
-                    </div>
                   </div>
                 </div>
                 <Link href="/login">

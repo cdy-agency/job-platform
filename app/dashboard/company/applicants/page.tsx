@@ -20,8 +20,9 @@ export default function ManageApplicantsPage() {
 
   useEffect(() => {
     fetchCompanyJobs()
-      .then((list) => {
-        const mapped = (list || []).map((j: any) => ({ _id: j._id, title: j.title }))
+      .then((res) => {
+        const jobsList = Array.isArray(res?.jobs) ? res.jobs : Array.isArray(res) ? res : []
+        const mapped = jobsList.map((j: any) => ({ _id: j._id, title: j.title }))
         setJobs(mapped)
         if (mapped[0]?._id) setSelectedJobId(mapped[0]._id)
       })

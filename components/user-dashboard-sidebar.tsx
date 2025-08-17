@@ -85,7 +85,7 @@ export function UserDashboardSidebar() {
             <div className="flex h-full flex-col">
               <div className="flex items-center border-b py-4">
                 <Link href="/" className="flex items-center">
-                  <span className="text-xl font-bold text-gray-800">JobHub</span>
+                  <span className="text-xl font-bold text-gray-800">Akazi-Link</span>
                 </Link>
               </div>
               <div className="flex-1 overflow-auto py-2">

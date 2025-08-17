@@ -30,7 +30,7 @@ export default function JobOfferPage() {
           setItems([])
           return
         }
-        const list = Array.isArray(res?.workRequests) ? res.workRequests : Array.isArray(res) ? res : []
+        const list = Array.isArray(res?.requests) ? res.requests : Array.isArray(res) ? res : []
         const normalized: WorkRequestItem[] = list.map((w: any, idx: number) => ({
           id: String(w._id || w.id || w.requestId || `wr-${idx}-${Date.now()}`),
           companyName: w.companyId?.companyName || w.company?.companyName || w.companyName || w.company?.name || 'Company',

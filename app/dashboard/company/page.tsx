@@ -84,7 +84,7 @@ export default function CompanyDashboardPage() {
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-        <Card className="border-gray-200">
+        {/* <Card className="border-gray-200">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-gray-600">Active Jobs</CardTitle>
           </CardHeader>
@@ -116,8 +116,8 @@ export default function CompanyDashboardPage() {
               </svg>
             </div>
           </CardContent>
-        </Card>
-        <Card className="border-gray-200">
+        </Card> */}
+        {/* <Card className="border-gray-200">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-gray-600">Total Applicants (latest job)</CardTitle>
           </CardHeader>
@@ -127,33 +127,8 @@ export default function CompanyDashboardPage() {
               <Users className="h-5 w-5 text-gray-600" />
             </div>
           </CardContent>
-        </Card>
-        <Card className="border-gray-200">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">Profile Views</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-between">
-              <div className="text-2xl font-bold text-gray-800">156</div>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="h-5 w-5 text-gray-600"
-              >
-                <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
-                <circle cx="12" cy="12" r="3" />
-              </svg>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="border-gray-200">
+        </Card> */}
+        {/* <Card className="border-gray-200">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-gray-600">Pending Reviews</CardTitle>
           </CardHeader>
@@ -177,7 +152,7 @@ export default function CompanyDashboardPage() {
               </svg>
             </div>
           </CardContent>
-        </Card>
+        </Card> */}
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">

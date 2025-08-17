@@ -1,8 +1,8 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { Bell, CheckCircle } from "lucide-react"
-import { fetchAdminNotifications, markAdminNotificationRead } from "@/lib/api"
+import { Bell, CheckCircle, Trash2 } from "lucide-react"
+import { fetchAdminNotifications, markAdminNotificationRead, deleteAdminNotification } from "@/lib/api"
 
 interface NotificationItem {
   id: string
@@ -26,8 +26,9 @@ export default function AdminNotificationsPage() {
           return
         }
         const list = Array.isArray(res?.notifications) ? res.notifications : Array.isArray(res) ? res : []
-        const normalized: NotificationItem[] = list.map((n: any) => ({
-          id: String(n._id || n.id),
+        const normalized: NotificationItem[] = list.map((n: any, index: number) => ({
+          // Generate unique ID if _id is not available
+          id: String(n._id || n.id || `notification-${Date.now()}-${index}`),
           message: String(n.message || n.title || ""),
           date: n.createdAt || n.date || undefined,
           read: Boolean(n.read),
@@ -47,6 +48,15 @@ export default function AdminNotificationsPage() {
       await markAdminNotificationRead(id)
     } catch {}
     setItems((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)))
+  }
+
+  const deleteNotification = async (id: string) => {
+    try {
+      await deleteAdminNotification(id)
+      setItems((prev) => prev.filter((n) => n.id !== id))
+    } catch (error) {
+      console.error('Failed to delete notification:', error)
+    }
   }
 
   const unread = items.filter((i) => !i.read).length
@@ -76,8 +86,7 @@ export default function AdminNotificationsPage() {
         {items.map((n) => (
           <div
             key={n.id}
-            onClick={() => (!n.read ? markAsRead(n.id) : undefined)}
-            className={`flex cursor-pointer items-start rounded-lg border p-3 transition-all ${
+            className={`flex items-start rounded-lg border p-3 transition-all ${
               n.read ? "bg-white border-gray-200" : "bg-[#fbf8ff] border-[#eadbff]"
             }`}
           >
@@ -86,8 +95,22 @@ export default function AdminNotificationsPage() {
             </div>
             <div className="ml-3 flex-1">
               <div className="flex items-center justify-between">
-                <p className={`text-sm font-medium ${n.read ? "text-gray-900" : "text-gray-800"}`}>{n.message}</p>
-                <span className={`text-xs ${n.read ? "text-gray-500" : "text-gray-600"}`}>{n.date ? new Date(n.date).toLocaleString() : ""}</span>
+                <button
+                  onClick={() => (!n.read ? markAsRead(n.id) : undefined)}
+                  className={`text-left flex-1 ${n.read ? "text-gray-900" : "text-gray-800"}`}
+                >
+                  <p className="text-sm font-medium">{n.message}</p>
+                  <span className={`text-xs ${n.read ? "text-gray-500" : "text-gray-600"}`}>
+                    {n.date ? new Date(n.date).toLocaleString() : ""}
+                  </span>
+                </button>
+                <button
+                  onClick={() => deleteNotification(n.id)}
+                  className="ml-2 p-1 text-gray-400 hover:text-red-500 transition-colors"
+                  title="Delete notification"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
               </div>
               {!n.read && (
                 <span className="mt-2 inline-flex items-center rounded-full bg-gradient-to-r from-[#834de3] to-[#9260e7] px-2 py-0.5 text-xs font-medium text-white">

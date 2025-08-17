@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
-import { Bell } from "lucide-react";
-import { fetchCompanyNotifications, markCompanyNotificationRead } from "@/lib/api";
+import { Bell, Trash2 } from "lucide-react";
+import { fetchCompanyNotifications, markCompanyNotificationRead, deleteCompanyNotification } from "@/lib/api";
 
 interface CompanyNotification {
   id: string;
@@ -26,8 +26,9 @@ export default function CompanyNotificationsPage() {
           return;
         }
         const list = Array.isArray(res?.notifications) ? res.notifications : Array.isArray(res) ? res : [];
-        const normalized: CompanyNotification[] = list.map((n: any) => ({
-          id: String(n._id || n.id),
+        const normalized: CompanyNotification[] = list.map((n: any, index: number) => ({
+          // Generate unique ID if _id is not available
+          id: String(n._id || n.id || `notification-${Date.now()}-${index}`),
           message: String(n.message || n.title || ""),
           read: Boolean(n.read),
           createdAt: n.createdAt || n.date || undefined,
@@ -49,6 +50,15 @@ export default function CompanyNotificationsPage() {
       await markCompanyNotificationRead(id);
     } catch {}
     setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)));
+  };
+
+  const deleteNotification = async (id: string) => {
+    try {
+      await deleteCompanyNotification(id);
+      setNotifications((prev) => prev.filter((n) => n.id !== id));
+    } catch (error) {
+      console.error('Failed to delete notification:', error);
+    }
   };
 
   if (loading) return <div className="p-6">Loading...</div>;
@@ -75,10 +85,9 @@ export default function CompanyNotificationsPage() {
         )}
 
         {notifications.map((n) => (
-          <button
+          <div
             key={n.id}
-            onClick={() => (!n.read ? markAsRead(n.id) : undefined)}
-            className={`flex w-full items-start rounded-lg border p-3 text-left transition-all ${
+            className={`flex w-full items-start rounded-lg border p-3 transition-all ${
               n.read ? "bg-white border-gray-200" : "bg-[#fbf8ff] border-[#eadbff]"
             }`}
           >
@@ -87,13 +96,25 @@ export default function CompanyNotificationsPage() {
             </div>
             <div className="ml-3 flex-1">
               <div className="flex items-center justify-between">
-                <p className={`text-sm font-medium ${n.read ? "text-gray-900" : "text-gray-800"}`}>{n.message}</p>
-                <span className={`text-xs ${n.read ? "text-gray-500" : "text-gray-600"}`}>
-                  {n.createdAt ? new Date(n.createdAt).toLocaleString() : ""}
-                </span>
+                <button
+                  onClick={() => (!n.read ? markAsRead(n.id) : undefined)}
+                  className={`text-left flex-1 ${n.read ? "text-gray-900" : "text-gray-800"}`}
+                >
+                  <p className="text-sm font-medium">{n.message}</p>
+                  <span className={`text-xs ${n.read ? "text-gray-500" : "text-gray-600"}`}>
+                    {n.createdAt ? new Date(n.createdAt).toLocaleString() : ""}
+                  </span>
+                </button>
+                <button
+                  onClick={() => deleteNotification(n.id)}
+                  className="ml-2 p-1 text-gray-400 hover:text-red-500 transition-colors"
+                  title="Delete notification"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
               </div>
             </div>
-          </button>
+          </div>
         ))}
       </div>
     </div>

@@ -453,6 +453,15 @@ export const markEmployeeNotificationRead = async (notificationId: string) => {
   }
 }
 
+export const deleteEmployeeNotification = async (notificationId: string) => {
+  try {
+    const res = await api.delete(`/employee/notifications/${notificationId}`)
+    return res.data
+  } catch {
+    return null
+  }
+}
+
 export const fetchCompanyNotifications = async () => {
   try {
     const res = await api.get('/company/notifications')
@@ -471,6 +480,15 @@ export const markCompanyNotificationRead = async (notificationId: string) => {
   }
 }
 
+export const deleteCompanyNotification = async (notificationId: string) => {
+  try {
+    const res = await api.delete(`/company/notifications/${notificationId}`)
+    return res.data
+  } catch {
+    return null
+  }
+}
+
 export const fetchAdminNotifications = async () => {
   try {
     const res = await api.get('/admin/notifications')
@@ -483,6 +501,15 @@ export const fetchAdminNotifications = async () => {
 export const markAdminNotificationRead = async (notificationId: string) => {
   try {
     const res = await api.patch(`/admin/notifications/${notificationId}/read`)
+    return res.data
+  } catch {
+    return null
+  }
+}
+
+export const deleteAdminNotification = async (notificationId: string) => {
+  try {
+    const res = await api.delete(`/admin/notifications/${notificationId}`)
     return res.data
   } catch {
     return null

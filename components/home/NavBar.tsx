@@ -23,9 +23,9 @@ const NavBar = () => {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
-  const dashboardPath = user?.role === 'superadmin'
+  const dashboardPath = (user as any)?.role === 'superadmin'
     ? '/dashboard/admin'
-    : user?.role === 'company'
+    : (user as any)?.role === 'company'
       ? '/dashboard/company'
       : '/dashboard/user'
 

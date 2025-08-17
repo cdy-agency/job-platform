@@ -162,12 +162,12 @@ export default function ManageEmployeesPage() {
                 )}
               </div>
 
-              <div className="mt-4 pt-4 border-t border-gray-200">
+              {/* <div className="mt-4 pt-4 border-t border-gray-200">
                 <div className="flex space-x-2">
                   <Button
                     size="sm"
                     variant="outline"
-                    className="flex-1 text-gray-700 border-gray-300 hover:bg-gray-100"
+                    className="flex-1 text-gray-700 border-gray-300 hover:bg-gray-100 bg-white hover:bg-slate-300"
                   >
                     <Eye className="h-4 w-4 mr-1" />
                     View Profile
@@ -175,12 +175,12 @@ export default function ManageEmployeesPage() {
                   <Button
                     size="sm"
                     variant="outline"
-                    className="text-gray-700 border-gray-300 hover:bg-gray-100"
+                    className="text-gray-700 border-gray-300 bg-white hover:bg-slate-300"
                   >
                     <Mail className="h-4 w-4" />
                   </Button>
                 </div>
-              </div>
+              </div> */}
             </div>
           ))}
         </div>

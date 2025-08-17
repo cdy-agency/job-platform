@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Bell, CheckCircle } from "lucide-react";
-import { fetchEmployeeNotifications, markEmployeeNotificationRead } from "@/lib/api";
+import { Bell, CheckCircle, Trash2 } from "lucide-react";
+import { fetchEmployeeNotifications, markEmployeeNotificationRead, deleteEmployeeNotification } from "@/lib/api";
 import { useToast } from "@/components/ui/use-toast";
 
 interface EmployeeNotification {
@@ -29,7 +29,8 @@ export default function EmployeeNotificationsPage() {
         }
         const raw = Array.isArray(res?.notifications) ? res.notifications : Array.isArray(res) ? res : [];
         const normalized: EmployeeNotification[] = raw.map((n: any, idx: number) => ({
-          id: String(n._id || n.id || n.notificationId || `${n.message || ""}-${n.createdAt || n.date || Date.now()}-${idx}`),
+          // Generate unique ID if _id is not available
+          id: String(n._id || n.id || n.notificationId || `notification-${Date.now()}-${idx}`),
           message: String(n.message || n.title || ""),
           read: Boolean(n.read),
           createdAt: n.createdAt || n.date || undefined,
@@ -51,6 +52,17 @@ export default function EmployeeNotificationsPage() {
       toast({ title: "Unable to mark as read", description: e?.response?.data?.message || "Permission issue", variant: "destructive" })
     }
     setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)));
+  };
+
+  const deleteNotification = async (id: string) => {
+    try {
+      await deleteEmployeeNotification(id);
+      setNotifications((prev) => prev.filter((n) => n.id !== id));
+      toast({ title: "Notification deleted", description: "Notification has been removed" });
+    } catch (error) {
+      console.error('Failed to delete notification:', error);
+      toast({ title: "Failed to delete", description: "Unable to delete notification", variant: "destructive" });
+    }
   };
 
   const unreadCount = notifications.filter((n) => !n.read).length;
@@ -81,10 +93,9 @@ export default function EmployeeNotificationsPage() {
         )}
 
         {notifications.map((n) => (
-          <button
+          <div
             key={n.id}
-            onClick={() => (!n.read ? markAsRead(n.id) : undefined)}
-            className={`flex w-full items-start rounded-lg border p-3 text-left transition-all ${
+            className={`flex w-full items-start rounded-lg border p-3 transition-all ${
               n.read ? "bg-white border-gray-200" : "bg-[#fbf8ff] border-[#eadbff]"
             }`}
           >
@@ -93,10 +104,22 @@ export default function EmployeeNotificationsPage() {
             </div>
             <div className="ml-3 flex-1">
               <div className="flex items-center justify-between">
-                <p className={`text-sm font-medium ${n.read ? "text-gray-900" : "text-gray-800"}`}>{n.message}</p>
-                <span className={`text-xs ${n.read ? "text-gray-500" : "text-gray-600"}`}>
-                  {n.createdAt ? new Date(n.createdAt).toLocaleString() : ""}
-                </span>
+                <button
+                  onClick={() => (!n.read ? markAsRead(n.id) : undefined)}
+                  className={`text-left flex-1 ${n.read ? "text-gray-900" : "text-gray-800"}`}
+                >
+                  <p className="text-sm font-medium">{n.message}</p>
+                  <span className={`text-xs ${n.read ? "text-gray-500" : "text-gray-600"}`}>
+                    {n.createdAt ? new Date(n.createdAt).toLocaleString() : ""}
+                  </span>
+                </button>
+                <button
+                  onClick={() => deleteNotification(n.id)}
+                  className="ml-2 p-1 text-gray-400 hover:text-red-500 transition-colors"
+                  title="Delete notification"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
               </div>
               {!n.read && (
                 <span className="mt-2 inline-flex items-center rounded-full bg-gradient-to-r from-[#834de3] to-[#9260e7] px-2 py-0.5 text-xs font-medium text-white">
@@ -104,7 +127,7 @@ export default function EmployeeNotificationsPage() {
                 </span>
               )}
             </div>
-          </button>
+          </div>
         ))}
       </div>
     </div>

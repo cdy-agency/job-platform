@@ -13,7 +13,10 @@ export default function UserApplicationsPage() {
 
   useEffect(() => {
     fetchEmployeeApplications()
-      .then((list) => setApps(list || []))
+      .then((res) => {
+        const applications = Array.isArray(res?.applications) ? res.applications : Array.isArray(res) ? res : []
+        setApps(applications)
+      })
       .finally(() => setLoading(false))
   }, [])
 
