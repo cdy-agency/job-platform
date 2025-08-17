@@ -80,8 +80,14 @@ export const fetchJobs = async (category?: string) => {
     const res = await api.get("/jobs", { params: { category } });
     return normalizeJobs(res.data)
   } catch (publicErr) {
-    const res = await api.get("/employee/jobs", { params: { category } });
-    return normalizeJobs(res.data)
+    console.error("Error fetching public jobs:", publicErr)
+    try {
+      const res = await api.get("/employee/jobs", { params: { category } });
+      return normalizeJobs(res.data)
+    } catch (employeeErr) {
+      console.error("Error fetching employee jobs:", employeeErr)
+      return []
+    }
   }
 };
 
@@ -251,12 +257,14 @@ export const fetchJobById = async (jobId: string) => {
     const res = await api.get(`/jobs/${jobId}`);
     return extractJob(res.data)
   } catch (err) {
+    console.error("Error fetching job by ID:", err)
     try {
       const allJobs = await fetchJobs();
       return (Array.isArray(allJobs) ? allJobs : []).find(
         (j: any) => j?._id === jobId || j?.id === jobId
       ) || null;
-    } catch {
+    } catch (fallbackErr) {
+      console.error("Error in fallback job fetch:", fallbackErr)
       return null;
     }
   }
@@ -271,46 +279,31 @@ export const fetchUsersDirectory = async (): Promise<any[]> => {
     if (Array.isArray(payload?.data)) return payload.data
     return []
   }
-  const tryPaths = [
-    "/users",
-    "/employees",
-    "/employee/employees",
-    "/employee/directory",
-    "/employee/list",
-  ]
-  for (const path of tryPaths) {
-    try {
-      const res = await api.get(path)
-      return normalizeUsers(res.data)
-    } catch (e) {
-      // try next
-    }
+  try {
+    const res = await api.get("/users")
+    return normalizeUsers(res.data)
+  } catch (e) {
+    console.error("Error fetching users directory:", e)
+    return []
   }
-  return []
 };
 
 export const fetchUserById = async (userId: string) => {
-  const candidates = [
-    `/users/${userId}`,
-    `/employees/${userId}`,
-    `/employee/employees/${userId}`,
-  ]
-  for (const path of candidates) {
-    try {
-      const res = await api.get(path)
-      const data = res.data
-      if (data?.user) return data.user
-      if (data?.data?.user) return data.data.user
-      if (data?._id || data?.id) return data
-    } catch (e) {
-      // try next
-    }
-  }
   try {
-    const list = await fetchUsersDirectory();
-    return (Array.isArray(list) ? list : []).find((u: any) => u?._id === userId || u?.id === userId) || null;
-  } catch {
+    const res = await api.get(`/users/${userId}`)
+    const data = res.data
+    if (data?.user) return data.user
+    if (data?.data?.user) return data.data.user
+    if (data?._id || data?.id) return data
     return null
+  } catch (e) {
+    console.error("Error fetching user by ID:", e)
+    try {
+      const list = await fetchUsersDirectory();
+      return (Array.isArray(list) ? list : []).find((u: any) => u?._id === userId || u?.id === userId) || null;
+    } catch {
+      return null
+    }
   }
 };
 
