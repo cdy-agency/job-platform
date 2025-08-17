@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils"
 const navItems = [
   {
     title: "Notifications",
-    href: "/dashboard/user/n  otifications",
+    href: "/dashboard/user/notifications",
     icon: Bell,
   },
   {
