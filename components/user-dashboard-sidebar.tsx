@@ -2,12 +2,13 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { useEffect, useMemo, useState } from "react"
-import { Bell, Briefcase, ChevronDown, FileText, HandshakeIcon, Home, LogOut, Menu, MessageSquare, Settings, User } from "lucide-react"
+import { useEffect, useState } from "react"
+import { Bell, Briefcase, HandshakeIcon, Home, LogOut, Menu, User } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { cn } from "@/lib/utils"
 import { fetchEmployeeNotifications } from "@/lib/api"
+import { fetchEmployeeProfile } from "@/lib/api"
 
 const navItems = [
   {
@@ -40,6 +41,8 @@ const navItems = [
 export function UserDashboardSidebar() {
   const pathname = usePathname()
   const [unread, setUnread] = useState<number>(0)
+  const [profile, setProfile] =  useState<any>(null)
+  const [loading, setLoading] = useState<boolean>(true)
 
   useEffect(() => {
     const load = async () => {
@@ -55,6 +58,20 @@ export function UserDashboardSidebar() {
     }
     load()
   }, [])
+
+  useEffect(()=>{
+    const getEmployeeProfile =async()=>{
+      try {
+        const data = await fetchEmployeeProfile()
+        setProfile(data)
+      } catch (error) {
+        console.log('failed to get employee data')
+      }finally{
+        setLoading(false)
+      }
+    }
+    getEmployeeProfile()
+  } , [])
 
   const renderTitle = (item: any) => {
     if (item.title !== 'Notifications') return item.title
@@ -123,12 +140,6 @@ export function UserDashboardSidebar() {
                       height={32}
                     />
                   </div>
-                  <div className="flex flex-1 items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-gray-800">John Doe</p>
-                      <p className="text-xs text-gray-600">john@example.com</p>
-                    </div>
-                  </div>
                 </div>
                 <Link href="/login">
                   <Button className="mt-2 w-full justify-start gap-3 text-gray-600 hover:text-gray-800">
@@ -142,7 +153,7 @@ export function UserDashboardSidebar() {
         </Sheet>
         <div className="ml-4 flex-1">
           <Link href="/" className="flex items-center">
-            <span className="text-xl font-bold text-gray-800">JobHub</span>
+            <span className="text-xl font-bold text-gray-800">Akazi-Link</span>
           </Link>
         </div>
         <div className="flex items-center gap-2">
@@ -162,7 +173,7 @@ export function UserDashboardSidebar() {
       <div className="hidden w-64 flex-shrink-0 border-r border-gray-200 bg-white md:block">
         <div className="flex h-16 items-center border-b border-gray-200 px-6">
           <Link href="/" className="flex items-center">
-            <span className="text-xl font-bold text-gray-800">JobHub</span>
+            <span className="text-xl font-bold text-gray-800">Akazi-Link</span>
           </Link>
         </div>
         <div className="flex flex-col py-4">
@@ -201,8 +212,8 @@ export function UserDashboardSidebar() {
               </div>
               <div className="flex flex-1 items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-800">John Doe</p>
-                  <p className="text-xs text-gray-600">john@example.com</p>
+                  <p className="text-sm font-medium text-gray-800">{profile?.name ? profile?.name : "Your Name"}</p>
+                  <p className="text-xs text-gray-600">{profile?.email ? profile?.email : "Your Email"}</p>
                 </div>
               </div>
             </div>
