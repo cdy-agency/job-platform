@@ -338,6 +338,8 @@ export const completeCompanyNextSteps = async (payload: { about?: string; docume
   return res.data
 }
 
+
+
 // Company browsing employees and sending work requests
 export const fetchEmployeesDirectory = async () => {
   const res = await api.get('/company/employees')

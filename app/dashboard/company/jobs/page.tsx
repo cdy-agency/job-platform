@@ -43,7 +43,7 @@ export default function ManageJobsPage() {
   };
 
   if (loading) return <div className="p-6">Loading...</div>;
-
+  
   return (
     <div className="min-h-screen bg-gray-50 px-4 py-10 flex justify-center">
       <div className="w-full max-w-4xl">
