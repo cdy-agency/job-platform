@@ -1,6 +1,6 @@
 import { api } from "../axiosInstance"
 
-// Company file upload APIs
+// Company file upload APIs ok
 export const uploadEmployeeImage = async (file: File) => {
   const formData = new FormData();
   formData.append('image', file);
