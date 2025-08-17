@@ -169,7 +169,7 @@ export const postJob = async (data: {
 
 export const fetchCompanyJobs = async () => {
   const res = await api.get("/company/jobs");
-  return res.data;
+  return res.data.jobs;
 };
 
 export const fetchJobApplicants = async (jobId: string) => {

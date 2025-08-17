@@ -28,8 +28,11 @@ export default function CompanyDashboardPage() {
         setProfile(p || null)
       } catch {
         setProfile(null)
+        console.log('hhhh ')
       }
       try {
+        console.log('data are' ,await fetchCompanyJobs())
+
         const list = await fetchCompanyJobs()
         setJobs(list || [])
         if ((list || []).length > 0) {

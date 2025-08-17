@@ -16,11 +16,19 @@ export default function ManageJobsPage() {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
-
   useEffect(() => {
-    fetchCompanyJobs()
-      .then((list) => setJobs(list || []))
-      .finally(() => setLoading(false));
+      const fetchdata = async ()=>{
+        try {
+      const list =  await fetchCompanyJobs()
+          setJobs(list)
+        } catch (error) {
+          console.log(error)
+        }finally{
+          setLoading(false)
+        }
+      }
+      fetchdata()
+    
   }, []);
 
   const handleDelete = (id: string) => {
