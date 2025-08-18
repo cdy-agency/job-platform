@@ -1,6 +1,6 @@
 import { api } from "../axiosInstance"
 
-// Company file upload APIs ok
+// Employee file upload APIs
 export const uploadEmployeeImage = async (file: File) => {
   const formData = new FormData();
   formData.append('image', file);
@@ -56,5 +56,11 @@ export const deleteEmployeeImage = async () => {
 
 export const deleteEmployeeDocument = async (index: string) => {
   const res = await api.delete(`/employee/delete/document/${index}`);
+  return res.data;
+};
+
+// Employee password reset
+export const resetEmployeePassword = async (oldPassword: string, newPassword: string) => {
+  const res = await api.patch('/employee/reset-password', { oldPassword, newPassword });
   return res.data;
 };

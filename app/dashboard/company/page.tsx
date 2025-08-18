@@ -2,13 +2,15 @@
 
 import Link from "next/link"
 import { useEffect, useState } from "react"
-import { Bell, PlusCircle, Users } from "lucide-react"
+import { Bell, PlusCircle, Users, Briefcase, Eye, Send, Calendar, MapPin, User } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { fetchCompanyJobs, fetchCompanyProfile, fetchJobApplicants, fetchEmployeesDirectory, sendWorkRequest } from "@/lib/api"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { useToast } from "@/components/ui/use-toast"
+import { Badge } from "@/components/ui/badge"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
 export default function CompanyDashboardPage() {
   const [profile, setProfile] = useState<any>(null)
@@ -28,11 +30,8 @@ export default function CompanyDashboardPage() {
         setProfile(p || null)
       } catch {
         setProfile(null)
-        console.log('hhhh ')
       }
       try {
-        console.log('data are' ,await fetchCompanyJobs())
-
         const list = await fetchCompanyJobs()
         setJobs(list || [])
         if ((list || []).length > 0) {
@@ -58,251 +57,234 @@ export default function CompanyDashboardPage() {
     load()
   }, [])
 
-  if (loading) return <div className="p-6">Loading...</div>
+  const totalApplicants = jobs.reduce((sum, job) => sum + (Array.isArray(job.applicants) ? job.applicants.length : 0), 0)
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="flex items-center space-x-2">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-gray-300 border-t-purple-600"></div>
+          <span className="text-lg font-medium text-gray-600">Loading dashboard...</span>
+        </div>
+      </div>
+    )
+  }
 
   return (
-    <div className="container space-y-8 p-6 pb-16">
-      <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight text-gray-800">Company Dashboard</h1>
-          <p className="text-gray-600">Welcome back{profile?.companyName ? `, ${profile.companyName}` : ''}</p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Link href="/dashboard/company/notifications">
-            <Button
-              variant="outline"
-              className="border-gray-300 bg-transparent text-gray-600 hover:text-gray-800"
-            >
-              <Bell className="h-4 w-4" />
-              <span className="sr-only">Notifications</span>
-            </Button>
-          </Link>
-          <Link href="/dashboard/company/post-job">
-            <Button className="bg-[#834de3] text-white hover:bg-[#6b3ac2]">
-              <PlusCircle className="mr-2 h-4 w-4" />
-              Post New Job
-            </Button>
-          </Link>
-        </div>
-      </div>
-
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-        {/* <Card className="border-gray-200">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">Active Jobs</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-between">
-              <div className="text-2xl font-bold text-gray-800">{jobs.length}</div>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="h-5 w-5 text-gray-600"
-              >
-                <rect width="18" height="18" x="3" y="4" rx="2" ry="2" />
-                <line x1="16" x2="16" y1="2" y2="6" />
-                <line x1="8" x2="8" y1="2" y2="6" />
-                <line x1="3" x2="21" y1="10" y2="10" />
-                <path d="M8 14h.01" />
-                <path d="M12 14h.01" />
-                <path d="M16 14h.01" />
-                <path d="M8 18h.01" />
-                <path d="M12 18h.01" />
-                <path d="M16 18h.01" />
-              </svg>
-            </div>
-          </CardContent>
-        </Card> */}
-        {/* <Card className="border-gray-200">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">Total Applicants (latest job)</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-between">
-              <div className="text-2xl font-bold text-gray-800">{applicants.length}</div>
-              <Users className="h-5 w-5 text-gray-600" />
-            </div>
-          </CardContent>
-        </Card> */}
-        {/* <Card className="border-gray-200">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">Pending Reviews</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-between">
-              <div className="text-2xl font-bold text-gray-800">3</div>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="h-5 w-5 text-gray-600"
-              >
-                <path d="M12 20h9" />
-                <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
-              </svg>
-            </div>
-          </CardContent>
-        </Card> */}
-      </div>
-
-      <div className="grid gap-6 md:grid-cols-2">
-        <Card className="border-gray-200">
-          <CardHeader>
-            <CardTitle className="text-gray-800">Send Job Offer</CardTitle>
-            <CardDescription className="text-gray-600">Invite an employee to consider a role</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid gap-2">
-              <label className="text-sm text-gray-700">Select Employee</label>
-              <Select onValueChange={setSelectedEmployeeId}>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Choose an employee" />
-                </SelectTrigger>
-                <SelectContent>
-                  {employees.map((e) => (
-                    <SelectItem key={e._id || e.id} value={String(e._id || e.id)}>
-                      {e.name || e.fullName || e.email || "Employee"}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="grid gap-2">
-              <label className="text-sm text-gray-700">Message (optional)</label>
-              <Textarea
-                placeholder="Write a short message..."
-                value={offerMessage}
-                onChange={(e) => setOfferMessage(e.target.value)}
-              />
-            </div>
-            <div className="pt-2">
-              <Button
-                onClick={async () => {
-                  if (!selectedEmployeeId) {
-                    toast({ title: "Select an employee", description: "Please pick an employee to send the offer.", variant: 'destructive' })
-                    return
-                  }
-                  setSending(true)
-                  try {
-                    await sendWorkRequest(selectedEmployeeId, offerMessage || undefined)
-                    setOfferMessage("")
-                    setSelectedEmployeeId("")
-                    toast({ title: "Offer sent", description: "Your job offer was sent successfully." })
-                  } catch (e: any) {
-                    toast({ title: "Failed to send", description: e?.response?.data?.message || "Unable to send job offer", variant: 'destructive' })
-                  } finally {
-                    setSending(false)
-                  }
-                }}
-                disabled={sending}
-                className="bg-[#834de3] text-white hover:bg-[#6b3ac2]"
-              >
-                {sending ? "Sending..." : "Send Offer"}
+    <div className="min-h-screen bg-gray-50">
+      <div className="container mx-auto space-y-8 px-6 py-8 pb-16">
+        
+        {/* Header */}
+        <div className="flex flex-col justify-between gap-6 md:flex-row md:items-start">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Company Dashboard</h1>
+            <p className="text-lg text-gray-600">
+              Welcome back{profile?.companyName ? `, ${profile.companyName}` : ''}
+            </p>
+          </div>
+          <div className="flex items-center gap-3">
+            <Link href="/dashboard/company/notifications">
+              <Button variant="outline" size="lg" className="border-gray-300 text-gray-700 hover:text-gray-900">
+                <Bell className="h-5 w-5" />
               </Button>
-            </div>
-          </CardContent>
-        </Card>
+            </Link>
+            <Link href="/dashboard/company/post-job">
+              <Button size="lg" className="bg-purple-600 hover:bg-purple-700 text-white shadow-sm">
+                <PlusCircle className="mr-2 h-5 w-5" />
+                Post New Job
+              </Button>
+            </Link>
+          </div>
+        </div>
 
-        <div className="hidden md:block" />
-      </div>
+        {/* Stats */}
+        <div className="grid gap-6 md:grid-cols-3">
+          <Card className="shadow-sm">
+            <CardContent className="p-6 flex justify-between items-center">
+              <div>
+                <p className="text-sm text-gray-600">Active Jobs</p>
+                <p className="text-3xl font-bold text-gray-900">{jobs.length}</p>
+              </div>
+              <Briefcase className="h-8 w-8 text-purple-600" />
+            </CardContent>
+          </Card>
 
-      <div className="grid gap-6 md:grid-cols-2">
-        <Card className="border-gray-200">
-          <CardHeader>
-            <CardTitle className="text-gray-800">Recent Job Postings</CardTitle>
-            <CardDescription className="text-gray-600">Your recently posted jobs</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {Array.isArray(jobs) && jobs.slice(0, 3).map((job) => (
-                <div key={job._id} className="flex items-center justify-between">
-                  <div>
-                    <h4 className="font-medium text-gray-800">{job.title}</h4>
-                    <div className="mt-1 flex flex-wrap gap-2">
-                      <span className="rounded-full bg-blue-100 px-2 py-0.5 text-xs text-blue-800">{job.employmentType}</span>
-                      {job.location && <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-800">{job.location}</span>}
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="rounded-full bg-green-100 px-2 py-0.5 text-xs text-green-800">
-                      {Array.isArray(job.applicants) ? job.applicants.length : 0} Applicants
-                    </span>
-                    <Link href={`/dashboard/company/jobs/${job._id}`}>
-                      <Button size="sm" className="text-gray-600 hover:text-gray-800">
-                        View
-                      </Button>
-                    </Link>
-                  </div>
+          <Card className="shadow-sm">
+            <CardContent className="p-6 flex justify-between items-center">
+              <div>
+                <p className="text-sm text-gray-600">Total Applicants</p>
+                <p className="text-3xl font-bold text-gray-900">{totalApplicants}</p>
+              </div>
+              <Users className="h-8 w-8 text-purple-600" />
+            </CardContent>
+          </Card>
+
+          <Card className="shadow-sm">
+            <CardContent className="p-6 flex justify-between items-center">
+              <div>
+                <p className="text-sm text-gray-600">Team Members</p>
+                <p className="text-3xl font-bold text-gray-900">{employees.length}</p>
+              </div>
+              <User className="h-8 w-8 text-purple-600" />
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Job Offer */}
+        <div className="grid gap-6 lg:grid-cols-3">
+          <div className="lg:col-span-1">
+            <Card className="shadow-sm">
+              <CardHeader>
+                <CardTitle className="text-xl text-gray-900 flex items-center gap-2">
+                  <Send className="h-5 w-5 text-purple-600" /> Send Job Offer
+                </CardTitle>
+                <CardDescription className="text-gray-600">Invite an employee to consider a role</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div>
+                  <label className="text-sm font-medium text-gray-700">Select Employee</label>
+                  <Select onValueChange={setSelectedEmployeeId} value={selectedEmployeeId}>
+                    <SelectTrigger className="w-full border-gray-300">
+                      <SelectValue placeholder="Choose an employee" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {employees.map((e) => (
+                        <SelectItem key={e._id || e.id} value={String(e._id || e.id)}>
+                          {e.name || e.fullName || e.email || "Employee"}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
-              ))}
-              <div className="pt-2 text-center">
+                <div>
+                  <label className="text-sm font-medium text-gray-700">Message (optional)</label>
+                  <Textarea
+                    placeholder="Write a personalized message..."
+                    value={offerMessage}
+                    onChange={(e) => setOfferMessage(e.target.value)}
+                    className="min-h-[100px] border-gray-300 resize-none"
+                  />
+                </div>
+                <Button
+                  onClick={async () => {
+                    if (!selectedEmployeeId) {
+                      toast({ title: "Select an employee", description: "Please pick an employee to send the offer.", variant: 'destructive' })
+                      return
+                    }
+                    setSending(true)
+                    try {
+                      await sendWorkRequest(selectedEmployeeId, offerMessage || undefined)
+                      setOfferMessage("")
+                      setSelectedEmployeeId("")
+                      toast({ title: "Offer sent", description: "Your job offer was sent successfully." })
+                    } catch (e: any) {
+                      toast({ title: "Failed to send", description: e?.response?.data?.message || "Unable to send job offer", variant: 'destructive' })
+                    } finally {
+                      setSending(false)
+                    }
+                  }}
+                  disabled={sending}
+                  className="w-full bg-purple-600 hover:bg-purple-700 text-white"
+                >
+                  {sending ? "Sending..." : "Send Offer"}
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Recent Jobs */}
+          <div className="lg:col-span-2">
+            <Card className="shadow-sm">
+              <CardHeader className="flex justify-between items-center">
+                <div>
+                  <CardTitle className="text-xl text-gray-900">Recent Job Postings</CardTitle>
+                  <CardDescription className="text-gray-600">Your recently posted jobs</CardDescription>
+                </div>
                 <Link href="/dashboard/company/jobs">
-                  <Button className="text-blue-500">
-                    View all jobs
+                  <Button variant="outline" size="sm" className="border-gray-300 text-gray-700 hover:text-gray-900">
+                    View All
                   </Button>
                 </Link>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {jobs.slice(0, 3).map((job) => (
+                    <div key={job._id} className="border border-gray-200 p-4 rounded-md hover:bg-gray-50">
+                      <div className="flex justify-between items-center">
+                        <div>
+                          <h4 className="font-semibold text-gray-900">{job.title}</h4>
+                          <div className="flex gap-2 mt-1">
+                            <Badge variant="secondary" className="bg-gray-100 text-gray-700">{job.employmentType}</Badge>
+                            {job.location && (
+                              <Badge variant="outline" className="border-gray-300 text-gray-600">
+                                <MapPin className="mr-1 h-3 w-3" /> {job.location}
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
+                        <Link href={`/dashboard/company/jobs/${job._id}`}>
+                          <Button size="sm" variant="outline" className="border-gray-300 text-gray-700 hover:text-gray-900">
+                            <Eye className="mr-1 h-4 w-4" /> View
+                          </Button>
+                        </Link>
+                      </div>
+                    </div>
+                  ))}
+                  {jobs.length === 0 && (
+                    <div className="py-8 text-center text-gray-600">No jobs posted yet</div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
 
-        <Card className="border-gray-200">
-          <CardHeader>
-            <CardTitle className="text-gray-800">Recent Applicants</CardTitle>
-            <CardDescription className="text-gray-600">Candidates who recently applied to your jobs</CardDescription>
+        {/* Recent Applicants */}
+        <Card className="shadow-sm">
+          <CardHeader className="flex justify-between items-center">
+            <div>
+              <CardTitle className="text-xl text-gray-900">Recent Applicants</CardTitle>
+              <CardDescription className="text-gray-600">Candidates who recently applied</CardDescription>
+            </div>
+            <Link href="/dashboard/company/applicants">
+              <Button variant="outline" size="sm" className="border-gray-300 text-gray-700 hover:text-gray-900">
+                View All
+              </Button>
+            </Link>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {applicants.map((app) => (
-                <div key={app._id} className="flex items-center justify-between">
-                  <div className="flex items-start gap-3">
-                    <div className="h-10 w-10 overflow-hidden rounded-full">
-                      <img
-                        src={(app.employeeId?.profilePicture) || "/placeholder.svg"}
-                        alt={(app.employeeId?.name) || 'Applicant'}
-                        className="h-full w-full object-cover"
-                        width={40}
-                        height={40}
-                      />
-                    </div>
+              {applicants.slice(0, 5).map((app) => (
+                <div key={app._id} className="flex justify-between items-center border border-gray-200 p-4 rounded-md">
+                  <div className="flex items-center gap-4">
+                    <Avatar className="h-12 w-12 border">
+                      <AvatarImage src={app.employeeId?.profilePicture || "/placeholder.svg"} />
+                      <AvatarFallback className="bg-gray-200 text-gray-600">
+                        {(app.employeeId?.name || "A").charAt(0).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
                     <div>
-                      <h4 className="font-medium text-gray-800">{app.employeeId?.name || 'Applicant'}</h4>
-                      <p className="text-sm text-gray-600">Applied for {app.jobId?.title || ''}</p>
-                      <p className="text-xs text-gray-600">
-                        Applied on {app.createdAt ? new Date(app.createdAt).toLocaleDateString() : '—'}
+                      <h4 className="font-semibold text-gray-900">{app.employeeId?.name || "Applicant"}</h4>
+                      <p className="text-sm text-gray-600">Applied for {app.jobId?.title || "Unknown"}</p>
+                      <p className="text-xs text-gray-500 flex items-center">
+                        <Calendar className="mr-1 h-3 w-3" /> {app.createdAt ? new Date(app.createdAt).toLocaleDateString() : "—"}
                       </p>
                     </div>
                   </div>
                   <Link href={`/dashboard/company/applicants`}>
-                    <Button size="sm" className="text-gray-600 hover:text-gray-800">
-                      Review
+                    <Button size="sm" variant="outline" className="border-gray-300 text-gray-700 hover:text-gray-900">
+                      <Eye className="mr-1 h-4 w-4" /> Review
                     </Button>
                   </Link>
                 </div>
               ))}
-              <div className="pt-2 text-center">
-                <Link href="/dashboard/company/applicants">
-                  <Button className="text-blue-500">
-                    View all applicants
-                  </Button>
-                </Link>
-              </div>
+              {applicants.length === 0 && (
+                <div className="py-8 text-center text-gray-600">No applications yet</div>
+              )}
             </div>
           </CardContent>
         </Card>
+
       </div>
     </div>
   )

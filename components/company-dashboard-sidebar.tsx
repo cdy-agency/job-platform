@@ -9,6 +9,7 @@ import {
   Briefcase,
   Building,
   File,
+  Handshake,
   Home,
   LogOut,
   Menu,
@@ -18,7 +19,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { cn } from "@/lib/utils"
-import { fetchCompanyNotifications } from "@/lib/api"
+import { fetchCompanyNotifications,fetchCompanyProfile } from "@/lib/api"
 
 const navItems = [
   {
@@ -48,8 +49,13 @@ const navItems = [
     icon: Users,
   },
   {
+    title: "All Employee",
+    href: "/dashboard/company/employees",
+    icon: Handshake,
+  },
+  {
     title: "Company Profile",
-    href: "/dashboard/company/profile",
+    href: "/dashboard/company/employee",
     icon: Building,
   },
 ]
@@ -57,6 +63,7 @@ const navItems = [
 export function CompanyDashboardSidebar() {
   const pathname = usePathname()
   const [unread, setUnread] = useState<number>(0)
+  const [companyProfile, setCompanyProfile] = useState<any | null>(null)
 
   useEffect(() => {
     const load = async () => {
@@ -71,6 +78,18 @@ export function CompanyDashboardSidebar() {
     }
     load()
   }, [])
+
+  useEffect(()=>{
+    const CompanyProfile =async()=>{
+      try {
+        const data = await fetchCompanyProfile()
+        setCompanyProfile(data)
+      } catch (error) {
+        console.log('Failed to get company details', error)
+      }
+    }
+    CompanyProfile()
+  },[])
 
   const renderLabel = (itemTitle: string) => (
     <span className="flex w-full items-center gap-2">
@@ -192,8 +211,8 @@ export function CompanyDashboardSidebar() {
               </div>
               <div className="flex flex-1 items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-[#834de3]">Acme Inc</p>
-                  <p className="text-xs text-gray-600">hr@acme.com</p>
+                  <p className="text-sm font-medium text-[#834de3]">{companyProfile?.companyName}</p>
+                  <p className="text-xs text-gray-600">{companyProfile?.email}</p>
                 </div>
               </div>
             </div>
