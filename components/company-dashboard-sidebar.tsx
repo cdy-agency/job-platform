@@ -55,7 +55,7 @@ const navItems = [
   },
   {
     title: "Company Profile",
-    href: "/dashboard/company/employee",
+    href: "/dashboard/company/profile",
     icon: Building,
   },
 ]
