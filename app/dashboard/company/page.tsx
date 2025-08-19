@@ -57,6 +57,13 @@ export default function CompanyDashboardPage() {
     load()
   }, [])
 
+  const getImageUrl = (profileImage: any) => {
+  if (typeof profileImage === "string") return profileImage
+  if (profileImage?.url) return profileImage.url
+  return null
+}
+
+
   const totalApplicants = jobs.reduce((sum, job) => sum + (Array.isArray(job.applicants) ? job.applicants.length : 0), 0)
 
   if (loading) {
@@ -84,7 +91,7 @@ export default function CompanyDashboardPage() {
           </div>
           <div className="flex items-center gap-3">
             <Link href="/dashboard/company/notifications">
-              <Button variant="outline" size="lg" className="border-gray-300 text-gray-700 hover:text-gray-900">
+              <Button variant="outline" size="lg" className="border-gray-300 text-gray-700 hover:text-gray-900 bg-white">
                 <Bell className="h-5 w-5" />
               </Button>
             </Link>
@@ -99,7 +106,7 @@ export default function CompanyDashboardPage() {
 
         {/* Stats */}
         <div className="grid gap-6 md:grid-cols-3">
-          <Card className="shadow-sm">
+          <Card className="shadow-sm bg-white text-black">
             <CardContent className="p-6 flex justify-between items-center">
               <div>
                 <p className="text-sm text-gray-600">Active Jobs</p>
@@ -109,7 +116,7 @@ export default function CompanyDashboardPage() {
             </CardContent>
           </Card>
 
-          <Card className="shadow-sm">
+          <Card className="shadow-sm bg-white text-black">
             <CardContent className="p-6 flex justify-between items-center">
               <div>
                 <p className="text-sm text-gray-600">Total Applicants</p>
@@ -119,7 +126,7 @@ export default function CompanyDashboardPage() {
             </CardContent>
           </Card>
 
-          <Card className="shadow-sm">
+          <Card className="shadow-sm bg-white text-black">
             <CardContent className="p-6 flex justify-between items-center">
               <div>
                 <p className="text-sm text-gray-600">Team Members</p>
@@ -133,7 +140,7 @@ export default function CompanyDashboardPage() {
         {/* Job Offer */}
         <div className="grid gap-6 lg:grid-cols-3">
           <div className="lg:col-span-1">
-            <Card className="shadow-sm">
+            <Card className="shadow-sm bg-white text-black">
               <CardHeader>
                 <CardTitle className="text-xl text-gray-900 flex items-center gap-2">
                   <Send className="h-5 w-5 text-purple-600" /> Send Job Offer
@@ -144,7 +151,7 @@ export default function CompanyDashboardPage() {
                 <div>
                   <label className="text-sm font-medium text-gray-700">Select Employee</label>
                   <Select onValueChange={setSelectedEmployeeId} value={selectedEmployeeId}>
-                    <SelectTrigger className="w-full border-gray-300">
+                    <SelectTrigger className="w-full border-gray-300 bg-white text-black">
                       <SelectValue placeholder="Choose an employee" />
                     </SelectTrigger>
                     <SelectContent>
@@ -162,7 +169,7 @@ export default function CompanyDashboardPage() {
                     placeholder="Write a personalized message..."
                     value={offerMessage}
                     onChange={(e) => setOfferMessage(e.target.value)}
-                    className="min-h-[100px] border-gray-300 resize-none"
+                    className="min-h-[100px] border-gray-300 resize-none bg-white text-black"
                   />
                 </div>
                 <Button
@@ -194,22 +201,22 @@ export default function CompanyDashboardPage() {
 
           {/* Recent Jobs */}
           <div className="lg:col-span-2">
-            <Card className="shadow-sm">
+            <Card className="shadow-sm bg-white text-black">
               <CardHeader className="flex justify-between items-center">
                 <div>
                   <CardTitle className="text-xl text-gray-900">Recent Job Postings</CardTitle>
                   <CardDescription className="text-gray-600">Your recently posted jobs</CardDescription>
                 </div>
                 <Link href="/dashboard/company/jobs">
-                  <Button variant="outline" size="sm" className="border-gray-300 text-gray-700 hover:text-gray-900">
+                  <Button variant="outline" size="sm" className="border-gray-300 text-gray-700 hover:text-gray-900 bg-white">
                     View All
                   </Button>
                 </Link>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
+                <div className="space-y-4 bg-slate-200">
                   {jobs.slice(0, 3).map((job) => (
-                    <div key={job._id} className="border border-gray-200 p-4 rounded-md hover:bg-gray-50">
+                    <div key={job._id} className="border border-gray-200 p-4 rounded-md hover:bg-gray-50 bg-slate-400">
                       <div className="flex justify-between items-center">
                         <div>
                           <h4 className="font-semibold text-gray-900">{job.title}</h4>
@@ -223,7 +230,7 @@ export default function CompanyDashboardPage() {
                           </div>
                         </div>
                         <Link href={`/dashboard/company/jobs/${job._id}`}>
-                          <Button size="sm" variant="outline" className="border-gray-300 text-gray-700 hover:text-gray-900">
+                          <Button size="sm" variant="outline" className="border-gray-300 text-black hover:text-gray-900 bg-white">
                             <Eye className="mr-1 h-4 w-4" /> View
                           </Button>
                         </Link>
@@ -240,14 +247,14 @@ export default function CompanyDashboardPage() {
         </div>
 
         {/* Recent Applicants */}
-        <Card className="shadow-sm">
+        <Card className="shadow-sm bg-white text-black">
           <CardHeader className="flex justify-between items-center">
             <div>
               <CardTitle className="text-xl text-gray-900">Recent Applicants</CardTitle>
               <CardDescription className="text-gray-600">Candidates who recently applied</CardDescription>
             </div>
             <Link href="/dashboard/company/applicants">
-              <Button variant="outline" size="sm" className="border-gray-300 text-gray-700 hover:text-gray-900">
+              <Button variant="outline" size="sm" className="border-gray-300 text-gray-700 hover:text-gray-900 bg-white">
                 View All
               </Button>
             </Link>
@@ -258,7 +265,7 @@ export default function CompanyDashboardPage() {
                 <div key={app._id} className="flex justify-between items-center border border-gray-200 p-4 rounded-md">
                   <div className="flex items-center gap-4">
                     <Avatar className="h-12 w-12 border">
-                      <AvatarImage src={app.employeeId?.profilePicture || "/placeholder.svg"} />
+                      <AvatarImage src={getImageUrl(app.employeeId?.profileImage || "/placeholder.svg")} />
                       <AvatarFallback className="bg-gray-200 text-gray-600">
                         {(app.employeeId?.name || "A").charAt(0).toUpperCase()}
                       </AvatarFallback>
@@ -272,7 +279,7 @@ export default function CompanyDashboardPage() {
                     </div>
                   </div>
                   <Link href={`/dashboard/company/applicants`}>
-                    <Button size="sm" variant="outline" className="border-gray-300 text-gray-700 hover:text-gray-900">
+                    <Button size="sm" variant="outline" className="border-gray-300 text-gray-700 hover:text-gray-900 bg-white">
                       <Eye className="mr-1 h-4 w-4" /> Review
                     </Button>
                   </Link>
