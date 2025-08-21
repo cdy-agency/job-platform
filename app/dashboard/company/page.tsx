@@ -220,7 +220,7 @@ export default function CompanyDashboardPage() {
                 <tbody>
                   {applicants.slice(0, 5).map((app) => (
                     <tr key={app._id} className="border-t hover:bg-gray-50">
-                      <td className="px-4 py-2 flex items-center gap-3">
+                      <td className="px-4 py-2 flex items-center gap-3 text-black">
                         <Avatar className="h-8 w-8 border">
                           <AvatarImage src={getImageUrl(app.employeeId?.profileImage)} />
                           <AvatarFallback className="bg-gray-200 text-gray-600">

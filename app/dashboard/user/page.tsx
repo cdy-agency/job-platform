@@ -9,6 +9,9 @@ import { fetchEmployeeApplications, fetchEmployeeProfile, fetchJobs, applyToJob,
 import { useToast } from "@/components/ui/use-toast"
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
+import { AppAvatar } from "@/components/ui/avatar"
+import { getImage, formatDeadline } from "@/lib/utils"
 
 export default function UserDashboardPage() {
   const [profile, setProfile] = useState<any>(null)
@@ -44,8 +47,8 @@ export default function UserDashboardPage() {
           </DialogHeader>
           <div className="space-y-3">
             <div>
-              <label className="text-sm text-gray-700">Message</label>
-              <Input value={applyMessage} onChange={(e) => setApplyMessage(e.target.value)} placeholder="Brief message to the employer" />
+              <label className="text-sm text-gray-700">Cover Letter</label>
+              <Textarea value={applyMessage} onChange={(e) => setApplyMessage(e.target.value)} placeholder="Tell us why you're a good fit..." className="min-h-[120px]" />
             </div>
             <div>
               <label className="text-sm text-gray-700">Resume / Document</label>
@@ -57,7 +60,7 @@ export default function UserDashboardPage() {
               onClick={async () => {
                 setApplySubmitting(true)
                 try {
-                  await applyToJob(applyJobId, { message: applyMessage || undefined, resumeFile: applyFile, appliedVia: 'normal' })
+                  await applyToJob(applyJobId, { coverLetter: applyMessage || undefined, resumeFile: applyFile, appliedVia: 'normal' })
                   toast({ title: 'Application submitted', description: 'Your application has been sent.' })
                   setApplyOpen(false)
                   setApplyMessage("")
@@ -163,15 +166,7 @@ export default function UserDashboardPage() {
                   return (
                     <div key={app._id} className="flex items-center justify-between">
                       <div className="flex items-start gap-3">
-                        <div className="h-10 w-10 overflow-hidden rounded">
-                          <img
-                            src={job.companyId?.logo || "/placeholder.svg"}
-                            alt={job.companyId?.companyName || 'Company'}
-                            className="h-full w-full object-cover"
-                            width={40}
-                            height={40}
-                          />
-                        </div>
+                        <AppAvatar image={job.companyId?.logo} name={job.companyId?.companyName} size={40} />
                         <div>
                           <h4 className="font-medium text-black">{job.title}</h4>
                           <p className="text-sm text-black">{job.companyId?.companyName || 'Company'}</p>
@@ -228,15 +223,7 @@ export default function UserDashboardPage() {
               {recommended.map((job: any) => (
                 <div key={job._id} className="flex items-center justify-between">
                   <div className="flex items-start gap-3">
-                    <div className="h-10 w-10 overflow-hidden rounded">
-                      <img
-                        src={job.companyId?.logo || "/placeholder.svg"}
-                        alt={job.companyId?.companyName || 'Company'}
-                        className="h-full w-full object-cover"
-                        width={40}
-                        height={40}
-                      />
-                    </div>
+                    <AppAvatar image={job.companyId?.logo} name={job.companyId?.companyName} size={40} />
                     <div>
                       <h4 className="font-medium text-black">{job.title}</h4>
                       <p className="text-sm text-black">{job.companyId?.companyName || 'Company'}</p>

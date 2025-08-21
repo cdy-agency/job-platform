@@ -93,13 +93,12 @@ export const fetchJobs = async (category?: string) => {
 
 export const applyToJob = async (
   jobId: string,
-  payload: { message?: string; resumeFile?: File | null; skills?: string[]; experience?: string; appliedVia?: 'normal' | 'whatsapp' | 'referral' }
+  payload: { message?: string; coverLetter?: string; resumeFile?: File | null; experience?: string; appliedVia?: 'normal' | 'whatsapp' | 'referral' }
 ) => {
   const formData = new FormData();
-  if (payload.message) formData.append('message', payload.message);
+  if (payload.coverLetter) formData.append('coverLetter', payload.coverLetter);
+  else if (payload.message) formData.append('coverLetter', payload.message);
   if (payload.appliedVia) formData.append('appliedVia', payload.appliedVia);
-  // Keep backward-compat fields (skills/experience) if present
-  (payload.skills || []).forEach((s) => formData.append('skills', s));
   if (payload.experience) formData.append('experience', payload.experience);
   if (payload.resumeFile instanceof File) {
     formData.append('resume', payload.resumeFile);
@@ -149,6 +148,22 @@ export const fetchCompanyProfile = async () => {
 
 export const updateCompanyProfile = async (data: Partial<CompanyUser>) => {
   const res = await api.patch("/company/profile", data);
+  return res.data;
+};
+
+// Company account lifecycle
+export const deactivateCompanyAccount = async () => {
+  const res = await api.patch('/company/deactivate', {});
+  return res.data;
+};
+
+export const activateCompanyAccount = async () => {
+  const res = await api.patch('/company/activate', {});
+  return res.data;
+};
+
+export const deleteCompanyAccount = async () => {
+  const res = await api.delete('/company/delete');
   return res.data;
 };
 
@@ -450,8 +465,8 @@ export const completeCompanyNextSteps = async (payload: { about?: string; docume
 
 
 // Company browsing employees and sending work requests
-export const fetchEmployeesDirectory = async () => {
-  const res = await api.get('/company/employees')
+export const fetchEmployeesDirectory = async (category?: string) => {
+  const res = await api.get('/company/employees', { params: category ? { category } : undefined })
   const data = res.data
   return data?.employees || data?.data?.employees || data
 }

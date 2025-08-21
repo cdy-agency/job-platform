@@ -2,10 +2,14 @@
 
 import { useState, useEffect } from "react"
 import { fetchEmployeesDirectory, sendWorkRequest } from "@/lib/api"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { JOB_CATEGORIES } from "@/app/dashboard/company/post-job/page"
 import {
   X, MapPin, Phone, Calendar, Send
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { AppAvatar } from "@/components/ui/avatar"
+import { getImage } from "@/lib/utils"
 import { useToast } from "@/components/ui/use-toast"
 import { Textarea } from "@/components/ui/textarea"
 
@@ -47,6 +51,7 @@ interface Employee {
 export default function Employees() {
   const [employees, setEmployees] = useState<Employee[]>([])
   const [loading, setLoading] = useState(true)
+  const [category, setCategory] = useState<string>("all")
   const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null)
   const [showModal, setShowModal] = useState(false)
 
@@ -58,7 +63,7 @@ export default function Employees() {
   useEffect(() => {
     const load = async () => {
       try {
-        const data = await fetchEmployeesDirectory()
+        const data = await fetchEmployeesDirectory(category === 'all' ? undefined : category)
         setEmployees(data || [])
       } catch (e) {
         console.error(e)
@@ -67,7 +72,7 @@ export default function Employees() {
       }
     }
     load()
-  }, [])
+  }, [category])
 
   const openModal = (employee: Employee) => {
     setSelectedEmployee(employee)
@@ -112,7 +117,20 @@ export default function Employees() {
     <div className="min-h-screen bg-gray-50 py-8 px-4">
       <div className="max-w-7xl mx-auto">
         <h1 className="text-2xl font-bold text-gray-900 mb-2">Employee Directory</h1>
-        <p className="text-sm text-gray-600 mb-6">Browse our talented team members</p>
+        <p className="text-sm text-gray-600 mb-4">Browse our talented team members</p>
+        <div className="mb-6 max-w-sm">
+          <Select value={category} onValueChange={setCategory}>
+            <SelectTrigger className="h-10">
+              <SelectValue placeholder="Filter by preference" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All categories</SelectItem>
+              {JOB_CATEGORIES.map((c) => (
+                <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
 
         {/* Employee Table */}
         <div className="overflow-x-auto bg-white rounded-lg shadow">
@@ -131,11 +149,7 @@ export default function Employees() {
               {employees.map((employee, idx) => (
                 <tr key={employee._id || employee.id || idx} className="hover:bg-gray-50">
                   <td className="px-4 py-2">
-                    <img
-                      src={getImageUrl(employee.profileImage) || "/placeholder.svg"}
-                      alt={employee.name}
-                      className="w-9 h-9 rounded-full object-cover border"
-                    />
+                    <AppAvatar image={employee.profileImage} name={employee.name} size={36} />
                   </td>
                   <td className="px-4 py-2 font-medium">{employee.name}</td>
                   <td className="px-4 py-2">{employee.email || "-"}</td>

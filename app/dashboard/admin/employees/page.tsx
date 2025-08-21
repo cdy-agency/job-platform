@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react"
 import { Search, Eye, Mail, Phone, MapPin, Calendar, User, Shield } from "lucide-react"
+import { AppAvatar } from "@/components/ui/avatar"
+import { getImage } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { fetchAllEmployees } from "@/lib/api"
 import { toast } from "sonner"
@@ -88,11 +90,7 @@ export default function ManageEmployeesPage() {
             <div key={employee._id} className="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-md transition-shadow">
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center space-x-3">
-                  <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-purple-700 rounded-full flex items-center justify-center">
-                    <span className="text-white font-semibold text-lg">
-                      {employee.name.charAt(0).toUpperCase()}
-                    </span>
-                  </div>
+                  <AppAvatar image={(employee as any).profileImage} name={employee.name} size={48} />
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900">{employee.name}</h3>
                     <p className="text-sm text-gray-600">{employee.email}</p>

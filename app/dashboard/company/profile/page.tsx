@@ -7,6 +7,10 @@ import {
   completeCompanyProfile,
   updateCompanyLogo,
   uploadCompanyDocuments,
+  deleteCompanyDocument,
+  deactivateCompanyAccount,
+  activateCompanyAccount,
+  deleteCompanyAccount,
 } from "@/lib/api";
 import { toast } from "sonner";
 
@@ -15,6 +19,7 @@ type DocumentItem = {
   file: File;
   url: string; // object URL for preview / download
   isExisting?: boolean;
+  originalIndex?: number; // index in server array for existing docs
 };
 
 export default function CompanyProfilePage() {
@@ -81,6 +86,7 @@ export default function CompanyProfilePage() {
               file: new File([], doc.name || `Document ${index + 1}`),
               url: doc.url,
               isExisting: true,
+              originalIndex: index,
             })
           );
           setDocuments(existingDocs);
@@ -201,7 +207,14 @@ export default function CompanyProfilePage() {
     onDocumentsSelected(e.target.files);
   };
 
-  const removeDocument = (id: string) => {
+  const [confirmId, setConfirmId] = useState<string | null>(null);
+  const removeDocument = async (id: string) => {
+    const doc = documents.find(d => d.id === id)
+    if (doc?.isExisting) {
+      if (!Number.isInteger(doc.originalIndex)) return;
+      setConfirmId(id)
+      return
+    }
     setDocuments((prev) => {
       const rem = prev.find((d) => d.id === id);
       if (rem && rem.url.startsWith("blob:")) URL.revokeObjectURL(rem.url);
@@ -289,7 +302,52 @@ export default function CompanyProfilePage() {
         <h1 className="text-lg font-semibold text-gray-900 mb-6">
           Company Profile
         </h1>
-
+        <div className="mb-4 flex gap-2">
+          <button
+            type="button"
+            onClick={async () => {
+              try {
+                await deactivateCompanyAccount();
+                toast.success('Company deactivated');
+              } catch (e: any) {
+                toast.error(e?.response?.data?.message || 'Failed to deactivate');
+              }
+            }}
+            className="text-xs px-3 py-1 rounded-md border border-red-200 text-red-700 hover:bg-red-50"
+          >
+            Deactivate
+          </button>
+          <button
+            type="button"
+            onClick={async () => {
+              try {
+                await activateCompanyAccount();
+                toast.success('Company activated');
+              } catch (e: any) {
+                toast.error(e?.response?.data?.message || 'Failed to activate');
+              }
+            }}
+            className="text-xs px-3 py-1 rounded-md border border-green-200 text-green-700 hover:bg-green-50"
+          >
+            Activate
+          </button>
+          <button
+            type="button"
+            onClick={async () => {
+              const ok = window.confirm('Permanently delete company account?');
+              if (!ok) return;
+              try {
+                await deleteCompanyAccount();
+                toast.success('Company account deleted');
+              } catch (e: any) {
+                toast.error(e?.response?.data?.message || 'Failed to delete');
+              }
+            }}
+            className="text-xs px-3 py-1 rounded-md border border-red-300 text-red-800 hover:bg-red-100"
+          >
+            Delete
+          </button>
+        </div>
         <form
           onSubmit={handleSubmit}
           className="bg-white shadow-sm rounded-lg border border-gray-200 p-6 space-y-6"
@@ -563,7 +621,7 @@ export default function CompanyProfilePage() {
                       onClick={() => removeDocument(d.id)}
                       className="text-xs text-gray-500 hover:text-red-600"
                     >
-                      Remove
+                      {d.isExisting ? 'Delete' : 'Remove'}
                     </button>
                   </div>
                 </div>
@@ -608,3 +666,6 @@ export default function CompanyProfilePage() {
     </div>
   );
 }
+
+// Confirm delete modal overlay
+// We render this conditionally inside the same component block above when confirmId is set

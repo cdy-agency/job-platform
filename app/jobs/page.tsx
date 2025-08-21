@@ -34,6 +34,8 @@ import { Badge } from "@/components/ui/badge";
 import NavBar from "@/components/home/NavBar";
 import { Footer } from "@/components/footer";
 import { fetchJobs } from "@/lib/api";
+import { AppAvatar } from "@/components/ui/avatar";
+import { formatDeadline } from "@/lib/utils";
 
 // Type definitions
 interface Company {
@@ -125,24 +127,31 @@ export default function JobsPage() {
         const jobsArray = extractJobsArray(jobsData);
         
         // Transform the API response to match our JobDisplay interface
-        const transformedJobs: JobDisplay[] = jobsArray.map((job: any) => ({
-          id: job._id || job.id || `job-${Math.random()}`,
-          title: job.title || 'Untitled Position',
-          company: {
-            name: job.companyId?.companyName || job.company?.name || job.companyName || 'Company',
-            logo: job.companyId?.logo || job.company?.logo || job.logo,
-            companyName: job.companyId?.companyName || job.company?.name || job.companyName || 'Company',
-          },
-          location: job.location || 'Location not specified',
-          employmentType: job.employmentType || job.type || 'Full-time',
-          salary: job.salary || job.salaryRange || 'Competitive',
-          description: job.description || job.summary || 'Job description not available.',
-          category: job.category || job.jobCategory,
-          createdAt: job.createdAt || job.datePosted,
-          featured: job.featured || job.isFeatured || false,
-          applicationDeadline: job.applicationDeadline,
-          remainingDays: typeof job.remainingDays === 'number' ? job.remainingDays : undefined,
-        }));
+        const transformedJobs: JobDisplay[] = jobsArray.map((job: any) => {
+          const salaryStr = job.salary || (
+            job.salaryMin || job.salaryMax
+              ? `${job.salaryMin || ''}${job.salaryMin && job.salaryMax ? ' - ' : ''}${job.salaryMax || ''}`
+              : job.salaryRange
+          ) || 'Competitive';
+          return {
+            id: job._id || job.id || `job-${Math.random()}`,
+            title: job.title || 'Untitled Position',
+            company: {
+              name: job.companyId?.companyName || job.company?.name || job.companyName || 'Company',
+              logo: job.image || job.companyId?.logo || job.company?.logo || job.logo,
+              companyName: job.companyId?.companyName || job.company?.name || job.companyName || 'Company',
+            },
+            location: job.location || 'Location not specified',
+            employmentType: job.employmentType || job.type || 'Full-time',
+            salary: salaryStr,
+            description: job.description || job.summary || 'Job description not available.',
+            category: job.category || job.jobCategory,
+            createdAt: job.createdAt || job.datePosted,
+            featured: job.featured || job.isFeatured || false,
+            applicationDeadline: job.applicationDeadline,
+            remainingDays: typeof job.remainingDays === 'number' ? job.remainingDays : undefined,
+          } as JobDisplay
+        });
 
         console.log('Transformed jobs:', transformedJobs); // Debug log
         setJobs(transformedJobs);
@@ -251,21 +260,7 @@ export default function JobsPage() {
         <div className="flex items-start gap-4">
           {/* Company Logo */}
           <div className="flex-shrink-0">
-            {job.company.logo ? (
-              <img
-                src={job.company.logo}
-                alt={job.company.name}
-                className="h-14 w-14 rounded-xl object-cover border-2 border-gray-100 group-hover:border-[#834de3] transition-all duration-300 shadow-sm"
-                onError={(e) => {
-                  const target = e.target as HTMLImageElement;
-                  target.style.display = 'none';
-                  target.nextElementSibling?.classList.remove('hidden');
-                }}
-              />
-            ) : null}
-            <div className={`h-14 w-14 rounded-xl bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center border-2 border-gray-100 group-hover:border-[#834de3] transition-all duration-300 shadow-sm ${job.company.logo ? 'hidden' : ''}`}>
-              <Building className="h-7 w-7 text-gray-400" />
-            </div>
+            <AppAvatar image={job.company.logo} name={job.company.name} size={56} />
           </div>
 
           {/* Job Info */}
@@ -298,12 +293,10 @@ export default function JobsPage() {
           </div>
 
           {/* Remaining Days */}
-          {typeof job.remainingDays === 'number' && (
+          {job.applicationDeadline && (
             <div className="flex items-center">
               <Clock className="w-4 h-4 text-blue-500 mr-2" />
-              <span className="font-medium">
-                {job.remainingDays === 0 ? 'Expired' : `${job.remainingDays}d left`}
-              </span>
+              <span className="font-medium">{formatDeadline(job.applicationDeadline)}</span>
             </div>
           )}
         </div>

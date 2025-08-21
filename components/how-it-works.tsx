@@ -1,3 +1,5 @@
+"use client"
+
 import { Briefcase, Search, UserCheck } from "lucide-react"
 
 export function HowItWorks() {

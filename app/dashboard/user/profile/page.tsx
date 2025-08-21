@@ -21,6 +21,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/components/ui/use-toast";
+import { JOB_CATEGORIES } from "@/app/dashboard/company/post-job/page";
 import { fetchEmployeeProfile, updateEmployeeProfile, deactivateEmployeeAccount, activateEmployeeAccount, deleteEmployeeAccount } from "@/lib/api";
 import {
   uploadEmployeeImage,
@@ -506,50 +507,35 @@ export default function UserProfilePage() {
                     </div>
                     <div className="space-y-2">
                       <label className="text-sm font-medium text-gray-700">Job Preferences</label>
-                      <div className="flex gap-2">
-                        <Input
-                          placeholder="Type a preference and press Enter (e.g., it-digital)"
-                          value={newPreference}
-                          onChange={(e) => setNewPreference(e.target.value)}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') {
-                              e.preventDefault();
-                              if (!newPreference.trim()) return;
-                              setProfile(prev => ({
-                                ...prev!,
-                                jobPreferences: [ ...(prev?.jobPreferences || []), newPreference.trim() ]
-                              }))
-                              setNewPreference("")
-                            }
-                          }}
-                        />
-                        <Button
-                          onClick={() => {
-                            if (!newPreference.trim()) return;
-                            setProfile(prev => ({
-                              ...prev!,
-                              jobPreferences: [ ...(prev?.jobPreferences || []), newPreference.trim() ]
-                            }))
-                            setNewPreference("")
-                          }}
-                          className="bg-[#834de3] text-white"
-                          type="button"
-                        >
-                          Add
-                        </Button>
-                      </div>
-                      <div className="mt-2 flex flex-wrap gap-2">
-                        {(profile?.jobPreferences || []).map((pref) => (
-                          <span key={pref} className="bg-[#f1ebfc] text-[#834de3] px-3 py-1 rounded-full flex items-center gap-2 text-sm">
-                            {pref}
-                            <X size={16} className="cursor-pointer hover:text-red-500" onClick={() => {
-                              setProfile(prev => ({
-                                ...prev!,
-                                jobPreferences: (prev?.jobPreferences || []).filter(p => p !== pref)
-                              }))
-                            }} />
-                          </span>
-                        ))}
+                      <div className="bg-white border border-gray-300 rounded-md p-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                          {JOB_CATEGORIES.map((category) => {
+                            const checked = (profile?.jobPreferences || []).includes(category.value)
+                            return (
+                              <label key={category.value} className="flex items-center space-x-2 text-sm text-gray-700">
+                                <input
+                                  type="checkbox"
+                                  checked={checked}
+                                  onChange={(e) => {
+                                    setProfile(prev => {
+                                      const current = new Set(prev?.jobPreferences || [])
+                                      if (e.target.checked) current.add(category.value)
+                                      else current.delete(category.value)
+                                      return { ...prev!, jobPreferences: Array.from(current) }
+                                    })
+                                  }}
+                                  className="h-4 w-4 text-[#834de3] focus:ring-[#834de3] border-gray-300 rounded"
+                                />
+                                <span>{category.label}</span>
+                              </label>
+                            )
+                          })}
+                        </div>
+                        {(profile?.jobPreferences || []).length > 0 && (
+                          <div className="mt-3 pt-2 border-t border-gray-200 text-xs text-gray-600">
+                            Selected: {(profile?.jobPreferences || []).map((v) => JOB_CATEGORIES.find(c => c.value === v)?.label || v).join(', ')}
+                          </div>
+                        )}
                       </div>
                       <p className="text-xs text-gray-500">Recommendations on your dashboard will use these preferences.</p>
                     </div>

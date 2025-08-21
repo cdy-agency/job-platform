@@ -12,6 +12,7 @@ import {
   LogOut,
   Menu,
   User,
+  ChevronLeft,
   ChevronRight,
   Shield,
   LayoutDashboard,
@@ -19,6 +20,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
+import { AppAvatar } from "@/components/ui/avatar";
 import { fetchAdminNotifications } from "@/lib/api";
 import { useAuth } from "@/context/authContext";
 import { useRouter } from "next/navigation";
@@ -63,7 +65,7 @@ interface SidebarContentProps {
   isCollapsed: boolean;
   logout: () => void;
   router: any;
-  onToggleCollapse: () => void;
+  onToggleCollapse?: () => void;
 }
 
 const SidebarContent = ({ 
@@ -75,38 +77,45 @@ const SidebarContent = ({
   router, 
   onToggleCollapse,
 }: SidebarContentProps) => (
-  <div className="flex h-full flex-col">
+  <div className="flex h-full flex-col bg-[#1a1a1a]">
     {/* Header */}
-    <div className="flex h-16 items-center border-b border-slate-200 px-4 sticky top-0 z-10 bg-slate-900/60 backdrop-blur supports-[backdrop-filter]:bg-slate-900/40">
-      <Link href="/" className="flex items-center gap-2">
-        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-r from-[#834de3] to-[#9b59b6]">
-          <Shield className="h-4 w-4 text-white" />
+    <div className={cn(
+      "flex items-center border-b border-gray-800 bg-[#1a1a1a]",
+      isCollapsed && !isMobile ? "h-16 px-4 justify-center" : "h-16 px-6"
+    )}>
+      {(!isCollapsed || isMobile) ? (
+        <div className="flex items-center justify-between w-full">
+          <Link href="/" className="flex items-center">
+            <span className="text-lg font-semibold text-white">Admin Portal</span>
+          </Link>
+          {!isMobile && (
+            <button
+              type="button"
+              onClick={onToggleCollapse}
+              className="p-1.5 rounded-lg hover:bg-gray-800 text-gray-400 hover:text-white transition-colors"
+              aria-label="Collapse sidebar"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </button>
+          )}
         </div>
-        <span className="text-lg font-semibold text-slate-900">Admin Portal</span>
-      </Link>
-      <button
-        type="button"
-        onClick={onToggleCollapse}
-        className="ml-auto hidden md:inline-flex h-8 w-8 items-center justify-center rounded-full border border-slate-300 bg-white text-slate-700 shadow hover:bg-slate-50"
-        aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-        title={isCollapsed ? 'Expand' : 'Collapse'}
-      >
-        <ChevronRight className={cn("h-4 w-4 transition-transform", isCollapsed ? "rotate-0" : "-rotate-180")} />
-      </button>
-    </div>
-
-    {/* Back Home Button */}
-    <div className="border-b border-slate-200 p-4">
-      <Link href="/">
-        <Button variant="outline" className="w-full justify-start gap-2">
-          <Home className="h-4 w-4" />
-          Back Home
-        </Button>
-      </Link>
+      ) : (
+        <div className="flex flex-col items-center">
+          <span className="text-lg font-semibold text-white mb-2">AP</span>
+          <button
+            type="button"
+            onClick={onToggleCollapse}
+            className="p-1.5 rounded-lg hover:bg-gray-800 text-gray-400 hover:text-white transition-colors"
+            aria-label="Expand sidebar"
+          >
+            <ChevronRight className="h-4 w-4" />
+          </button>
+        </div>
+      )}
     </div>
 
     {/* Navigation */}
-    <nav className="flex-1 space-y-1 p-4 overflow-y-auto">
+    <nav className="flex-1 p-4 space-y-1">
       {navItems.map((item) => {
         const isActive = pathname === item.href;
         return (
@@ -114,37 +123,37 @@ const SidebarContent = ({
             key={item.href}
             href={item.href}
             className={cn(
-              "group relative flex items-center rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200",
+              "group relative flex items-center rounded-lg px-3 py-3 text-sm font-medium transition-all duration-200",
               isActive 
-                ? "bg-gradient-to-r from-[#834de3] to-[#9b59b6] text-white shadow-lg shadow-purple-500/25" 
-                : "text-slate-300 hover:bg-slate-800 hover:text-white",
+                ? "bg-purple-600 text-white" 
+                : "text-gray-300 hover:bg-gray-800 hover:text-white",
               isCollapsed && !isMobile ? "justify-center" : "gap-3"
             )}
             title={isCollapsed && !isMobile ? item.title : undefined}
           >
             <item.icon className={cn(
               "h-5 w-5 flex-shrink-0",
-              isActive ? "text-white" : "text-slate-400 group-hover:text-white"
+              isActive ? "text-white" : "text-gray-400 group-hover:text-white"
             )} />
             
             {(!isCollapsed || isMobile) && (
-              <>
+              <div className="flex items-center justify-between w-full">
                 <span className="flex-1">{item.title}</span>
                 {item.title === 'Notifications' && unread > 0 && (
                   <span className="flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
                     {unread > 9 ? '9+' : unread}
                   </span>
                 )}
-              </>
+              </div>
             )}
 
-            {/* Collapsed state indicator */}
+            {/* Tooltip for collapsed state */}
             {isCollapsed && !isMobile && (
               <div className="absolute left-full ml-2 hidden group-hover:block z-50">
-                <div className="rounded-md bg-slate-800 px-2 py-1 text-xs text-white shadow-lg border border-slate-700">
+                <div className="rounded-lg bg-gray-800 border border-gray-700 px-3 py-2 text-sm text-white shadow-lg">
                   {item.title}
                   {item.title === 'Notifications' && unread > 0 && (
-                    <span className="ml-2 rounded-full bg-red-500 px-1.5 py-0.5 text-[10px]">
+                    <span className="ml-2 rounded-full bg-red-500 px-1.5 py-0.5 text-xs">
                       {unread}
                     </span>
                   )}
@@ -156,19 +165,27 @@ const SidebarContent = ({
       })}
     </nav>
 
+    {/* Back Home Button */}
+    {(!isCollapsed || isMobile) && (
+      <div className="px-4 pb-4">
+        <Link href="/">
+          <Button variant="outline" className="w-full justify-start gap-3 bg-transparent border-gray-700 text-gray-300 hover:bg-gray-800 hover:text-white hover:border-gray-600">
+            <Home className="h-4 w-4" />
+            Back Home
+          </Button>
+        </Link>
+      </div>
+    )}
+
     {/* Admin Profile Section */}
-    <div className="border-t border-slate-700/50 bg-slate-800/50 p-4">
+    <div className="border-t border-gray-800 p-4 bg-[#1a1a1a]">
       {(!isCollapsed || isMobile) ? (
-        <>
-          <div className="mb-3 flex items-center gap-3 rounded-lg bg-slate-700/30 p-3">
-            <div className="h-10 w-10 rounded-full bg-gradient-to-r from-amber-500 to-orange-600 p-0.5">
-              <div className="flex h-full w-full items-center justify-center rounded-full bg-slate-800">
-                <Shield className="h-5 w-5 text-amber-400" />
-              </div>
-            </div>
+        <div className="space-y-3">
+          <div className="flex items-center gap-3 p-3 rounded-lg bg-gray-800/50">
+            <AppAvatar name="Admin User" size={40} />
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-medium text-white">Admin User</p>
-              <p className="truncate text-xs text-slate-400">admin@jobhub.com</p>
+              <p className="truncate text-xs text-gray-400">admin@jobhub.com</p>
               <div className="mt-1 flex items-center gap-1">
                 <div className="h-2 w-2 rounded-full bg-green-400"></div>
                 <span className="text-xs text-green-400">Super Admin</span>
@@ -176,23 +193,21 @@ const SidebarContent = ({
             </div>
           </div>
           <Button 
-            className="w-full justify-center gap-2 bg-gradient-to-r from-red-600 to-red-700 text-white hover:from-red-700 hover:to-red-800 hover:shadow-lg transition-all duration-200" 
+            className="w-full justify-center gap-2 bg-red-600 hover:bg-red-700 text-white transition-colors" 
             onClick={() => { logout(); router.push('/login'); }}
           >
             <LogOut className="h-4 w-4" />
             <span>Log out</span>
           </Button>
-        </>
+        </div>
       ) : (
         <div className="flex flex-col items-center gap-3">
-          <div className="h-10 w-10 rounded-full bg-gradient-to-r from-amber-500 to-orange-600 p-0.5">
-            <div className="flex h-full w-full items-center justify-center rounded-full bg-slate-800">
-              <Shield className="h-5 w-5 text-amber-400" />
-            </div>
+          <div className="h-10 w-10 rounded-full bg-amber-500 flex items-center justify-center">
+            <Shield className="h-5 w-5 text-white" />
           </div>
           <Button 
             size="sm"
-            className="w-full justify-center bg-gradient-to-r from-red-600 to-red-700 text-white hover:from-red-700 hover:to-red-800 p-2" 
+            className="w-full justify-center bg-red-600 hover:bg-red-700 text-white p-2" 
             onClick={() => { logout(); router.push('/login'); }}
             title="Log out"
           >
@@ -224,19 +239,10 @@ export function AdminDashboardSidebar() {
     load();
   }, []);
 
-  const renderLabel = (title: string) => (
-    <span className="flex w-full items-center gap-2">
-      {title}
-      {title === "Notifications" && unread > 0 && (
-        <span className="ml-auto rounded-full bg-[#834de3] px-2 py-0.5 text-[10px] font-semibold text-white">{unread}</span>
-      )}
-    </span>
-  );
-
   return (
     <>
       {/* Mobile Header and Sidebar */}
-      <div className="flex h-16 items-center border-b bg-white p-4 md:hidden">
+      <div className="flex h-16 items-center border-b border-gray-200 bg-white p-4 md:hidden">
         <Sheet>
           <SheetTrigger asChild>
             <Button variant="outline" className="border-gray-300 bg-transparent">
@@ -244,7 +250,7 @@ export function AdminDashboardSidebar() {
               <span className="sr-only">Toggle menu</span>
             </Button>
           </SheetTrigger>
-          <SheetContent side="left" className="w-[280px] p-0">
+          <SheetContent side="left" className="w-[280px] p-0 bg-[#1a1a1a] border-r border-gray-800">
             <SidebarContent 
               isMobile={true} 
               pathname={pathname}
@@ -258,25 +264,20 @@ export function AdminDashboardSidebar() {
         
         <div className="ml-4 flex-1">
           <Link href="/" className="flex items-center">
-            <div className="mr-2 flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-r from-[#834de3] to-[#9b59b6]">
-              <Shield className="h-4 w-4 text-white" />
-            </div>
             <span className="text-xl font-bold text-gray-800">Admin Portal</span>
           </Link>
         </div>
         
         <div className="flex items-center gap-2">
-          <div className="h-8 w-8 rounded-full bg-gradient-to-r from-amber-500 to-orange-600 p-0.5">
-            <div className="flex h-full w-full items-center justify-center rounded-full bg-white">
-              <Shield className="h-4 w-4 text-amber-600" />
-            </div>
+          <div className="h-8 w-8 rounded-full bg-amber-500 flex items-center justify-center">
+            <Shield className="h-4 w-4 text-white" />
           </div>
         </div>
       </div>
 
       {/* Desktop Sidebar */}
       <div className={cn(
-        "hidden md:block flex-shrink-0 border-r border-slate-200 transition-all duration-300 ease-in-out fixed left-0 top-0 h-screen overflow-y-auto",
+        "hidden md:block flex-shrink-0 border-r border-gray-800 transition-all duration-300 ease-in-out fixed left-0 top-0 h-screen overflow-y-auto bg-[#1a1a1a]",
         isCollapsed ? "w-16" : "w-72"
       )}>
         <SidebarContent 

@@ -15,6 +15,8 @@ import {
 import { Badge } from "@/components/ui/badge";
 import NavBar from "@/components/home/NavBar";
 import { Footer } from "@/components/footer";
+import { AppAvatar } from "@/components/ui/avatar";
+import { getImage } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/authContext";
 import { fetchUsersDirectory } from "@/lib/api";
@@ -110,19 +112,7 @@ export default function UsersDirectoryPage() {
         <div className="flex flex-col items-center text-center">
           {/* Profile Image */}
           <div className="relative mb-4">
-            {user.profileImage ? (
-              <img
-                src={user.profileImage}
-                alt={user.name}
-                className="w-16 h-16 rounded-full object-cover"
-              />
-            ) : (
-              <div className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center">
-                <span className="text-gray-600 font-medium text-sm">
-                  {getInitials(user.name)}
-                </span>
-              </div>
-            )}
+            <AppAvatar image={user.profileImage} name={user.name} size={64} />
           </div>
 
           {/* Name */}
@@ -213,7 +203,7 @@ export default function UsersDirectoryPage() {
                 
                 <div className="flex gap-2">
                   <Select value={locationFilter} onValueChange={setLocationFilter}>
-                    <SelectTrigger className="w-[180px]">
+                    <SelectTrigger className="w-[180px] text-black">
                       <SelectValue placeholder="All Locations" />
                     </SelectTrigger>
                     <SelectContent>
@@ -227,7 +217,7 @@ export default function UsersDirectoryPage() {
                   </Select>
                   
                   <Select value={statusFilter} onValueChange={setStatusFilter}>
-                    <SelectTrigger className="w-[140px]">
+                    <SelectTrigger className="w-[140px] text-black">
                       <SelectValue placeholder="All Status" />
                     </SelectTrigger>
                     <SelectContent>
