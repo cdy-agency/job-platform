@@ -51,7 +51,9 @@ export default function ManageApplicantsPage() {
   return (
     <div className="min-h-screen bg-gray-50 px-4 py-10 flex justify-center">
       <div className="w-full max-w-5xl">
-        <h1 className="text-xl font-semibold text-gray-900 mb-6">Manage Applicants</h1>
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="text-2xl font-bold text-gray-900">Applicants</h1>
+        </div>
 
         <div className="mb-4">
           <label className="block text-sm text-gray-700 mb-1">Select Job</label>
@@ -90,6 +92,13 @@ export default function ManageApplicantsPage() {
                   <p className="text-xs text-gray-400 mt-1">
                     Applied on: {app.createdAt ? new Date(app.createdAt).toLocaleDateString() : '—'}
                   </p>
+                  {/* Application message & resume */}
+                  {(app as any)?.message && (
+                    <p className="text-xs text-gray-700 mt-2">Message: {(app as any).message}</p>
+                  )}
+                  {(app as any)?.resume && (
+                    <a href={(app as any).resume} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-700 underline mt-1 inline-block">View Resume</a>
+                  )}
                 </div>
 
                 <div className="mt-4 sm:mt-0 flex flex-col sm:flex-row items-center gap-2">
@@ -106,7 +115,7 @@ export default function ManageApplicantsPage() {
                         : "bg-red-100 text-red-800"
                     }`}
                   >
-                    {app.status}
+                    {app.status === 'reviewed' ? 'shortlisted' : app.status}
                   </span>
 
                   <div className="flex gap-2 flex-wrap justify-center">
@@ -115,7 +124,7 @@ export default function ManageApplicantsPage() {
                         onClick={() => updateStatus(app._id, "reviewed")}
                         className="text-xs px-2 py-1 rounded border border-blue-300 text-blue-700 hover:bg-blue-100"
                       >
-                        Mark Reviewed
+                        Shortlist
                       </button>
                     )}
 

@@ -24,13 +24,12 @@ const Hero = () => {
           <div className="text-white">
             {/* Main Heading */}
             <h1 className="mb-6 text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl lg:text-7xl leading-tight">
-              Connect. Work.{' '}
-              <span className="text-[#834de3]">Succeed.</span>
+              The fastest way to find trusted work and talent in Rwanda
             </h1>
 
             {/* Subtitle */}
             <p className="mb-8 text-xl md:text-2xl text-white/90 leading-relaxed max-w-2xl">
-              Bridge the gap between talent and opportunity. Find your perfect job or discover exceptional candidates.
+              Akazi-Link connects companies with reliable workers across Rwanda. Post jobs in minutes, apply with a click.
             </p>
 
             {/* CTA Buttons */}

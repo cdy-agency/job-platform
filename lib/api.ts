@@ -93,9 +93,36 @@ export const fetchJobs = async (category?: string) => {
 
 export const applyToJob = async (
   jobId: string,
-  payload: { skills: string[]; experience?: string; appliedVia?: 'normal' | 'whatsapp' | 'referral' }
+  payload: { message?: string; resumeFile?: File | null; skills?: string[]; experience?: string; appliedVia?: 'normal' | 'whatsapp' | 'referral' }
 ) => {
-  const res = await api.post(`/employee/apply/${jobId}`, payload);
+  const formData = new FormData();
+  if (payload.message) formData.append('message', payload.message);
+  if (payload.appliedVia) formData.append('appliedVia', payload.appliedVia);
+  // Keep backward-compat fields (skills/experience) if present
+  (payload.skills || []).forEach((s) => formData.append('skills', s));
+  if (payload.experience) formData.append('experience', payload.experience);
+  if (payload.resumeFile instanceof File) {
+    formData.append('resume', payload.resumeFile);
+  }
+  const res = await api.post(`/employee/apply/${jobId}`, formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+  return res.data;
+};
+
+// Employee account state
+export const deactivateEmployeeAccount = async () => {
+  const res = await api.patch('/employee/deactivate', {});
+  return res.data;
+};
+
+export const activateEmployeeAccount = async () => {
+  const res = await api.patch('/employee/activate', {});
+  return res.data;
+};
+
+export const deleteEmployeeAccount = async () => {
+  const res = await api.delete('/employee/delete');
   return res.data;
 };
 
@@ -248,6 +275,48 @@ export const updateApplicantStatus = async (applicationId: string, status: 'pend
   return res.data
 }
 
+export const updateJob = async (
+  id: string,
+  data: Partial<{
+    title: string;
+    description: string;
+    image?: File;
+    location: string,
+    skills: string[];
+    experience: string;
+    employmentType: 'fulltime' | 'part-time' | 'internship';
+    salaryMin: string;
+    salaryMax: string;
+    category: string;
+    responsibilities: string[];
+    benefits: string[];
+    applicationDeadline: string;
+  }>
+) => {
+  const formData = new FormData();
+  Object.entries(data).forEach(([key, value]) => {
+    if (typeof value === 'undefined' || value === null) return;
+    if (key === 'image' && value instanceof File) {
+      formData.append('image', value);
+      return;
+    }
+    if (Array.isArray(value)) {
+      value.forEach((v) => formData.append(key, String(v)));
+      return;
+    }
+    formData.append(key, String(value));
+  });
+  const res = await api.patch(`/company/job/${id}`, formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+  return res.data;
+};
+
+export const deleteJob = async (id: string) => {
+  const res = await api.delete(`/company/job/${id}`);
+  return res.data;
+}
+
 export const fetchJobSuggestions = async (category?: string) => {
   const normalizeJobs = (payload: any): any[] => {
     if (!payload) return []
@@ -345,7 +414,7 @@ export const fetchUsersDirectory = async (): Promise<any[]> => {
     return []
   }
   try {
-    const res = await api.get("/users")
+    const res = await api.get("/users", { params: { status: 'active' } })
     return normalizeUsers(res.data)
   } catch (e) {
     console.error("Error fetching users directory:", e)
@@ -473,6 +542,71 @@ export const completeCompanyProfile = async (data: { about?: string; logo?: File
 // Admin company review APIs
 export const fetchCompaniesPendingReview = async () => {
   const res = await api.get('/admin/companies/pending-review');
+  return res.data;
+};
+
+// Admin profile APIs
+export const fetchAdminProfile = async () => {
+  const res = await api.get('/admin/me');
+  return res.data;
+};
+
+// Admin file upload APIs
+export const uploadAdminImage = async (file: File) => {
+  const formData = new FormData();
+  formData.append('image', file);
+  const res = await api.post('/admin/upload/image', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+  return res.data;
+};
+
+export const updateAdminImage = async (file: File) => {
+  const formData = new FormData();
+  formData.append('image', file);
+  const res = await api.patch('/admin/update/image', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+  return res.data;
+};
+
+export const deleteAdminImage = async () => {
+  const res = await api.delete('/admin/delete/image');
+  return res.data;
+};
+
+export const uploadAdminDocuments = async (files: File[]) => {
+  const formData = new FormData();
+  files.forEach((file) => {
+    formData.append('documents', file);
+  });
+  const res = await api.post('/admin/upload/documents', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+  return res.data;
+};
+
+export const updateAdminDocuments = async (files: File[]) => {
+  const formData = new FormData();
+  files.forEach((file) => {
+    formData.append('documents', file);
+  });
+  const res = await api.patch('/admin/update/documents', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+  return res.data;
+};
+
+export const deleteAdminDocument = async (index: string) => {
+  const res = await api.delete(`/admin/delete/document/${index}`);
   return res.data;
 };
 

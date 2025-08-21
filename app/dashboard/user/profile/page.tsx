@@ -17,10 +17,11 @@ import {
   Eye,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/components/ui/use-toast";
-import { fetchEmployeeProfile, updateEmployeeProfile } from "@/lib/api";
+import { fetchEmployeeProfile, updateEmployeeProfile, deactivateEmployeeAccount, activateEmployeeAccount, deleteEmployeeAccount } from "@/lib/api";
 import {
   uploadEmployeeImage,
   updateEmployeeImage,
@@ -41,6 +42,7 @@ interface EmployeeProfile {
   experience?: string;
   education?: string;
   skills?: string[];
+  jobPreferences?: string[];
   documents?: Array<{
     id?: string;
     name: string;
@@ -65,6 +67,8 @@ export default function UserProfilePage() {
   });
   const [passwordLoading, setPasswordLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("personal");
+  const [confirmOpen, setConfirmOpen] = useState<null | 'deactivate' | 'activate' | 'delete'>(null);
+  const [newPreference, setNewPreference] = useState("")
 
   useEffect(() => {
     fetchEmployeeProfile()
@@ -84,6 +88,7 @@ export default function UserProfilePage() {
         experience: profile.experience || "",
         education: profile.education || "",
         skills: profile.skills || [],
+        jobPreferences: profile.jobPreferences || [],
       });
       toast({ title: "Profile updated successfully", description: "Your changes have been saved." });
     } catch (err: any) {
@@ -293,6 +298,20 @@ export default function UserProfilePage() {
                 </>
               )}
             </Button>
+            <Button
+              onClick={() => setConfirmOpen((profile as any)?.status === 'inactive' ? 'activate' : 'deactivate')}
+              variant="outline"
+              className={(profile as any)?.status === 'inactive' ? 'border-green-200 text-green-600 hover:bg-green-50' : 'border-red-200 text-red-600 hover:bg-red-50'}
+            >
+              {(profile as any)?.status === 'inactive' ? 'Activate account' : 'Deactivate account'}
+            </Button>
+            <Button
+              onClick={() => setConfirmOpen('delete')}
+              variant="outline"
+              className="border-red-300 text-red-700 hover:bg-red-100"
+            >
+              Delete account
+            </Button>
           </div>
         </div>
 
@@ -484,6 +503,55 @@ export default function UserProfilePage() {
                         rows={4}
                         className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:border-purple-300 focus:ring-2 focus:ring-purple-100 transition-all resize-none"
                       />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-gray-700">Job Preferences</label>
+                      <div className="flex gap-2">
+                        <Input
+                          placeholder="Type a preference and press Enter (e.g., it-digital)"
+                          value={newPreference}
+                          onChange={(e) => setNewPreference(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
+                              if (!newPreference.trim()) return;
+                              setProfile(prev => ({
+                                ...prev!,
+                                jobPreferences: [ ...(prev?.jobPreferences || []), newPreference.trim() ]
+                              }))
+                              setNewPreference("")
+                            }
+                          }}
+                        />
+                        <Button
+                          onClick={() => {
+                            if (!newPreference.trim()) return;
+                            setProfile(prev => ({
+                              ...prev!,
+                              jobPreferences: [ ...(prev?.jobPreferences || []), newPreference.trim() ]
+                            }))
+                            setNewPreference("")
+                          }}
+                          className="bg-[#834de3] text-white"
+                          type="button"
+                        >
+                          Add
+                        </Button>
+                      </div>
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        {(profile?.jobPreferences || []).map((pref) => (
+                          <span key={pref} className="bg-[#f1ebfc] text-[#834de3] px-3 py-1 rounded-full flex items-center gap-2 text-sm">
+                            {pref}
+                            <X size={16} className="cursor-pointer hover:text-red-500" onClick={() => {
+                              setProfile(prev => ({
+                                ...prev!,
+                                jobPreferences: (prev?.jobPreferences || []).filter(p => p !== pref)
+                              }))
+                            }} />
+                          </span>
+                        ))}
+                      </div>
+                      <p className="text-xs text-gray-500">Recommendations on your dashboard will use these preferences.</p>
                     </div>
                   </div>
                 )}
@@ -678,6 +746,36 @@ export default function UserProfilePage() {
                     className="flex-1"
                   >
                     Cancel
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+        {confirmOpen && (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md">
+              <div className="p-6">
+                <div className="mb-4">
+                  <h3 className="text-xl font-semibold text-gray-900">Do you want to proceed?</h3>
+                  <p className="text-sm text-gray-600 mt-1">This action may change your account availability.</p>
+                </div>
+                <div className="flex gap-3 mt-6 justify-end">
+                  <Button variant="outline" onClick={() => setConfirmOpen(null)}>Cancel</Button>
+                  <Button
+                    className={confirmOpen === 'delete' ? 'bg-red-600 text-white hover:bg-red-700' : 'bg-[#834de3] text-white hover:bg-[#6b3ac2]'}
+                    onClick={async () => {
+                      try {
+                        if (confirmOpen === 'deactivate') await deactivateEmployeeAccount();
+                        if (confirmOpen === 'activate') await activateEmployeeAccount();
+                        if (confirmOpen === 'delete') await deleteEmployeeAccount();
+                        const refreshed = await fetchEmployeeProfile();
+                        setProfile(refreshed);
+                      } catch {}
+                      setConfirmOpen(null);
+                    }}
+                  >
+                    Yes
                   </Button>
                 </div>
               </div>

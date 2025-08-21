@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Check } from "lucide-react";
+import { JOB_CATEGORIES } from "@/app/dashboard/company/post-job/page";
 
 interface EmployeeRegistrationProps {
   formData: {
@@ -24,19 +24,6 @@ const EmployeeRegistration = ({
   onInputChange,
   errors = {},
 }: EmployeeRegistrationProps) => {
-  const jobOptions = [
-    "Cleaner",
-    "Clerk",
-    "Driver",
-    "Security",
-    "Cook",
-    "Gardener",
-    "Loader",
-    "Housekeeper",
-    "Receptionist",
-    "Other",
-  ];
-
   const [selectedJobs, setSelectedJobs] = useState<string[]>([]);
 
   // Sync with parent data when it changes
@@ -46,10 +33,10 @@ const EmployeeRegistration = ({
     }
   }, [formData.jobPreferences]);
 
-  const handleJobPreferenceChange = (job: string) => {
-    const updatedPreferences = selectedJobs.includes(job)
-      ? selectedJobs.filter((pref) => pref !== job)
-      : [...selectedJobs, job];
+  const handleJobPreferenceChange = (jobValue: string) => {
+    const updatedPreferences = selectedJobs.includes(jobValue)
+      ? selectedJobs.filter((pref) => pref !== jobValue)
+      : [...selectedJobs, jobValue];
 
     setSelectedJobs(updatedPreferences);
     onInputChange("jobPreferences", updatedPreferences);
@@ -191,70 +178,53 @@ const EmployeeRegistration = ({
         </Label>
 
         <div className="bg-white border border-gray-300 rounded-md p-4">
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
-            {jobOptions.map((job) => {
-              const isSelected = selectedJobs.includes(job);
-
-              return (
-                <div
-                  key={job}
-                  role="checkbox"
-                  aria-checked={isSelected}
-                  tabIndex={0}
-                  onClick={() => handleJobPreferenceChange(job)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") handleJobPreferenceChange(job);
-                  }}
-                  className={`
-                    relative flex items-center justify-center p-3 rounded-lg border-2 cursor-pointer
-                    transition-all duration-200 hover:shadow-md
-                    ${
-                      isSelected
-                        ? "border-blue-500 bg-blue-50 text-[#834de3]"
-                        : "border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50"
-                    }
-                  `}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {JOB_CATEGORIES.map((category) => (
+              <div key={category.value} className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  id={`job-${category.value}`}
+                  checked={selectedJobs.includes(category.value)}
+                  onChange={() => handleJobPreferenceChange(category.value)}
+                  className="h-4 w-4 text-[#834de3] focus:ring-[#834de3] border-gray-300 rounded"
+                />
+                <Label
+                  htmlFor={`job-${category.value}`}
+                  className="text-sm text-gray-700 cursor-pointer"
                 >
-                  <div className="flex items-center space-x-2">
-                    <div
-                      className={`
-                      w-5 h-5 rounded border-2 flex items-center justify-center
-                      ${
-                        isSelected
-                          ? "border-[#834de3] bg-[#834de3]"
-                          : "border-gray-300 bg-white"
-                      }
-                    `}
-                    >
-                      {isSelected && (
-                        <Check className="w-3 h-3 text-white" strokeWidth={3} />
-                      )}
-                    </div>
-                    <span className="text-sm font-medium select-none">
-                      {job}
-                    </span>
-                  </div>
-                </div>
-              );
-            })}
+                  {category.label}
+                </Label>
+              </div>
+            ))}
           </div>
 
           {selectedJobs.length > 0 && (
-            <div className="mt-3 pt-3 border-t border-gray-200">
+            <div className="mt-4 pt-3 border-t border-gray-200">
               <div className="flex flex-wrap gap-2">
-                <span className="text-xs text-gray-600">Selected:</span>
-                {selectedJobs.map((job) => (
-                  <span
-                    key={job}
-                    className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-blue-100 text-[#834de3]"
-                  >
-                    {job}
-                  </span>
-                ))}
+                <span className="text-xs text-gray-600 font-medium">Selected:</span>
+                {selectedJobs.map((jobValue) => {
+                  const category = JOB_CATEGORIES.find(cat => cat.value === jobValue);
+                  return (
+                    <span
+                      key={jobValue}
+                      className="inline-flex items-center px-3 py-1 rounded-full text-xs bg-blue-100 text-[#834de3] font-medium"
+                    >
+                      {category?.label || jobValue}
+                      <button
+                        type="button"
+                        onClick={() => handleJobPreferenceChange(jobValue)}
+                        className="ml-2 text-[#834de3] hover:text-red-500 focus:outline-none"
+                      >
+                        ×
+                      </button>
+                    </span>
+                  );
+                })}
               </div>
             </div>
           )}
         </div>
+        
         {errors.jobPreferences && (
           <p className="text-sm text-red-500">{errors.jobPreferences}</p>
         )}

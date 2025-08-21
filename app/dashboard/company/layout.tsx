@@ -27,7 +27,11 @@ export default function CompanyDashboardLayout({
     try {
       const user = JSON.parse(userRaw);
       if (user.role !== "company") {
-        router.replace("/dashboard/company");
+        if (user.role === 'superadmin') {
+          router.replace('/dashboard/admin');
+        } else {
+          router.replace('/dashboard/user');
+        }
         return;
       }
     } catch {

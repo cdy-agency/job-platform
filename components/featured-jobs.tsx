@@ -54,13 +54,25 @@ export function FeaturedJobs() {
             >
               <CardHeader className="pb-2">
                 <div className="flex items-center gap-2">
-                  {/* <img
-                    src={job.companyId?.logo || "/placeholder.svg"}
-                    alt={job.companyId?.companyName || "Company"}
-                    className="h-8 w-8 rounded"
-                    width={32}
-                    height={32}
-                  /> */}
+                  {job.companyId?.logo ? (
+                    <img
+                      src={job.companyId.logo}
+                      alt={job.companyId?.companyName || "Company"}
+                      className="h-8 w-8 rounded object-cover"
+                      width={32}
+                      height={32}
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.style.display = 'none';
+                      }}
+                    />
+                  ) : (
+                    <div className="h-8 w-8 rounded bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center">
+                      <span className="text-xs font-semibold text-gray-600">
+                        {job.companyId?.companyName?.charAt(0) || 'C'}
+                      </span>
+                    </div>
+                  )}
                   <div>
                     <h3 className="font-semibold">{job.title}</h3>
                     <p className="text-sm text-muted-foreground">

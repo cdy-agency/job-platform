@@ -30,7 +30,8 @@ const NavBar = () => {
       : '/dashboard/user'
 
   const displayName = (user as any)?.companyName || (user as any)?.name || 'Account'
-  const avatar = (user as any)?.logo || ''
+  const avatar = (user as any)?.logo || (user as any)?.profileImage || ''
+  const userEmail = (user as any)?.email || ''
 
   return (
     <div className="relative">
@@ -128,14 +129,17 @@ const NavBar = () => {
                           </span>
                         )}
                       </span>
-                      {displayName}
+                      <div className="flex flex-col items-start">
+                        <span className="text-sm font-medium">{displayName}</span>
+                        <span className="text-xs text-gray-500">{userEmail}</span>
+                      </div>
                     </Button>
                   </Link>
                   <Button
                     size="sm"
                     variant="outline"
                     className="border-gray-300 bg-white text-gray-700"
-                    onClick={() => { logout(); router.push('/') }}
+                    onClick={() => { logout(); router.push('/login') }}
                   >
                     Logout
                   </Button>

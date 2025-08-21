@@ -10,7 +10,7 @@ interface WorkRequestItem {
   id: string
   companyName: string
   message?: string
-  status: 'pending' | 'accepted' | 'rejected'
+  status: "pending" | "accepted" | "rejected"
   createdAt?: string
 }
 
@@ -25,22 +25,27 @@ export default function JobOfferPage() {
     const load = async () => {
       try {
         const res = await fetchEmployeeWorkRequests()
-        if (res?.message?.toLowerCase?.().includes('access denied')) {
-          setError('Access denied. Log in as an employee.')
+        if (res?.message?.toLowerCase?.().includes("access denied")) {
+          setError("Access denied. Log in as an employee.")
           setItems([])
           return
         }
         const list = Array.isArray(res?.requests) ? res.requests : Array.isArray(res) ? res : []
         const normalized: WorkRequestItem[] = list.map((w: any, idx: number) => ({
           id: String(w._id || w.id || w.requestId || `wr-${idx}-${Date.now()}`),
-          companyName: w.companyId?.companyName || w.company?.companyName || w.companyName || w.company?.name || 'Company',
-          message: w.message || '',
-          status: (w.status === 'accepted' || w.status === 'rejected') ? w.status : 'pending',
+          companyName:
+            w.companyId?.companyName ||
+            w.company?.companyName ||
+            w.companyName ||
+            w.company?.name ||
+            "Company",
+          message: w.message || "",
+          status: w.status === "accepted" || w.status === "rejected" ? w.status : "pending",
           createdAt: w.createdAt || w.date || undefined,
         }))
         setItems(normalized)
       } catch (e: any) {
-        setError(e?.response?.data?.message || 'Failed to load job offers')
+        setError(e?.response?.data?.message || "Failed to load job offers")
       } finally {
         setLoading(false)
       }
@@ -48,74 +53,100 @@ export default function JobOfferPage() {
     load()
   }, [])
 
-  const respond = async (id: string, action: 'accept' | 'reject') => {
+  const respond = async (id: string, action: "accept" | "reject") => {
     setActingId(id)
     try {
       await respondToWorkRequest(id, action)
-      setItems((prev) => prev.map((w) => (w.id === id ? { ...w, status: action === 'accept' ? 'accepted' : 'rejected' } : w)))
-      toast({ title: action === 'accept' ? 'Offer accepted' : 'Offer rejected' })
+      setItems((prev) =>
+        prev.map((w) =>
+          w.id === id ? { ...w, status: action === "accept" ? "accepted" : "rejected" } : w
+        )
+      )
+      toast({ title: action === "accept" ? "Offer accepted" : "Offer rejected" })
     } catch (e: any) {
-      toast({ title: 'Failed to submit response', description: e?.response?.data?.message || 'Try again later', variant: 'destructive' })
+      toast({
+        title: "Failed to submit response",
+        description: e?.response?.data?.message || "Try again later",
+        variant: "destructive",
+      })
     } finally {
       setActingId("")
     }
   }
 
-  const statusClass = (status: WorkRequestItem['status']) => {
-    if (status === 'accepted') return 'bg-green-100 text-green-800'
-    if (status === 'rejected') return 'bg-red-100 text-red-800'
-    return 'bg-[#f5f0ff] text-[#834de3] border border-[#eadbff]'
+  const statusClass = (status: WorkRequestItem["status"]) => {
+    if (status === "accepted") return "bg-green-100 text-green-700 border border-green-200"
+    if (status === "rejected") return "bg-red-100 text-red-700 border border-red-200"
+    return "bg-[#f5f0ff] text-[#834de3] border border-[#eadbff]"
   }
 
-  if (loading) return <div className="p-6">Loading...</div>
+  if (loading) return <div className="p-6 text-gray-600">Loading job offers...</div>
 
   return (
-    <div className="container space-y-6 p-6 pb-16">
-      <div className="flex items-center justify-between">
+    <div className="container max-w-4xl space-y-8 p-6 pb-16">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
         <div>
-          <h1 className="text-2xl font-semibold text-gray-900">Job Offers</h1>
+          <h1 className="text-xl font-semibold text-gray-900">Job Offers</h1>
           <p className="text-sm text-gray-600">Companies that invited you to consider a role</p>
         </div>
       </div>
 
+      {/* Error */}
       {error && (
-        <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">{error}</div>
+        <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+          {error}
+        </div>
       )}
 
+      {/* Empty */}
       {items.length === 0 && !error ? (
         <Card className="border-gray-200 bg-white">
-          <CardContent className="p-8 text-center text-sm text-gray-600">No job offers yet.</CardContent>
+          <CardContent className="p-8 text-center text-sm text-gray-600">
+            No job offers yet.
+          </CardContent>
         </Card>
       ) : (
-        <div className="grid gap-4">
+        <div className="space-y-4">
           {items.map((w) => (
-            <Card key={w.id} className="border-gray-200 bg-white">
+            <Card
+              key={w.id}
+              className="border border-gray-200 bg-white shadow-sm hover:shadow-md transition-all duration-200"
+            >
               <CardHeader className="flex flex-row items-center justify-between space-y-0">
                 <div>
-                  <CardTitle className="text-gray-900">{w.companyName}</CardTitle>
-                  <CardDescription>
-                    {w.createdAt ? new Date(w.createdAt).toLocaleString() : ''}
+                  <CardTitle className="text-base font-medium text-gray-900">
+                    {w.companyName}
+                  </CardTitle>
+                  <CardDescription className="text-xs text-gray-500">
+                    {w.createdAt ? new Date(w.createdAt).toLocaleString() : ""}
                   </CardDescription>
                 </div>
-                <span className={`rounded-full px-3 py-1 text-xs ${statusClass(w.status)}`}>{w.status}</span>
+                <span
+                  className={`rounded-full px-3 py-1 text-xs font-medium capitalize ${statusClass(
+                    w.status
+                  )}`}
+                >
+                  {w.status}
+                </span>
               </CardHeader>
               <CardContent className="space-y-3">
-                {w.message && (
-                  <p className="text-sm text-gray-800">{w.message}</p>
-                )}
+                {w.message && <p className="text-sm text-gray-800">{w.message}</p>}
                 <div className="flex gap-2">
                   <Button
-                    disabled={w.status !== 'pending' || actingId === w.id}
-                    onClick={() => respond(w.id, 'accept')}
-                    className="bg-[#834de3] text-white hover:bg-[#6b3ac2]"
+                    size="sm"
+                    disabled={w.status !== "pending" || actingId === w.id}
+                    onClick={() => respond(w.id, "accept")}
+                    className="bg-[#834de3] text-white hover:bg-[#6b3ac2] px-4"
                   >
-                    {actingId === w.id ? 'Submitting...' : 'Accept'}
+                    {actingId === w.id ? "Submitting..." : "Accept"}
                   </Button>
                   <Button
-                    disabled={w.status !== 'pending' || actingId === w.id}
+                    size="sm"
+                    disabled={w.status !== "pending" || actingId === w.id}
                     variant="outline"
-                    onClick={() => respond(w.id, 'reject')}
-                    className="border-[#834de3] text-[#834de3] hover:bg-[#f5f0ff]"
+                    onClick={() => respond(w.id, "reject")}
+                    className="border-[#834de3] text-[#834de3] hover:bg-[#f5f0ff] px-4"
                   >
                     Reject
                   </Button>

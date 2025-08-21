@@ -29,12 +29,13 @@ interface User {
   profileImage?: string;
   joinDate: string;
   status: "active" | "inactive";
+  role?: 'employee' | 'company' | 'superadmin';
 }
 
 export default function UsersDirectoryPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [locationFilter, setLocationFilter] = useState("all");
-  const [statusFilter, setStatusFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("active");
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const router = useRouter()
@@ -49,7 +50,10 @@ export default function UsersDirectoryPage() {
     setLoading(true);
     fetchUsersDirectory()
       .then((list: any[]) => {
-        const mapped: User[] = (Array.isArray(list) ? list : []).map((u: any) => ({
+        // Filter to only show employees, not companies
+        const employeesOnly = (Array.isArray(list) ? list : []).filter((u: any) => u.role === 'employee');
+        
+        const mapped: User[] = employeesOnly.map((u: any) => ({
           id: u._id || u.id,
           name: u.name || `${u.firstName || ''} ${u.lastName || ''}`.trim() || 'User',
           email: u.email || 'N/A',
@@ -58,6 +62,7 @@ export default function UsersDirectoryPage() {
           profileImage: u.avatar || u.profileImage || undefined,
           joinDate: u.createdAt || new Date().toISOString(),
           status: u.status === 'inactive' ? 'inactive' : 'active',
+          role: u.role,
         }))
         setUsers(mapped)
       })
@@ -100,7 +105,7 @@ export default function UsersDirectoryPage() {
   };
 
   const UserCard = ({ user }: { user: User }) => (
-    <Card className="group hover:shadow-xl hover:shadow-[#834de3]/10 transition-all duration-300 border border-gray-200 hover:border-[#834de3]/30 bg-white overflow-hidden cursor-pointer">
+    <Card className="group hover:shadow-lg transition-all duration-300 border border-gray-200 hover:border-gray-300 bg-white overflow-hidden">
       <CardContent className="p-6">
         <div className="flex flex-col items-center text-center">
           {/* Profile Image */}
@@ -109,11 +114,11 @@ export default function UsersDirectoryPage() {
               <img
                 src={user.profileImage}
                 alt={user.name}
-                className="w-20 h-20 rounded-full object-cover ring-4 ring-gray-100 group-hover:ring-[#834de3]/20 transition-all duration-300"
+                className="w-16 h-16 rounded-full object-cover"
               />
             ) : (
-              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[#834de3] to-[#9260e7] flex items-center justify-center ring-4 ring-gray-100 group-hover:ring-[#834de3]/20 transition-all duration-300">
-                <span className="text-white font-bold text-lg">
+              <div className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center">
+                <span className="text-gray-600 font-medium text-sm">
                   {getInitials(user.name)}
                 </span>
               </div>
@@ -121,50 +126,42 @@ export default function UsersDirectoryPage() {
           </div>
 
           {/* Name */}
-          <h3 className="font-bold text-lg text-gray-900 mb-1 group-hover:text-[#834de3] transition-colors">
+          <h3 className="font-semibold text-base text-gray-900 mb-1">
             {user.name}
           </h3>
 
-          {/* Status Badge */}
-          <Badge
-            className={`mb-4 text-xs ${
-              user.status === "active"
-                ? "bg-green-100 text-green-800 hover:bg-green-100"
-                : "bg-gray-100 text-gray-600 hover:bg-gray-100"
-            }`}
-          >
-            {user.status === "active" ? "● Active" : "● Inactive"}
-          </Badge>
+          {/* Role/Position */}
+          <p className="text-sm text-gray-500 mb-3">
+            {user.role === 'company' ? 'Company' : user.role === 'employee' ? 'Job Seeker' : 'Member'}
+          </p>
 
-          {/* Contact Information */}
-          <div className="w-full space-y-3">
-            <div className="flex items-center justify-center text-sm text-gray-600 hover:text-[#834de3] transition-colors">
-              <Mail className="w-4 h-4 mr-2 flex-shrink-0" />
-              <span className="truncate">{user.email}</span>
-            </div>
+          {/* Description/Bio */}
+          <p className="text-xs text-gray-600 leading-relaxed mb-4 line-clamp-2">
+            {user.location !== 'N/A' ? `Based in ${user.location}` : 'Community member'}. 
+            {user.status === 'active' ? ' Available to connect.' : ' Currently inactive.'}
+          </p>
 
-            <div className="flex items-center justify-center text-sm text-gray-600 hover:text-[#9260e7] transition-colors">
-              <Phone className="w-4 h-4 mr-2 flex-shrink-0" />
-              <span>{user.phone}</span>
-            </div>
-
-            <div className="flex items-center justify-center text-sm text-gray-600 hover:text-[#834de3] transition-colors">
-              <MapPin className="w-4 h-4 mr-2 flex-shrink-0" />
-              <span className="truncate">{user.location}</span>
-            </div>
-          </div>
-
-          {/* Join Date */}
-          <div className="mt-4 pt-4 border-t border-gray-100 w-full">
-            <p className="text-xs text-gray-500">
-              Joined {formatDate(user.joinDate)}
-            </p>
+          {/* Contact Info - Minimal */}
+          <div className="flex items-center justify-center gap-4 text-xs text-gray-500 mb-4">
+            {user.email !== 'N/A' && (
+              <div className="flex items-center">
+                <Mail className="w-3 h-3 mr-1" />
+                <span>Email</span>
+              </div>
+            )}
+            {user.phone !== 'N/A' && (
+              <div className="flex items-center">
+                <Phone className="w-3 h-3 mr-1" />
+                <span>Phone</span>
+              </div>
+            )}
           </div>
 
           {/* Action Button */}
           <Button
-            onClick={()=> router.push(`/users/${user.id}`)}
-            className="w-full mt-4 bg-[#834de3] hover:bg-[#9260e7] text-white transition-all duration-200 transform hover:scale-[1.02]"
+            onClick={() => router.push(`/users/${user.id}`)}
+            variant="outline"
+            className="w-full h-8 text-xs border-gray-300 hover:border-[#834de3] hover:text-[#834de3] transition-colors"
             size="sm"
           >
             View Profile
@@ -180,10 +177,10 @@ export default function UsersDirectoryPage() {
       <main className="flex-1">
         {/* Hero Section */}
         <section className="relative text-white py-20">
-            <div className="absolute inset-0">
+          <div className="absolute inset-0">
             <img
               src="/job.webp"
-              alt="Find your dream job"
+              alt="Users Directory"
               className="w-full h-full object-cover"
             />
             {/* Gradient overlay to darken image */}
@@ -194,49 +191,44 @@ export default function UsersDirectoryPage() {
               <div className="flex items-center gap-3 mb-4">
                 <Users className="w-8 h-8 sm:w-10 sm:h-10" />
                 <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold leading-tight">
-                  Users Directory
+                  Employees Directory
                 </h1>
               </div>
               <p className="text-lg sm:text-xl text-purple-100 mb-6 sm:mb-8 max-w-2xl">
-                Connect with our community members. Browse profiles and discover
+                Connect with our community members. Browse employee profiles and discover
                 amazing people in our network.
               </p>
-
-              {/* Search and Filters */}
-              <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 sm:p-6 border border-white/20">
-                <div className="grid gap-4 sm:grid-cols-[1fr_auto_auto]">
+              <div className="flex flex-col sm:flex-row gap-4 mb-6">
+                <div className="flex-1">
                   <div className="relative">
-                    <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                     <Input
                       placeholder="Search by name, email, phone, or location..."
-                      className="pl-12 h-10 sm:h-12 bg-white border-0 text-gray-800 placeholder:text-gray-500 rounded-xl font-medium text-sm sm:text-base"
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-10"
                     />
                   </div>
-
-                  <Select
-                    value={locationFilter}
-                    onValueChange={setLocationFilter}
-                  >
-                    <SelectTrigger className="w-full sm:w-[180px] h-10 sm:h-12 bg-white border-0 rounded-xl text-sm sm:text-base text-black">
-                      <SelectValue placeholder="Location" />
+                </div>
+                
+                <div className="flex gap-2">
+                  <Select value={locationFilter} onValueChange={setLocationFilter}>
+                    <SelectTrigger className="w-[180px]">
+                      <SelectValue placeholder="All Locations" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">All Locations</SelectItem>
-                      <SelectItem value="New York">Northern Province</SelectItem>
-                      <SelectItem value="San Francisco">
-                       Southern Province
-                      </SelectItem>
-                      <SelectItem value="Chicago">Western Province</SelectItem>
-                      <SelectItem value="Boston">Eastern Province</SelectItem>
-                      <SelectItem value="Seattle">Kigali City</SelectItem>
+                      <SelectItem value="kigali">Kigali</SelectItem>
+                      <SelectItem value="southern">Southern Province</SelectItem>
+                      <SelectItem value="northern">Northern Province</SelectItem>
+                      <SelectItem value="eastern">Eastern Province</SelectItem>
+                      <SelectItem value="western">Western Province</SelectItem>
                     </SelectContent>
                   </Select>
-
+                  
                   <Select value={statusFilter} onValueChange={setStatusFilter}>
-                    <SelectTrigger className="w-full sm:w-[150px] h-10 sm:h-12 bg-white border-0 rounded-xl text-sm sm:text-base text-black">
-                      <SelectValue placeholder="Status" />
+                    <SelectTrigger className="w-[140px]">
+                      <SelectValue placeholder="All Status" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">All Status</SelectItem>

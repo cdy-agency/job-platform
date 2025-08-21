@@ -53,6 +53,8 @@ interface JobDisplay {
   category?: string;
   createdAt?: string;
   featured?: boolean;
+  applicationDeadline?: string;
+  remainingDays?: number | null;
 }
 
 interface CollapsibleSectionProps {
@@ -121,7 +123,6 @@ export default function JobsPage() {
         
         // Safely extract jobs array from response
         const jobsArray = extractJobsArray(jobsData);
-        console.log('Extracted jobs array:', jobsArray); // Debug log
         
         // Transform the API response to match our JobDisplay interface
         const transformedJobs: JobDisplay[] = jobsArray.map((job: any) => ({
@@ -139,6 +140,8 @@ export default function JobsPage() {
           category: job.category || job.jobCategory,
           createdAt: job.createdAt || job.datePosted,
           featured: job.featured || job.isFeatured || false,
+          applicationDeadline: job.applicationDeadline,
+          remainingDays: typeof job.remainingDays === 'number' ? job.remainingDays : undefined,
         }));
 
         console.log('Transformed jobs:', transformedJobs); // Debug log
@@ -234,15 +237,25 @@ export default function JobsPage() {
   };
 
   const JobCard = ({ job }: { job: JobDisplay }) => (
-    <Card className="group hover:shadow-xl transition-all duration-300 border-gray-200 hover:border-[#834de3] bg-white">
-      <CardHeader className="pb-3">
-        <div className="flex items-start gap-3">
-          <div className="relative">
+    <Card className="group relative overflow-hidden bg-white border border-gray-100 hover:border-gray-200 rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+      {/* Featured Badge */}
+      {job.featured && (
+        <div className="absolute top-4 right-4 z-10">
+          <div className="bg-gradient-to-r from-yellow-400 to-orange-400 text-white text-xs font-semibold px-3 py-1 rounded-full shadow-lg">
+            Featured
+          </div>
+        </div>
+      )}
+
+      <CardHeader className="p-6 pb-4">
+        <div className="flex items-start gap-4">
+          {/* Company Logo */}
+          <div className="flex-shrink-0">
             {job.company.logo ? (
               <img
                 src={job.company.logo}
                 alt={job.company.name}
-                className="h-12 w-12 rounded-lg object-cover ring-2 ring-gray-100 group-hover:ring-[#834de3] transition-all"
+                className="h-14 w-14 rounded-xl object-cover border-2 border-gray-100 group-hover:border-[#834de3] transition-all duration-300 shadow-sm"
                 onError={(e) => {
                   const target = e.target as HTMLImageElement;
                   target.style.display = 'none';
@@ -250,59 +263,55 @@ export default function JobsPage() {
                 }}
               />
             ) : null}
-            <div className={`h-12 w-12 rounded-lg bg-gray-100 flex items-center justify-center ring-2 ring-gray-100 group-hover:ring-[#834de3] transition-all ${job.company.logo ? 'hidden' : ''}`}>
-              <Building className="h-6 w-6 text-gray-400" />
+            <div className={`h-14 w-14 rounded-xl bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center border-2 border-gray-100 group-hover:border-[#834de3] transition-all duration-300 shadow-sm ${job.company.logo ? 'hidden' : ''}`}>
+              <Building className="h-7 w-7 text-gray-400" />
             </div>
           </div>
+
+          {/* Job Info */}
           <div className="flex-1 min-w-0">
-            <h3 className="font-bold text-gray-900 text-lg leading-tight mb-1 group-hover:text-[#834de3] transition-colors">
+            <h3 className="font-bold text-gray-900 text-xl leading-tight mb-2 group-hover:text-[#834de3] transition-colors line-clamp-2">
               {job.title}
             </h3>
-            <p className="text-sm text-gray-600 font-medium">
+            <p className="text-gray-600 font-medium mb-3 text-sm">
               {job.company.name}
             </p>
-            <div className="flex items-center gap-2 mt-2">
-              <Badge
-                className={`text-xs ${getEmploymentColor(job.employmentType)}`}
-              >
+            
+            {/* Employment Type Badge */}
+            <div className="flex items-center gap-2">
+              <Badge className={`text-xs font-medium px-3 py-1 rounded-full ${getEmploymentColor(job.employmentType)} shadow-sm`}>
                 {getEmploymentIcon(job.employmentType)}
-                <span className="ml-1">{job.employmentType}</span>
+                <span className="ml-1.5">{job.employmentType}</span>
               </Badge>
-              {job.featured && (
-                <Badge className="text-xs bg-yellow-500 text-white">
-                  Featured
-                </Badge>
-              )}
             </div>
           </div>
         </div>
       </CardHeader>
 
-      <CardContent className="pb-4">
-        <div className="space-y-2 mb-3">
-          <div className="flex items-center text-sm text-gray-600">
-            <MapPin className="w-4 h-4 mr-2 text-[#834de3]" />
-            {job.location}
+      <CardContent className="px-6 pb-4">
+        {/* Job Details - Simplified */}
+        <div className="flex items-center justify-between text-sm text-gray-600">
+          {/* Location */}
+          <div className="flex items-center">
+            <MapPin className="w-4 h-4 text-[#834de3] mr-2" />
+            <span className="font-medium">{job.location}</span>
           </div>
-          <div className="flex items-center text-sm text-gray-600">
-            <DollarSign className="w-4 h-4 mr-2 text-[#834de3]" />
-            <span className="font-semibold text-gray-800">{job.salary}</span>
-          </div>
-          {job.category && (
-            <div className="flex items-center text-sm text-gray-600">
-              <span className="text-gray-500">Category:</span>
-              <span className="ml-1 font-medium">{job.category}</span>
+
+          {/* Remaining Days */}
+          {typeof job.remainingDays === 'number' && (
+            <div className="flex items-center">
+              <Clock className="w-4 h-4 text-blue-500 mr-2" />
+              <span className="font-medium">
+                {job.remainingDays === 0 ? 'Expired' : `${job.remainingDays}d left`}
+              </span>
             </div>
           )}
         </div>
-        <p className="text-sm text-gray-600 line-clamp-2 leading-relaxed">
-          {job.description}
-        </p>
       </CardContent>
 
-      <CardFooter className="pt-0">
+      <CardFooter className="p-6 pt-2">
         <Link href={`/jobs/${job.id}`} className="w-full">
-          <Button className="w-full bg-[#834de3] hover:bg-[#9260e7] text-white font-medium transition-all duration-200 transform hover:scale-[1.02]">
+          <Button className="w-full h-10 bg-[#834de3] hover:bg-[#9260e7] text-white text-sm font-medium rounded-lg transition-all duration-200 hover:scale-[1.02]">
             View Details
           </Button>
         </Link>
@@ -319,32 +328,34 @@ export default function JobsPage() {
     icon,
     badgeColor,
   }: CollapsibleSectionProps) => (
-    <div className="rounded-xl border border-gray-200 bg-white shadow-sm">
-      <div className="flex items-center justify-between p-4">
-        <div className="flex items-center gap-3">
-          <div className={`rounded-md p-2 ${badgeColor}`}>{icon}</div>
+    <div className="rounded-xl border border-gray-100 bg-white shadow-sm hover:shadow-md transition-all duration-300">
+      <div className="flex items-center justify-between p-6">
+        <div className="flex items-center gap-4">
+          <div className={`rounded-lg p-2 ${badgeColor}`}>{icon}</div>
           <div>
-            <h2 className="text-lg font-bold text-gray-900">{title}</h2>
-            <p className="text-sm text-gray-600">{description} ({jobs.length} positions)</p>
+            <h2 className="text-lg font-bold text-gray-900 mb-1">{title}</h2>
+            <p className="text-sm text-gray-600">{description} • {jobs.length} position{jobs.length !== 1 ? 's' : ''}</p>
           </div>
         </div>
         <button
           onClick={onToggle}
-          className="rounded-md border border-gray-200 px-2 py-1 text-sm text-gray-700 hover:bg-gray-50"
+          className="flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-all duration-200"
         >
           {isExpanded ? (
-            <span className="flex items-center gap-2">
-              <ChevronUp className="h-4 w-4" /> Collapse
-            </span>
+            <>
+              <ChevronUp className="h-4 w-4" /> 
+              <span>Collapse</span>
+            </>
           ) : (
-            <span className="flex items-center gap-2">
-              <ChevronDown className="h-4 w-4" /> Expand ({jobs.length})
-            </span>
+            <>
+              <ChevronDown className="h-4 w-4" /> 
+              <span>Show {jobs.length}</span>
+            </>
           )}
         </button>
       </div>
       {isExpanded && (
-        <div className="p-4">
+        <div className="px-6 pb-6">
           {jobs.length > 0 ? (
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
               {jobs.map((job) => (
@@ -352,8 +363,11 @@ export default function JobsPage() {
               ))}
             </div>
           ) : (
-            <div className="text-center py-8">
-              <p className="text-gray-500">No {title.toLowerCase()} available at the moment.</p>
+            <div className="text-center py-12">
+              <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-xl flex items-center justify-center">
+                <Briefcase className="h-8 w-8 text-gray-400" />
+              </div>
+              <p className="text-gray-500 font-medium">No {title.toLowerCase()} available at the moment.</p>
             </div>
           )}
         </div>
@@ -366,11 +380,11 @@ export default function JobsPage() {
     return (
       <div className="min-h-screen bg-gray-50">
         <NavBar />
-        <main className="container mx-auto px-4 py-10">
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
           <div className="flex items-center justify-center min-h-[400px]">
             <div className="text-center">
-              <Loader2 className="h-8 w-8 animate-spin text-[#834de3] mx-auto mb-4" />
-              <p className="text-gray-600">Loading job opportunities...</p>
+              <Loader2 className="h-10 w-10 animate-spin text-[#834de3] mx-auto mb-4" />
+              <p className="text-gray-600 font-medium">Loading job opportunities...</p>
             </div>
           </div>
         </main>
@@ -379,27 +393,26 @@ export default function JobsPage() {
     );
   }
 
-
   // Error state
   if (error) {
     return (
       <div className="min-h-screen bg-gray-50">
         <NavBar />
-        <main className="container mx-auto px-4 py-10">
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
           <div className="text-center py-16">
-            <div className="w-16 h-16 mx-auto mb-4 bg-red-100 rounded-full flex items-center justify-center">
-              <Briefcase className="h-8 w-8 text-red-400" />
+            <div className="w-20 h-20 mx-auto mb-6 bg-red-100 rounded-2xl flex items-center justify-center">
+              <Briefcase className="h-10 w-10 text-red-400" />
             </div>
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">Something went wrong</h3>
-            <p className="text-red-600 mb-4">{error}</p>
-            <div className="space-y-2">
+            <h3 className="text-2xl font-bold text-gray-900 mb-3">Something went wrong</h3>
+            <p className="text-red-600 mb-6 font-medium">{error}</p>
+            <div className="space-y-4">
               <Button 
                 onClick={() => window.location.reload()}
-                className="bg-[#834de3] hover:bg-[#9260e7] text-white mr-2"
+                className="bg-[#834de3] hover:bg-[#9260e7] text-white px-6 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
               >
                 Try Again
               </Button>
-              <p className="text-sm text-gray-500 mt-4">
+              <p className="text-sm text-gray-500">
                 Check the browser console for more details about the API response.
               </p>
             </div>
@@ -414,27 +427,27 @@ export default function JobsPage() {
     <div className="min-h-screen bg-gray-50">
       <NavBar />
 
-      <main className="container mx-auto px-4 py-10">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         {/* Header */}
-        <div className="mb-8 text-center">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">Find Your Dream Job</h1>
-          <p className="text-gray-600">Discover amazing opportunities from top companies</p>
+        <div className="mb-10 text-center">
+          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-3">Find Your Dream Job</h1>
+          <p className="text-xl text-gray-600">Discover amazing opportunities from top companies</p>
         </div>
 
         {/* Filters */}
-        <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <div className="mb-10 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
           <div className="relative">
             <Input
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Search jobs, companies..."
-              className="h-12 rounded-lg border border-gray-300 bg-white pl-10 text-gray-900"
+              className="h-14 rounded-xl border-2 border-gray-200 bg-white pl-12 text-gray-900 font-medium focus:border-[#834de3] focus:ring-2 focus:ring-[#834de3]/20 transition-all duration-200"
             />
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 w-5 h-5" />
           </div>
           
           <Select value={location} onValueChange={setLocation}>
-            <SelectTrigger className="h-12 rounded-lg border border-gray-300 bg-white text-gray-900">
+            <SelectTrigger className="h-14 rounded-xl border-2 border-gray-200 bg-white text-gray-900 font-medium focus:border-[#834de3] focus:ring-2 focus:ring-[#834de3]/20">
               <SelectValue placeholder="Location" />
             </SelectTrigger>
             <SelectContent>
@@ -446,7 +459,7 @@ export default function JobsPage() {
           </Select>
 
           <Select value={category} onValueChange={setCategory}>
-            <SelectTrigger className="h-12 rounded-lg border border-gray-300 bg-white text-gray-900">
+            <SelectTrigger className="h-14 rounded-xl border-2 border-gray-200 bg-white text-gray-900 font-medium focus:border-[#834de3] focus:ring-2 focus:ring-[#834de3]/20">
               <SelectValue placeholder="Category" />
             </SelectTrigger>
             <SelectContent>
@@ -460,7 +473,7 @@ export default function JobsPage() {
           </Select>
           
           <Select value={salaryRange} onValueChange={setSalaryRange}>
-            <SelectTrigger className="h-12 rounded-lg border border-gray-300 bg-white text-gray-900">
+            <SelectTrigger className="h-14 rounded-xl border-2 border-gray-200 bg-white text-gray-900 font-medium focus:border-[#834de3] focus:ring-2 focus:ring-[#834de3]/20">
               <SelectValue placeholder="Salary Range" />
             </SelectTrigger>
             <SelectContent>
@@ -473,22 +486,24 @@ export default function JobsPage() {
         </div>
 
         {/* Results Summary */}
-        <div className="mb-6">
-          <p className="text-gray-600">
-            Found <span className="font-semibold text-[#834de3]">{filteredJobs.length}</span> job{filteredJobs.length !== 1 ? 's' : ''} 
-            {searchTerm && <span> matching "{searchTerm}"</span>}
-          </p>
+        <div className="mb-8">
+          <div className="bg-white rounded-xl border border-gray-100 p-4">
+            <p className="text-gray-700 font-medium">
+              Found <span className="font-bold text-[#834de3] text-lg">{filteredJobs.length}</span> job{filteredJobs.length !== 1 ? 's' : ''} 
+              {searchTerm && <span> matching "<span className="font-semibold">{searchTerm}</span>"</span>}
+            </p>
+          </div>
         </div>
 
         {/* Job Sections */}
-        <div className="space-y-6">
+        <div className="space-y-8">
           <CollapsibleSection
             title="Full-time Jobs"
             description="Full-time positions with complete benefits"
             jobs={jobsByType.fullTime}
             isExpanded={expandedSections.fullTime}
             onToggle={() => toggleSection("fullTime")}
-            icon={<Briefcase className="h-5 w-5 text-white" />}
+            icon={<Briefcase className="h-6 w-6 text-white" />}
             badgeColor="bg-[#834de3]"
           />
 
@@ -498,7 +513,7 @@ export default function JobsPage() {
             jobs={jobsByType.partTime}
             isExpanded={expandedSections.partTime}
             onToggle={() => toggleSection("partTime")}
-            icon={<Clock className="h-5 w-5 text-white" />}
+            icon={<Clock className="h-6 w-6 text-white" />}
             badgeColor="bg-[#9260e7]"
           />
 
@@ -508,19 +523,19 @@ export default function JobsPage() {
             jobs={jobsByType.internship}
             isExpanded={expandedSections.internship}
             onToggle={() => toggleSection("internship")}
-            icon={<GraduationCap className="h-5 w-5 text-white" />}
+            icon={<GraduationCap className="h-6 w-6 text-white" />}
             badgeColor="bg-gray-800"
           />
         </div>
 
         {/* Empty State */}
         {jobs.length === 0 && !loading && (
-          <div className="text-center py-16">
-            <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
-              <Briefcase className="h-8 w-8 text-gray-400" />
+          <div className="text-center py-20">
+            <div className="w-24 h-24 mx-auto mb-6 bg-gray-100 rounded-2xl flex items-center justify-center">
+              <Briefcase className="h-12 w-12 text-gray-400" />
             </div>
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">No Jobs Available</h3>
-            <p className="text-gray-600">
+            <h3 className="text-2xl font-bold text-gray-900 mb-3">No Jobs Available</h3>
+            <p className="text-gray-600 text-lg">
               There are currently no job postings available. Check back later for new opportunities!
             </p>
           </div>

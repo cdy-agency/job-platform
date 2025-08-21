@@ -18,12 +18,12 @@ export default function UserDashboardPage() {
   const { toast } = useToast()
   const [applyOpen, setApplyOpen] = useState(false)
   const [applyJobId, setApplyJobId] = useState<string>("")
-  const [applySkills, setApplySkills] = useState<string>("")
-  const [applyExperience, setApplyExperience] = useState<string>("")
+  const [applyMessage, setApplyMessage] = useState<string>("")
+  const [applyFile, setApplyFile] = useState<File | null>(null)
   const [applySubmitting, setApplySubmitting] = useState(false)
 
   useEffect(() => {
-    Promise.all([fetchEmployeeProfile(), fetchEmployeeApplications(), fetchJobSuggestions('IT & Software')])
+    Promise.all([fetchEmployeeProfile(), fetchEmployeeApplications(), fetchJobSuggestions()])
       .then(([p, apps, suggestions]) => {
         setProfile(p || null)
         setApplications(apps || [])
@@ -44,12 +44,12 @@ export default function UserDashboardPage() {
           </DialogHeader>
           <div className="space-y-3">
             <div>
-              <label className="text-sm text-gray-700">Skills (comma separated)</label>
-              <Input value={applySkills} onChange={(e) => setApplySkills(e.target.value)} placeholder="e.g. React, Node.js" />
+              <label className="text-sm text-gray-700">Message</label>
+              <Input value={applyMessage} onChange={(e) => setApplyMessage(e.target.value)} placeholder="Brief message to the employer" />
             </div>
             <div>
-              <label className="text-sm text-gray-700">Experience (years)</label>
-              <Input value={applyExperience} onChange={(e) => setApplyExperience(e.target.value)} placeholder="e.g. 3" />
+              <label className="text-sm text-gray-700">Resume / Document</label>
+              <input type="file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" onChange={(e) => setApplyFile(e.target.files?.[0] || null)} className="block w-full text-sm" />
             </div>
           </div>
           <DialogFooter>
@@ -57,12 +57,11 @@ export default function UserDashboardPage() {
               onClick={async () => {
                 setApplySubmitting(true)
                 try {
-                  const skills = applySkills.split(',').map(s => s.trim()).filter(Boolean)
-                  await applyToJob(applyJobId, { skills, experience: applyExperience || undefined, appliedVia: 'normal' })
+                  await applyToJob(applyJobId, { message: applyMessage || undefined, resumeFile: applyFile, appliedVia: 'normal' })
                   toast({ title: 'Application submitted', description: 'Your application has been sent.' })
                   setApplyOpen(false)
-                  setApplySkills("")
-                  setApplyExperience("")
+                  setApplyMessage("")
+                  setApplyFile(null)
                 } catch (e: any) {
                   toast({ title: 'Failed to apply', description: e?.response?.data?.message || 'Please log in as an employee.', variant: 'destructive' })
                 } finally {

@@ -33,7 +33,7 @@ import { useAuth } from "@/context/authContext"
 
 const employmentEnum = z.enum(["fulltime", "part-time", "internship"])
 
-const JOB_CATEGORIES = [
+export const JOB_CATEGORIES = [
   { value: "general-labour", label: "Akazi rusange (General Labour)" },
   { value: "domestic-work", label: "Akazi ko mu rugo (Domestic Work)" },
   { value: "cleaning-janitorial", label: "Isuku (Cleaning & Janitorial)" },
@@ -173,11 +173,6 @@ export default function PostJobPage() {
       })
       router.push("/dashboard/company/jobs")
     } catch (e: any) {
-      console.error("❌ Error in onSubmit:", e);
-      console.error("Error response:", e?.response);
-      console.error("Error data:", e?.response?.data);
-      console.error("Error message:", e?.message);
-      console.error("Full error object:", JSON.stringify(e, null, 2));
       
       toast({
         title: "Failed to post job",
@@ -188,17 +183,6 @@ export default function PostJobPage() {
       setIsSubmitting(false)
     }
   }
-
-  // ✅ DEBUG INFO - Remove this in production
-  console.log("Form Debug Info:", {
-    isValid: form.formState.isValid,
-    errors: form.formState.errors,
-    isDirty: form.formState.isDirty,
-    isSubmitting: isSubmitting,
-    skillsCount: form.watch("skills")?.length || 0,
-    responsibilitiesCount: form.watch("responsibilities")?.length || 0,
-    benefitsCount: form.watch("benefits")?.length || 0,
-  });
 
   return (
     <div className="container space-y-6 p-6 pb-16">
