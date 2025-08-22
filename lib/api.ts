@@ -60,6 +60,25 @@ export const loginUser = async (
   return res;
 };
 
+export const updateAdminPassword = async (data: {
+  currentPassword: string;
+  newPassword: string;
+}) => {
+  const response = await fetch('/api/admin/password', {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`);
+  }
+
+  return await response.json();
+};
+
 // Employee APIs
 export const fetchEmployeeProfile = async () => {
   const res = await api.get("/employee/profile");
