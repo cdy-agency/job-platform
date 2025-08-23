@@ -79,9 +79,15 @@ export default function UserProfilePage() {
 
   const handleUpdate = async () => {
     if (!profile) return;
+    
+    // Debug logging
+    console.log('Profile data to update:', profile);
+    console.log('Token from localStorage:', localStorage.getItem('token'));
+    console.log('User from localStorage:', localStorage.getItem('user'));
+    
     setLoading(true);
     try {
-      await updateEmployeeProfile({
+      const result = await updateEmployeeProfile({
         name: profile.name || "",
         phoneNumber: profile.phoneNumber || "",
         location: profile.location || "",
@@ -91,8 +97,10 @@ export default function UserProfilePage() {
         skills: profile.skills || [],
         jobPreferences: profile.jobPreferences || [],
       });
+      console.log('Update successful:', result);
       toast({ title: "Profile updated successfully", description: "Your changes have been saved." });
     } catch (err: any) {
+      console.error('Update failed with error:', err);
       toast({
         title: "Update failed",
         description: err?.response?.data?.message || "Please try again",

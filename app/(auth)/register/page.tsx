@@ -60,7 +60,7 @@ export default function RegisterPage() {
           title: `${formData.companyName} registered successfully!`,
           description: "Welcome to our platform!",
         });
-        router.push("/dashboard/company");
+        router.push("/login");
       } else {
         const payload = {
           name: formData.name,
@@ -76,7 +76,7 @@ export default function RegisterPage() {
           title: `${formData.name} registered successfully!`,
           description: "Welcome to our platform!",
         });
-        router.push("/dashboard/user");
+        router.push("/login");
       }
     } catch (error) {
       toast({
