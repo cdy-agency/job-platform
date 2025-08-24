@@ -79,7 +79,16 @@ export default function UserDashboardPage() {
                     return next
                   })
                 } catch (e: any) {
-                  toast({ title: 'Failed to apply', description: e?.response?.data?.message || 'Please log in as an employee.', variant: 'destructive' })
+                  const message = e?.response?.data?.message || 'Please log in as an employee.'
+                  toast({ title: 'Failed to apply', description: message, variant: 'destructive' })
+                  if (typeof message === 'string' && message.toLowerCase().includes('already applied')) {
+                    setAppliedJobIds(prev => {
+                      const next = new Set(prev)
+                      next.add(applyJobId)
+                      return next
+                    })
+                    setApplyOpen(false)
+                  }
                 } finally {
                   setApplySubmitting(false)
                 }
