@@ -5,7 +5,7 @@ import { AppAvatar } from "@/components/ui/avatar";
 import { fetchCompanyJobs, fetchJobApplicants, updateApplicantStatus } from "@/lib/api";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 
 type Applicant = {
   _id: string;
