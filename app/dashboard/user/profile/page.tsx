@@ -281,11 +281,11 @@ export default function UserProfilePage() {
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Profile Settings</h1>
             <p className="text-gray-600">Manage your personal information and account settings</p>
           </div>
-          <div className="flex gap-3">
+          <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
             <Button
               onClick={() => setShowPasswordReset(true)}
               variant="outline"
-              className="border-purple-200 hover:border-purple-300 hover:bg-purple-50"
+              className="border-purple-200 hover:border-purple-300 hover:bg-purple-50 w-full sm:w-auto"
             >
               <Shield className="mr-2 h-4 w-4" />
               Change Password
@@ -293,10 +293,10 @@ export default function UserProfilePage() {
             <Button
               onClick={handleUpdate}
               disabled={loading}
-              className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white shadow-lg"
+              className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white shadow-lg w-full sm:w-auto"
             >
               {loading ? (
-                <div className="flex items-center">
+                <div className="flex items-center justify-center">
                   <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
                   Saving...
                 </div>
@@ -308,21 +308,41 @@ export default function UserProfilePage() {
               )}
             </Button>
             <Button
-              onClick={() => setConfirmOpen((profile as any)?.status === 'inactive' ? 'activate' : 'deactivate')}
+              onClick={() => setConfirmOpen((profile as any)?.isActive === false ? 'activate' : 'deactivate')}
               variant="outline"
-              className={(profile as any)?.status === 'inactive' ? 'border-green-200 text-green-600 hover:bg-green-50' : 'border-red-200 text-red-600 hover:bg-red-50'}
+              className={`w-full sm:w-auto ${
+                (profile as any)?.isActive === false 
+                  ? 'border-green-200 text-green-600 hover:bg-green-50' 
+                  : 'border-red-200 text-red-600 hover:bg-red-50'
+              }`}
             >
-              {(profile as any)?.status === 'inactive' ? 'Activate account' : 'Deactivate account'}
+              {(profile as any)?.isActive === false ? 'Activate account' : 'Deactivate account'}
             </Button>
             <Button
               onClick={() => setConfirmOpen('delete')}
               variant="outline"
-              className="border-red-300 text-red-700 hover:bg-red-100"
+              className="border-red-300 text-red-700 hover:bg-red-100 w-full sm:w-auto"
             >
               Delete account
             </Button>
           </div>
         </div>
+
+        {/* Status Indicator */}
+        {profile && (
+          <div className="mb-6 p-3 rounded-md bg-gray-50 border border-gray-200">
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium text-gray-700">Account Status:</span>
+              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                (profile as any)?.isActive === false
+                  ? 'bg-red-100 text-red-800'
+                  : 'bg-green-100 text-green-800'
+              }`}>
+                {(profile as any)?.isActive === false ? 'Deactivated' : 'Active'}
+              </span>
+            </div>
+          </div>
+        )}
 
         {/* Main Content */}
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
@@ -751,8 +771,15 @@ export default function UserProfilePage() {
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md">
               <div className="p-6">
                 <div className="mb-4">
-                  <h3 className="text-xl font-semibold text-gray-900">Do you want to proceed?</h3>
-                  <p className="text-sm text-gray-600 mt-1">This action may change your account availability.</p>
+                  <h3 className="text-xl font-semibold text-gray-900">
+                    {confirmOpen === 'delete' ? 'Delete Account' : 
+                     confirmOpen === 'deactivate' ? 'Deactivate Account' : 'Activate Account'}
+                  </h3>
+                  <p className="text-sm text-gray-600 mt-1">
+                    {confirmOpen === 'delete' ? 'This action will permanently delete your account and cannot be undone.' :
+                     confirmOpen === 'deactivate' ? 'Your account will be deactivated and you won\'t be able to access the platform.' :
+                     'Your account will be reactivated and you\'ll regain access to all features.'}
+                  </p>
                 </div>
                 <div className="flex gap-3 mt-6 justify-end">
                   <Button variant="outline" onClick={() => setConfirmOpen(null)}>Cancel</Button>
@@ -765,11 +792,22 @@ export default function UserProfilePage() {
                         if (confirmOpen === 'delete') await deleteEmployeeAccount();
                         const refreshed = await fetchEmployeeProfile();
                         setProfile(refreshed);
-                      } catch {}
+                        toast({ 
+                          title: "Success", 
+                          description: `Account ${confirmOpen === 'delete' ? 'deleted' : confirmOpen === 'deactivate' ? 'deactivated' : 'activated'} successfully` 
+                        });
+                      } catch (err: any) {
+                        toast({
+                          title: "Error",
+                          description: err?.response?.data?.message || "Failed to process request",
+                          variant: "destructive"
+                        });
+                      }
                       setConfirmOpen(null);
                     }}
                   >
-                    Yes
+                    {confirmOpen === 'delete' ? 'Delete Account' : 
+                     confirmOpen === 'deactivate' ? 'Deactivate' : 'Activate'}
                   </Button>
                 </div>
               </div>

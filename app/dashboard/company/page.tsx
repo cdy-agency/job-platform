@@ -106,6 +106,39 @@ export default function CompanyDashboardPage() {
           </div>
         </div>
 
+        {/* Status Indicator */}
+        {profile && (
+          <div className="p-4 rounded-lg bg-gray-50 border border-gray-200">
+            <div className="flex items-center gap-3">
+              <span className="text-sm font-medium text-gray-700">Company Status:</span>
+              <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
+                profile.status === 'approved' && profile.isActive 
+                  ? 'bg-green-100 text-green-800' 
+                  : profile.status === 'disabled' || !profile.isActive
+                  ? 'bg-red-100 text-red-800'
+                  : profile.status === 'pending'
+                  ? 'bg-yellow-100 text-yellow-800'
+                  : 'bg-gray-100 text-gray-800'
+              }`}>
+                {profile.status === 'approved' && profile.isActive 
+                  ? 'Active & Approved' 
+                  : profile.status === 'disabled' || !profile.isActive
+                  ? 'Account Disabled'
+                  : profile.status === 'pending'
+                  ? 'Pending Approval'
+                  : profile.status}
+              </span>
+              {profile.status === 'disabled' || !profile.isActive ? (
+                <Link href="/dashboard/company/profile">
+                  <Button size="sm" variant="outline" className="text-xs border-green-200 text-green-700 hover:bg-green-50">
+                    Reactivate Account
+                  </Button>
+                </Link>
+              ) : null}
+            </div>
+          </div>
+        )}
+
         {/* Stats */}
         <div className="grid gap-6 md:grid-cols-3">
           <Card className="shadow-sm hover:shadow-md transition bg-white">
@@ -208,42 +241,49 @@ export default function CompanyDashboardPage() {
           </CardHeader>
           <CardContent>
             {applicants.length > 0 ? (
-              <table className="w-full text-sm text-left border border-gray-200 rounded-lg overflow-hidden">
-                <thead className="bg-purple-50 text-purple-700">
-                  <tr>
-                    <th className="px-4 py-2">Applicant</th>
-                    <th className="px-4 py-2">Applied For</th>
-                    <th className="px-4 py-2">Date</th>
-                    <th className="px-4 py-2 text-right">Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {applicants.slice(0, 5).map((app) => (
-                    <tr key={app._id} className="border-t hover:bg-gray-50">
-                      <td className="px-4 py-2 flex items-center gap-3 text-black">
-                        <Avatar className="h-8 w-8 border">
-                          <AvatarImage src={getImageUrl(app.employeeId?.profileImage)} />
-                          <AvatarFallback className="bg-gray-200 text-gray-600">
-                            {(app.employeeId?.name || "A").charAt(0).toUpperCase()}
-                          </AvatarFallback>
-                        </Avatar>
-                        <span className="font-medium">{app.employeeId?.name || "Applicant"}</span>
-                      </td>
-                      <td className="px-4 py-2">{app.jobId?.title || "—"}</td>
-                      <td className="px-4 py-2">
-                        {app.createdAt ? new Date(app.createdAt).toLocaleDateString() : "—"}
-                      </td>
-                      <td className="px-4 py-2 text-right">
-                        <Link href={`/dashboard/company/applicants`}>
-                          <Button size="sm" variant="outline" className="hover:border-purple-500 hover:text-purple-700">
-                            <Eye className="mr-1 h-4 w-4" /> Review
-                          </Button>
-                        </Link>
-                      </td>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm text-left border border-gray-200 rounded-lg overflow-hidden">
+                  <thead className="bg-purple-50 text-purple-700">
+                    <tr>
+                      <th className="px-2 py-2 md:px-4 md:py-2">Applicant</th>
+                      <th className="hidden sm:table-cell px-2 py-2 md:px-4 md:py-2">Applied For</th>
+                      <th className="hidden md:table-cell px-2 py-2 md:px-4 md:py-2">Date</th>
+                      <th className="px-2 py-2 md:px-4 md:py-2 text-right">Action</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {applicants.slice(0, 5).map((app) => (
+                      <tr key={app._id} className="border-t hover:bg-gray-50">
+                        <td className="px-2 py-2 md:px-4 md:py-2 flex items-center gap-2 md:gap-3 text-black">
+                          <Avatar className="h-6 w-6 md:h-8 md:w-8 border">
+                            <AvatarImage src={getImageUrl(app.employeeId?.profileImage)} />
+                            <AvatarFallback className="bg-gray-200 text-gray-600 text-xs md:text-sm">
+                              {(app.employeeId?.name || "A").charAt(0).toUpperCase()}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="min-w-0 flex-1">
+                            <span className="font-medium text-xs md:text-sm block truncate">{app.employeeId?.name || "Applicant"}</span>
+                            <span className="text-xs text-gray-500 sm:hidden block truncate">{app.jobId?.title || "—"}</span>
+                          </div>
+                        </td>
+                        <td className="hidden sm:table-cell px-2 py-2 md:px-4 md:py-2 text-xs md:text-sm">{app.jobId?.title || "—"}</td>
+                        <td className="hidden md:table-cell px-2 py-2 md:px-4 md:py-2 text-xs md:text-sm">
+                          {app.createdAt ? new Date(app.createdAt).toLocaleDateString() : "—"}
+                        </td>
+                        <td className="px-2 py-2 md:px-4 md:py-2 text-right">
+                          <Link href={`/dashboard/company/applicants`}>
+                            <Button size="sm" variant="outline" className="hover:border-purple-500 hover:text-purple-700 text-xs md:text-sm px-2 md:px-3">
+                              <Eye className="mr-1 h-3 w-3 md:h-4 md:w-4" />
+                              <span className="hidden sm:inline">Review</span>
+                              <span className="sm:hidden">View</span>
+                            </Button>
+                          </Link>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             ) : (
               <p className="text-center py-6 text-gray-600">No applications yet</p>
             )}

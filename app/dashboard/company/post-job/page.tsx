@@ -117,7 +117,7 @@ export default function PostJobPage() {
     form.setValue(fieldName, updated, { shouldDirty: true, shouldValidate: true })
   }
 
-  // ✅ ENHANCED SUBMIT FUNCTION with better error handling and user ID debugging
+  // ENHANCED SUBMIT FUNCTION with better error handling and user ID debugging
   async function onSubmit(values: JobFormValues) {
     console.log("Form submission started with values:", values);
     console.log("Form errors:", form.formState.errors);
@@ -273,7 +273,7 @@ export default function PostJobPage() {
                   <FormItem>
                     <FormLabel className="text-gray-800">Location</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g. Kigali, Musanze, Huye" {...field} className="border-gray-300" />
+                      <Input placeholder="e.g. Kigali, Musanze, Huye" {...field} className="border-gray-300" required/>
                     </FormControl>
                     <FormMessage />
                   </FormItem>

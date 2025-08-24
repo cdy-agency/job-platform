@@ -52,6 +52,11 @@ export default function CompanyProfilePage() {
   // drag & drop state for styling
   const [dragActive, setDragActive] = useState(false);
 
+  // Modal state
+  const [showModal, setShowModal] = useState(false);
+  const [modalAction, setModalAction] = useState<'activate' | 'deactivate' | 'delete' | null>(null);
+  const [modalLoading, setModalLoading] = useState(false);
+
   // Load existing profile data
   useEffect(() => {
     const loadProfile = async () => {
@@ -222,6 +227,39 @@ export default function CompanyProfilePage() {
     });
   };
 
+  const handleModalAction = async () => {
+    if (!modalAction) return;
+    
+    setModalLoading(true);
+    try {
+      if (modalAction === 'deactivate') {
+        await deactivateCompanyAccount();
+        toast.success('Company deactivated');
+      } else if (modalAction === 'activate') {
+        await activateCompanyAccount();
+        toast.success('Company activated');
+      } else if (modalAction === 'delete') {
+        await deleteCompanyAccount();
+        toast.success('Company account deleted');
+      }
+      
+      // Reload profile data
+      const updatedData = await fetchCompanyProfile();
+      setProfileData(updatedData);
+    } catch (e: any) {
+      toast.error(e?.response?.data?.message || `Failed to ${modalAction} company`);
+    } finally {
+      setModalLoading(false);
+      setShowModal(false);
+      setModalAction(null);
+    }
+  };
+
+  const openModal = (action: 'activate' | 'deactivate' | 'delete') => {
+    setModalAction(action);
+    setShowModal(true);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -302,50 +340,57 @@ export default function CompanyProfilePage() {
         <h1 className="text-lg font-semibold text-gray-900 mb-6">
           Company Profile
         </h1>
+        
+        {/* Status Indicator */}
+        {profileData && (
+          <div className="mb-4 p-3 rounded-md bg-gray-50 border border-gray-200">
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium text-gray-700">Account Status:</span>
+              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                profileData.status === 'approved' && profileData.isActive 
+                  ? 'bg-green-100 text-green-800' 
+                  : profileData.status === 'disabled' || !profileData.isActive
+                  ? 'bg-red-100 text-red-800'
+                  : profileData.status === 'pending'
+                  ? 'bg-yellow-100 text-yellow-800'
+                  : 'bg-gray-100 text-gray-800'
+              }`}>
+                {profileData.status === 'approved' && profileData.isActive 
+                  ? 'Active & Approved' 
+                  : profileData.status === 'disabled' || !profileData.isActive
+                  ? 'Disabled'
+                  : profileData.status === 'pending'
+                  ? 'Pending Approval'
+                  : profileData.status}
+              </span>
+            </div>
+          </div>
+        )}
+        
         <div className="mb-4 flex gap-2">
+          {profileData?.status === 'disabled' || !profileData?.isActive ? (
+            <button
+              type="button"
+              onClick={() => openModal('activate')}
+              className="text-xs px-3 py-1 rounded-md border border-green-200 text-green-700 hover:bg-green-50"
+            >
+              Activate Account
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={() => openModal('deactivate')}
+              className="text-xs px-3 py-1 rounded-md border border-red-200 text-red-700 hover:bg-red-50"
+            >
+              Deactivate Account
+            </button>
+          )}
           <button
             type="button"
-            onClick={async () => {
-              try {
-                await deactivateCompanyAccount();
-                toast.success('Company deactivated');
-              } catch (e: any) {
-                toast.error(e?.response?.data?.message || 'Failed to deactivate');
-              }
-            }}
-            className="text-xs px-3 py-1 rounded-md border border-red-200 text-red-700 hover:bg-red-50"
-          >
-            Deactivate
-          </button>
-          <button
-            type="button"
-            onClick={async () => {
-              try {
-                await activateCompanyAccount();
-                toast.success('Company activated');
-              } catch (e: any) {
-                toast.error(e?.response?.data?.message || 'Failed to activate');
-              }
-            }}
-            className="text-xs px-3 py-1 rounded-md border border-green-200 text-green-700 hover:bg-green-50"
-          >
-            Activate
-          </button>
-          <button
-            type="button"
-            onClick={async () => {
-              const ok = window.confirm('Permanently delete company account?');
-              if (!ok) return;
-              try {
-                await deleteCompanyAccount();
-                toast.success('Company account deleted');
-              } catch (e: any) {
-                toast.error(e?.response?.data?.message || 'Failed to delete');
-              }
-            }}
+            onClick={() => openModal('delete')}
             className="text-xs px-3 py-1 rounded-md border border-red-300 text-red-800 hover:bg-red-100"
           >
-            Delete
+            Delete Account
           </button>
         </div>
         <form
@@ -663,9 +708,44 @@ export default function CompanyProfilePage() {
           </div>
         </form>
       </div>
+
+      {/* Confirmation Modal */}
+      {showModal && modalAction && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white p-6 rounded-lg shadow-xl max-w-sm w-full">
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              {modalAction === 'delete' ? 'Delete Company Account' : 
+                modalAction === 'deactivate' ? 'Deactivate Company Account' : 'Activate Company Account'}
+            </h3>
+            <p className="text-sm text-gray-700 mb-4">
+              {modalAction === 'delete' ? 'This action will permanently delete your company account and cannot be undone. All data will be lost.' :
+                modalAction === 'deactivate' ? 'Your company account will be deactivated. You won\'t be able to post jobs or access company features until reactivated.' :
+                'Your company account will be reactivated. You\'ll regain access to all company features.'}
+            </p>
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => setShowModal(false)}
+                className="px-4 py-2 rounded-md border border-gray-200 text-gray-700 hover:bg-gray-100"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleModalAction}
+                disabled={modalLoading}
+                className={`px-4 py-2 rounded-md text-white hover:opacity-90 disabled:opacity-50 ${
+                  modalAction === 'delete' ? 'bg-red-600 hover:bg-red-700' :
+                  modalAction === 'deactivate' ? 'bg-orange-600 hover:bg-orange-700' :
+                  'bg-green-600 hover:bg-green-700'
+                }`}
+              >
+                {modalLoading ? "Processing..." : 
+                  modalAction === 'delete' ? 'Delete Account' :
+                  modalAction === 'deactivate' ? 'Deactivate' : 'Activate'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
-
-// Confirm delete modal overlay
-// We render this conditionally inside the same component block above when confirmId is set

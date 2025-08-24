@@ -103,6 +103,29 @@ export default function UserDashboardPage() {
         </div>
       </div>
 
+      {/* Status Indicator */}
+      {profile && (
+        <div className="p-4 rounded-lg bg-gray-50 border border-gray-200">
+          <div className="flex items-center gap-3">
+            <span className="text-sm font-medium text-gray-700">Account Status:</span>
+            <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
+              (profile as any)?.isActive === false
+                ? 'bg-red-100 text-red-800'
+                : 'bg-green-100 text-green-800'
+            }`}>
+              {(profile as any)?.isActive === false ? 'Account Deactivated' : 'Active'}
+            </span>
+            {(profile as any)?.isActive === false ? (
+              <Link href="/dashboard/user/profile">
+                <Button size="sm" variant="outline" className="text-xs border-green-200 text-green-700 hover:bg-green-50">
+                  Reactivate Account
+                </Button>
+              </Link>
+            ) : null}
+          </div>
+        </div>
+      )}
+
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
         <Card className="border-gray-200 bg-white">
           <CardHeader className="pb-2">

@@ -276,6 +276,7 @@ export const postJob = async (data: {
   formData.append('title', data.title);
   formData.append('description', data.description);
   formData.append('employmentType', data.employmentType);
+  formData.append("location", data.location)
   formData.append('category', data.category);
   formData.append('companyId', data.companyId);
   if (data.experience) formData.append('experience', data.experience);
