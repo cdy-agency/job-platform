@@ -48,7 +48,7 @@ export const JOB_CATEGORIES = [
   { value: "factory-workshop", label: "Gukora mu nganda (Factory/Workshop Jobs)" },
 ]
 
-// ✅ FIXED SCHEMA - Properly handle arrays with transform
+// FIXED SCHEMA - Properly handle arrays with transform
 const jobFormSchema = z.object({
   title: z.string().min(1, { message: "Title is required." }),
   description: z.string().min(1, { message: "Description is required." }),
@@ -119,27 +119,18 @@ export default function PostJobPage() {
 
   // ENHANCED SUBMIT FUNCTION with better error handling and user ID debugging
   async function onSubmit(values: JobFormValues) {
-    console.log("Form submission started with values:", values);
-    console.log("Form errors:", form.formState.errors);
-    
     setIsSubmitting(true)
     
     try {
-      console.log("User object:", user);
-      console.log("Available user keys:", Object.keys(user || {}));
-      console.log("Full user object:", JSON.stringify(user, null, 2));
+
       
-      // Try multiple possible ID fields
       const companyId = (user as any)?.id || 
                        (user as any)?._id || 
                        (user as any)?.userId || 
                        (user as any)?.companyId || 
                        (user as any)?.uid || 
-                       "temp-company-id" // Fallback for testing
-      
-      console.log("Company ID found:", companyId);
-      
-      // For now, let's continue even without proper ID for debugging
+                       "temp-company-id"
+                       
       if (!companyId || companyId === "temp-company-id") {
         console.warn("⚠️ Using temporary company ID for testing");
         // Don't return, continue with temp ID to test the API call
@@ -165,7 +156,7 @@ export default function PostJobPage() {
       console.log("Job data being sent:", jobData);
 
       const result = await postJob(jobData)
-      console.log("✅ API call successful:", result);
+      console.log("API call successful:", result);
 
       toast({
         title: "Job posted successfully!",

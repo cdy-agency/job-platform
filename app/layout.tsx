@@ -5,6 +5,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/toaster";
 import "toastify-js/src/toastify.css";
 import { AuthProvider } from "@/context/authContext";
+import WhatsAppButton from "../components/whatsapp";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -21,6 +22,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
+        <WhatsAppButton/>
         {/* Put ThemeProvider inside body so it doesn't touch <html> */}
         <ThemeProvider
           attribute="class"

@@ -22,12 +22,13 @@ import {
 import { fetchJobById } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import NavBar from "@/components/home/NavBar";
-import { applyToJob } from "@/lib/api";
+import { applyToJob, checkJobApplication } from "@/lib/api";
 import { AppAvatar } from "@/components/ui/avatar";
 import { formatDeadline } from "@/lib/utils";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "@/context/authContext";
 
 const mainPurple = "#834de3";
 
@@ -73,6 +74,8 @@ export default function JobDetailsPage() {
   const [applyMessage, setApplyMessage] = useState("")
   const [applyFile, setApplyFile] = useState<File | null>(null)
   const { toast } = useToast()
+  const { user } = useAuth();
+  const [hasApplied, setHasApplied] = useState(false);
 
   useEffect(() => {
     setLoading(true);
@@ -140,6 +143,22 @@ export default function JobDetailsPage() {
         setLoading(false);
       });
   }, [id]);
+
+  useEffect(() => {
+    const checkApplicationStatus = async () => {
+      if (user && job) {
+        try {
+          const response = await checkJobApplication(job.id);
+          setHasApplied(response.hasApplied);
+        } catch (e) {
+          console.error('Error checking application status:', e);
+          setHasApplied(false);
+        }
+      }
+    };
+
+    checkApplicationStatus();
+  }, [job, user]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -268,17 +287,34 @@ export default function JobDetailsPage() {
   }
 
   const handleApply = async () => {
+    if (!job) return;
+    
+    setApplying(true);
     try {
-      setApplying(true)
-      await applyToJob(job!.id, { coverLetter: applyMessage || undefined, resumeFile: applyFile, appliedVia: 'normal' })
-      toast({ title: '✅ Application submitted', description: 'Your application has been sent successfully.' })
-      setApplyOpen(false)
-      setApplyMessage("")
-      setApplyFile(null)
-    } catch (e: any) {
-      toast({ title: '❌ Failed to apply', description: e?.response?.data?.message || 'Please log in as an employee.', variant: 'destructive' })
+      await applyToJob(job.id, { 
+        coverLetter: applyMessage || undefined, 
+        resumeFile: applyFile, 
+        appliedVia: 'normal' 
+      });
+      
+      toast({ 
+        title: 'Application submitted successfully!', 
+        description: 'We\'ll review your application and get back to you soon.',
+        variant: 'default'
+      });
+      
+      setApplyOpen(false);
+      setApplyMessage('');
+      setApplyFile(null);
+      setHasApplied(true); // Update local state after successful application
+    } catch (error: any) {
+      toast({ 
+        title: 'Failed to submit application', 
+        description: error?.response?.data?.message || 'Please try again later.',
+        variant: 'destructive'
+      });
     } finally {
-      setApplying(false)
+      setApplying(false);
     }
   };
 
@@ -533,11 +569,14 @@ export default function JobDetailsPage() {
             </p>
             <Button 
               onClick={() => setApplyOpen(true)} 
-              disabled={applying || isDeadlinePassed}
+              disabled={applying || isDeadlinePassed || hasApplied}
               className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 rounded-lg font-medium"
               size="lg"
             >
-              {applying ? 'Submitting...' : isDeadlinePassed ? 'Applications Closed' : 'Apply Now'}
+              {applying ? 'Submitting...' : 
+               hasApplied ? 'Already Applied' : 
+               isDeadlinePassed ? 'Applications Closed' : 
+               'Apply Now'}
             </Button>
             {job.applicationDeadline && (
               <p className="text-sm text-gray-500 mt-3">

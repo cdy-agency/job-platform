@@ -352,6 +352,11 @@ export const deleteJob = async (id: string) => {
   return res.data;
 }
 
+export const checkJobApplication = async (jobId: string) => {
+  const res = await api.get(`/employee/check-application/${jobId}`);
+  return res.data;
+}
+
 export const fetchJobSuggestions = async (category?: string) => {
   const normalizeJobs = (payload: any): any[] => {
     if (!payload) return []
@@ -562,7 +567,7 @@ export const completeCompanyProfile = async (data: { about?: string; logo?: File
   if (data.logo) formData.append('logo', data.logo);
   if (data.documents) {
     data.documents.forEach((file) => {
-      formData.append('documents', file); // IMPORTANT: exact field name 'documents'
+      formData.append('documents', file);
     });
   }
   

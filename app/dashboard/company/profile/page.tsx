@@ -12,17 +12,18 @@ import {
   activateCompanyAccount,
   deleteCompanyAccount,
 } from "@/lib/api";
-import { toast } from "sonner";
+import { useToast } from "@/hooks/use-toast";
 
 type DocumentItem = {
   id: string;
   file: File;
-  url: string; // object URL for preview / download
+  url: string; 
   isExisting?: boolean;
-  originalIndex?: number; // index in server array for existing docs
+  originalIndex?: number;
 };
 
 export default function CompanyProfilePage() {
+  const { toast } = useToast()
   const [form, setForm] = useState({
     companyName: "",
     email: "",
@@ -57,12 +58,27 @@ export default function CompanyProfilePage() {
   const [modalAction, setModalAction] = useState<'activate' | 'deactivate' | 'delete' | null>(null);
   const [modalLoading, setModalLoading] = useState(false);
 
+  // Document deletion confirmation state
+  const [confirmId, setConfirmId] = useState<string | null>(null);
+  const [deletingDocId, setDeletingDocId] = useState<string | null>(null);
+
+  // Profile completion state
+  const [isProfileIncomplete, setIsProfileIncomplete] = useState(false);
+
   // Load existing profile data
   useEffect(() => {
     const loadProfile = async () => {
       try {
         const data = await fetchCompanyProfile();
         setProfileData(data);
+
+        // Check if profile is incomplete
+        setIsProfileIncomplete(
+          !data.about || 
+          !data.logo?.url || 
+          !data.documents?.length ||
+          data.status === 'incomplete'
+        );
 
         // Pre-fill form with existing data
         setForm({
@@ -98,7 +114,10 @@ export default function CompanyProfilePage() {
         }
       } catch (error) {
         console.error("Error loading profile:", error);
-        toast.error("Failed to load profile data");
+        toast({
+          title: `Failed to load profile data`,
+          description: "Try Again!",
+        });
       }
     };
 
@@ -212,19 +231,70 @@ export default function CompanyProfilePage() {
     onDocumentsSelected(e.target.files);
   };
 
-  const [confirmId, setConfirmId] = useState<string | null>(null);
   const removeDocument = async (id: string) => {
-    const doc = documents.find(d => d.id === id)
+    const doc = documents.find(d => d.id === id);
+    
     if (doc?.isExisting) {
       if (!Number.isInteger(doc.originalIndex)) return;
-      setConfirmId(id)
-      return
+      setConfirmId(id);
+      return;
     }
+
+    // Remove new/uploaded document
     setDocuments((prev) => {
       const rem = prev.find((d) => d.id === id);
       if (rem && rem.url.startsWith("blob:")) URL.revokeObjectURL(rem.url);
       return prev.filter((d) => d.id !== id);
     });
+  };
+
+  const confirmDeleteDocument = async () => {
+    if (!confirmId) return;
+    
+    const doc = documents.find(d => d.id === confirmId);
+    if (!doc?.isExisting || !Number.isInteger(doc.originalIndex)) return;
+
+    setDeletingDocId(confirmId);
+    
+    try {
+      await deleteCompanyDocument(doc.originalIndex!);
+      
+      // Remove from local state
+      setDocuments((prev) => prev.filter((d) => d.id !== confirmId));
+      toast({
+          title: `Document ${doc.url}`,
+          description: "Deleted successfully",
+        });
+      
+      // Refresh profile data to get updated document indices
+      const updatedData = await fetchCompanyProfile();
+      setProfileData(updatedData);
+      
+      // Update documents with new indices
+      if (updatedData.documents && Array.isArray(updatedData.documents)) {
+        const existingDocs = updatedData.documents.map(
+          (doc: any, index: number) => ({
+            id: `existing-${index}`,
+            file: new File([], doc.name || `Document ${index + 1}`),
+            url: doc.url,
+            isExisting: true,
+            originalIndex: index,
+          })
+        );
+        // Keep new documents that aren't saved yet
+        const newDocs = documents.filter(d => !d.isExisting);
+        setDocuments([...newDocs, ...existingDocs]);
+      }
+    } catch (error: any) {
+      console.error("Error deleting document:", error);
+      toast({
+          title: `Failed to delete ${doc.url}`,
+          description: error.response?.data?.message || "Failed to delete document",
+        });
+    } finally {
+      setDeletingDocId(null);
+      setConfirmId(null);
+    }
   };
 
   const handleModalAction = async () => {
@@ -234,20 +304,32 @@ export default function CompanyProfilePage() {
     try {
       if (modalAction === 'deactivate') {
         await deactivateCompanyAccount();
-        toast.success('Company deactivated');
+        toast({
+          title: `Company deactivated`,
+          description: "You can Activate Again",
+        });
       } else if (modalAction === 'activate') {
         await activateCompanyAccount();
-        toast.success('Company activated');
+        toast({
+          title: `Company Activated`,
+          description: "You can Deactivate it Again",
+        });
       } else if (modalAction === 'delete') {
         await deleteCompanyAccount();
-        toast.success('Company account deleted');
+        toast({
+          title: `OOOPS`,
+          description: "Your account deleted sucessfully!",
+        });
       }
       
       // Reload profile data
       const updatedData = await fetchCompanyProfile();
       setProfileData(updatedData);
     } catch (e: any) {
-      toast.error(e?.response?.data?.message || `Failed to ${modalAction} company`);
+      toast({
+          title: `Failed to ${modalAction}`,
+          description: e.response?.data?.message || "Failed to delete document",
+        });
     } finally {
       setModalLoading(false);
       setShowModal(false);
@@ -260,6 +342,67 @@ export default function CompanyProfilePage() {
     setShowModal(true);
   };
 
+  const handleCompleteProfile = async () => {
+    if (!form.about.trim()) {
+      toast({
+          title: `Please provide company description`,
+        });
+      return;
+    }
+
+    if (!profileFile && !profileData?.logo?.url) {
+      toast({
+          title: `Please upload a company logo`,
+        });
+      return;
+    }
+
+    const newDocs = documents.filter((d) => !d.isExisting).map((d) => d.file);
+    
+    if (newDocs.length === 0 && (!profileData?.documents || profileData.documents.length === 0)) {
+      toast({
+          title: `Please upload at least one document`,
+        });
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const completeData: { about?: string; logo?: File; documents?: File[] } = {};
+      
+      if (form.about.trim()) {
+        completeData.about = form.about;
+      }
+      
+      if (profileFile) {
+        completeData.logo = profileFile;
+      }
+      
+      if (newDocs.length > 0) {
+        completeData.documents = newDocs;
+      }
+
+      await completeCompanyProfile(completeData);
+      toast({
+          title: `Profile completed successfully!`,
+          description: "Awaiting admin approval.",
+        });
+      // Reload profile data
+      const updatedData = await fetchCompanyProfile();
+      setProfileData(updatedData);
+      setIsProfileIncomplete(false);
+      
+    } catch (error: any) {
+      console.error("Error completing profile:", error);
+      toast({
+          title: `Failed to complete profile`,
+          description: error.response?.data?.message,
+        });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -268,17 +411,24 @@ export default function CompanyProfilePage() {
       // Password validation logic
       if (form.oldPassword || form.newPassword || form.confirmPassword) {
         if (!form.oldPassword) {
-          toast.error("Please enter your current password.");
+          toast({
+          title: `Please enter your current password.`,
+          description: "Try Again",
+        });
           setLoading(false);
           return;
         }
         if (!form.newPassword) {
-          toast.error("Please enter a new password.");
+          toast({
+          title: `Please enter a new password.`,
+        });
           setLoading(false);
           return;
         }
         if (form.newPassword !== form.confirmPassword) {
-          toast.error("New passwords do not match.");
+          toast({
+          title: `New passwords do not match.`,
+        });
           setLoading(false);
           return;
         }
@@ -313,7 +463,10 @@ export default function CompanyProfilePage() {
         await uploadCompanyDocuments(newDocs);
       }
 
-      toast.success("Profile updated successfully");
+      toast({
+          title: `Goood`,
+          description:"Profile updated successfully"
+        });
 
       // Reset password fields
       setForm((p) => ({
@@ -328,7 +481,10 @@ export default function CompanyProfilePage() {
       setProfileData(updatedData);
     } catch (error: any) {
       console.error("Error updating profile:", error);
-      toast.error(error.response?.data?.message || "Failed to update profile");
+      toast({
+          title: `Failed to update profile`,
+          description: error.response?.data?.message
+        });
     } finally {
       setLoading(false);
     }
@@ -340,6 +496,30 @@ export default function CompanyProfilePage() {
         <h1 className="text-lg font-semibold text-gray-900 mb-6">
           Company Profile
         </h1>
+        
+        {/* Profile Completion Banner */}
+        {isProfileIncomplete && (
+          <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+            <div className="flex items-start gap-3">
+              <div className="w-5 h-5 text-amber-600 mt-0.5">⚠️</div>
+              <div className="flex-1">
+                <h3 className="text-sm font-semibold text-amber-800 mb-1">
+                  Complete Your Profile
+                </h3>
+                <p className="text-sm text-amber-700 mb-3">
+                  Your profile is incomplete. Please add a company description, logo, and at least one document to submit for approval.
+                </p>
+                <button
+                  onClick={handleCompleteProfile}
+                  disabled={loading}
+                  className="text-sm px-3 py-1 bg-amber-600 text-white rounded-md hover:bg-amber-700 disabled:opacity-50"
+                >
+                  {loading ? "Completing..." : "Complete Profile"}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
         
         {/* Status Indicator */}
         {profileData && (
@@ -353,6 +533,8 @@ export default function CompanyProfilePage() {
                   ? 'bg-red-100 text-red-800'
                   : profileData.status === 'pending'
                   ? 'bg-yellow-100 text-yellow-800'
+                  : profileData.status === 'incomplete'
+                  ? 'bg-orange-100 text-orange-800'
                   : 'bg-gray-100 text-gray-800'
               }`}>
                 {profileData.status === 'approved' && profileData.isActive 
@@ -361,6 +543,8 @@ export default function CompanyProfilePage() {
                   ? 'Disabled'
                   : profileData.status === 'pending'
                   ? 'Pending Approval'
+                  : profileData.status === 'incomplete'
+                  ? 'Profile Incomplete'
                   : profileData.status}
               </span>
             </div>
@@ -664,9 +848,10 @@ export default function CompanyProfilePage() {
                     <button
                       type="button"
                       onClick={() => removeDocument(d.id)}
-                      className="text-xs text-gray-500 hover:text-red-600"
+                      disabled={deletingDocId === d.id}
+                      className="text-xs text-gray-500 hover:text-red-600 disabled:opacity-50"
                     >
-                      {d.isExisting ? 'Delete' : 'Remove'}
+                      {deletingDocId === d.id ? 'Deleting...' : (d.isExisting ? 'Delete' : 'Remove')}
                     </button>
                   </div>
                 </div>
@@ -709,7 +894,7 @@ export default function CompanyProfilePage() {
         </form>
       </div>
 
-      {/* Confirmation Modal */}
+      {/* Account Action Modal */}
       {showModal && modalAction && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white p-6 rounded-lg shadow-xl max-w-sm w-full">
@@ -741,6 +926,36 @@ export default function CompanyProfilePage() {
                 {modalLoading ? "Processing..." : 
                   modalAction === 'delete' ? 'Delete Account' :
                   modalAction === 'deactivate' ? 'Deactivate' : 'Activate'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Document Delete Confirmation Modal */}
+      {confirmId && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white p-6 rounded-lg shadow-xl max-w-sm w-full">
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              Delete Document
+            </h3>
+            <p className="text-sm text-gray-700 mb-4">
+              Are you sure you want to delete this document? This action cannot be undone.
+            </p>
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => setConfirmId(null)}
+                className="px-4 py-2 rounded-md border border-gray-200 text-gray-700 hover:bg-gray-100"
+                disabled={deletingDocId === confirmId}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDeleteDocument}
+                disabled={deletingDocId === confirmId}
+                className="px-4 py-2 rounded-md bg-red-600 text-white hover:bg-red-700 disabled:opacity-50"
+              >
+                {deletingDocId === confirmId ? "Deleting..." : "Delete"}
               </button>
             </div>
           </div>

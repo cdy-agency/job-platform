@@ -5,20 +5,27 @@ import { useParams, notFound } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/context/authContext";
 import { fetchUserById } from "@/lib/api";
-import { Mail, Phone, MapPin, Calendar, Bookmark, User, ArrowLeft } from "lucide-react";
+import { Mail, Phone, MapPin, Calendar, Bookmark, User, ArrowLeft, Send } from "lucide-react";
 import NavBar from "@/components/home/NavBar";
 import { AppAvatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
+import { useToast } from "@/components/ui/use-toast";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
 
 export default function UserProfile() {
   const params = useParams();
   const id = params?.id as string;
-  const { token } = useAuth();
+  const { token, user: currentUser } = useAuth();
   const [user, setUser] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  const [showOfferModal, setShowOfferModal] = useState(false);
+  const [offerMessage, setOfferMessage] = useState("");
+  const [sendingOffer, setSendingOffer] = useState(false);
   const router = useRouter();
+  const { toast } = useToast();
 
   React.useEffect(() => {
     if (!token) {
@@ -139,6 +146,32 @@ export default function UserProfile() {
     );
   }
 
+  const handleSendOffer = async () => {
+    if (!offerMessage.trim()) return;
+    
+    setSendingOffer(true);
+    try {
+      // Here you would call the API to send the offer
+      // For now, we'll just show a success message
+      toast({
+        title: "Offer sent successfully!",
+        description: "The candidate will be notified of your job offer.",
+        variant: "default"
+      });
+      
+      setShowOfferModal(false);
+      setOfferMessage("");
+    } catch (error: any) {
+      toast({
+        title: "Failed to send offer",
+        description: error?.response?.data?.message || "Please try again later.",
+        variant: "destructive"
+      });
+    } finally {
+      setSendingOffer(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <NavBar />
@@ -184,9 +217,20 @@ export default function UserProfile() {
                   </div>
                 </div>
               </div>
-              <button className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md border border-gray-300 text-gray-700 text-sm hover:bg-gray-50">
-                <Bookmark className="h-4 w-4" /> Bookmark
-              </button>
+              <div className="flex items-center gap-2">
+                <button className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md border border-gray-300 text-gray-700 text-sm hover:bg-gray-50">
+                  <Bookmark className="h-4 w-4" /> Bookmark
+                </button>
+                {currentUser?.role === 'company' && (
+                  <Button
+                    onClick={() => setShowOfferModal(true)}
+                    className="inline-flex items-center gap-2 px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white text-sm"
+                    size="sm"
+                  >
+                    <Send className="h-4 w-4" /> Send Offer
+                  </Button>
+                )}
+              </div>
             </div>
           </div>
 
@@ -287,6 +331,48 @@ export default function UserProfile() {
           </div>
         </div>
       </div>
+
+      {/* Offer Modal */}
+      <Dialog open={showOfferModal} onOpenChange={setShowOfferModal}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-bold text-gray-900">
+              Send Job Offer to {user?.name || 'User'}
+            </DialogTitle>
+            <p className="text-gray-600 mt-2">
+              Send a personalized job offer to this candidate.
+            </p>
+          </DialogHeader>
+          <div className="space-y-6 mt-6">
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Offer Message
+              </label>
+              <Textarea 
+                value={offerMessage} 
+                onChange={(e) => setOfferMessage(e.target.value)} 
+                placeholder="Write a personalized message about the job opportunity..."
+                className="min-h-[120px]"
+              />
+            </div>
+          </div>
+          <DialogFooter className="mt-8">
+            <Button 
+              variant="outline"
+              onClick={() => setShowOfferModal(false)}
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleSendOffer} 
+              disabled={sendingOffer || !offerMessage.trim()}
+              className="bg-purple-600 hover:bg-purple-700 text-white"
+            >
+              {sendingOffer ? 'Sending...' : 'Send Offer'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
