@@ -2,7 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { toast } from 'sonner'
+import { useToast } from '@/hooks/use-toast'
 import {
   getCompanyById,
   approveCompanyProfile,
@@ -45,6 +45,7 @@ const getErrorMessage = (e: any): string => {
 
 export default function CompanyDetails({ companyId }: { companyId: string }) {
   const router = useRouter()
+  const { toast } = useToast()
   const [company, setCompany] = useState<CompanyDetailsData | null>(null)
   const [loading, setLoading] = useState<boolean>(true)
   const [actionLoading, setActionLoading] = useState<boolean>(false)
@@ -57,7 +58,7 @@ export default function CompanyDetails({ companyId }: { companyId: string }) {
       const res = await getCompanyById(companyId)
       setCompany(extractCompany(res))
     } catch (e: any) {
-      toast.error(getErrorMessage(e))
+      toast({ variant: 'destructive', description: getErrorMessage(e) })
     } finally {
       setLoading(false)
     }
@@ -81,10 +82,10 @@ export default function CompanyDetails({ companyId }: { companyId: string }) {
     try {
       setActionLoading(true)
       await approveCompanyProfile(companyId)
-      toast.success('Approved successfully')
+      toast({ description: 'Approved successfully' })
       await load()
     } catch (e: any) {
-      toast.error(getErrorMessage(e))
+      toast({ variant: 'destructive', description: getErrorMessage(e) })
     } finally {
       setActionLoading(false)
     }
@@ -92,18 +93,18 @@ export default function CompanyDetails({ companyId }: { companyId: string }) {
 
   const onReject = async () => {
     if (!rejectionReason.trim()) {
-      toast.error('Please provide a rejection reason')
+      toast({ variant: 'destructive', description: 'Please provide a rejection reason' })
       return
     }
     try {
       setActionLoading(true)
       await rejectCompanyProfile(companyId, rejectionReason)
-      toast.success('Rejected successfully')
+      toast({ description: 'Rejected successfully' })
       setRejectModalOpen(false)
       setRejectionReason('')
       await load()
     } catch (e: any) {
-      toast.error(getErrorMessage(e))
+      toast({ variant: 'destructive', description: getErrorMessage(e) })
     } finally {
       setActionLoading(false)
     }
@@ -113,10 +114,10 @@ export default function CompanyDetails({ companyId }: { companyId: string }) {
     try {
       setActionLoading(true)
       await disableCompany(companyId)
-      toast.success('Company disabled')
+      toast({ description: 'Company disabled' })
       await load()
     } catch (e: any) {
-      toast.error(getErrorMessage(e))
+      toast({ variant: 'destructive', description: getErrorMessage(e) })
     } finally {
       setActionLoading(false)
     }
@@ -126,10 +127,10 @@ export default function CompanyDetails({ companyId }: { companyId: string }) {
     try {
       setActionLoading(true)
       await enableCompany(companyId)
-      toast.success('Company enabled')
+      toast({ description: 'Company enabled' })
       await load()
     } catch (e: any) {
-      toast.error(getErrorMessage(e))
+      toast({ variant: 'destructive', description: getErrorMessage(e) })
     } finally {
       setActionLoading(false)
     }
@@ -139,10 +140,10 @@ export default function CompanyDetails({ companyId }: { companyId: string }) {
     try {
       setActionLoading(true)
       await deleteCompany(companyId)
-      toast.success('Company deleted')
+      toast({ description: 'Company deleted' })
       router.push('/dashboard/admin/companies')
     } catch (e: any) {
-      toast.error(getErrorMessage(e))
+      toast({ variant: 'destructive', description: getErrorMessage(e) })
     } finally {
       setActionLoading(false)
     }

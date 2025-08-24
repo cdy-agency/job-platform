@@ -3,7 +3,6 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/toaster";
-import "toastify-js/src/toastify.css";
 import { AuthProvider } from "@/context/authContext";
 import WhatsAppButton from "../components/whatsapp";
 

@@ -6,7 +6,7 @@ import { AppAvatar } from "@/components/ui/avatar"
 import { getImage } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { fetchAllEmployees } from "@/lib/api"
-import { toast } from "sonner"
+import { useToast } from "@/hooks/use-toast"
 
 interface Employee {
   _id: string;
@@ -21,6 +21,7 @@ interface Employee {
 }
 
 export default function ManageEmployeesPage() {
+  const { toast } = useToast()
   const [searchTerm, setSearchTerm] = useState("")
   const [employees, setEmployees] = useState<Employee[]>([])
   const [loading, setLoading] = useState(true)
@@ -36,7 +37,7 @@ export default function ManageEmployeesPage() {
       setEmployees(response.employees || [])
     } catch (error: any) {
       console.error("Error loading employees:", error)
-      toast.error(error?.response?.data?.message)
+      toast({ variant: "destructive", description: error?.response?.data?.message || "Failed to load employees" })
     } finally {
       setLoading(false)
     }

@@ -11,7 +11,7 @@ import {
   updateAdminDocuments,
   deleteAdminDocument,
 } from "@/lib/api";
-import { toast } from "sonner";
+import { useToast } from "@/hooks/use-toast";
 import { AdminDashboardSidebar } from "@/components/admin-dashboard";
 
 type DocumentItem = {
@@ -22,6 +22,7 @@ type DocumentItem = {
 };
 
 export default function AdminProfilePage() {
+  const { toast } = useToast()
   const [form, setForm] = useState({
     email: "",
     oldPassword: "",
@@ -38,6 +39,7 @@ export default function AdminProfilePage() {
     "/placeholder-logo.png"
   );
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const [hasExistingImage, setHasExistingImage] = useState<boolean>(false);
 
   // Documents (multiple)
   const [documents, setDocuments] = useState<DocumentItem[]>([]);
@@ -65,6 +67,9 @@ export default function AdminProfilePage() {
         // Set existing profile image
         if (adminData.image?.url) {
           setProfilePreview(adminData.image.url);
+          setHasExistingImage(true)
+        } else {
+          setHasExistingImage(false)
         }
 
         // Set existing documents
@@ -81,7 +86,7 @@ export default function AdminProfilePage() {
         }
       } catch (error) {
         console.error("Error loading profile:", error);
-        toast.error("Failed to load profile data");
+        toast({ variant: "destructive", description: "Failed to load profile data" });
       }
     };
 
@@ -144,6 +149,18 @@ export default function AdminProfilePage() {
   };
 
   const removeProfileImage = () => {
+    if (hasExistingImage && profilePreview && !profilePreview.startsWith("blob:")) {
+      // Remove on server
+      (async () => {
+        try {
+          await deleteAdminImage()
+          toast({ description: "Profile image removed" })
+          setHasExistingImage(false)
+        } catch (e: any) {
+          toast({ variant: "destructive", description: e?.response?.data?.message || "Failed to remove image" })
+        }
+      })()
+    }
     if (profilePreview && profilePreview.startsWith("blob:")) {
       URL.revokeObjectURL(profilePreview);
     }
@@ -169,11 +186,25 @@ export default function AdminProfilePage() {
   };
 
   const removeDocument = (id: string) => {
-    setDocuments((prev) => {
-      const rem = prev.find((d) => d.id === id);
-      if (rem && rem.url.startsWith("blob:")) URL.revokeObjectURL(rem.url);
-      return prev.filter((d) => d.id !== id);
-    });
+    const target = documents.find((d) => d.id === id)
+    if (target?.isExisting) {
+      const indexStr = id.replace("existing-", "")
+      ;(async () => {
+        try {
+          await deleteAdminDocument(indexStr)
+          toast({ description: "Document removed" })
+          setDocuments((prev) => prev.filter((d) => d.id !== id))
+        } catch (e: any) {
+          toast({ variant: "destructive", description: e?.response?.data?.message || "Failed to remove document" })
+        }
+      })()
+    } else {
+      setDocuments((prev) => {
+        const rem = prev.find((d) => d.id === id);
+        if (rem && rem.url.startsWith("blob:")) URL.revokeObjectURL(rem.url);
+        return prev.filter((d) => d.id !== id);
+      });
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -184,17 +215,17 @@ export default function AdminProfilePage() {
       // Password validation logic
       if (form.oldPassword || form.newPassword || form.confirmPassword) {
         if (!form.oldPassword) {
-          toast.error("Please enter your current password.");
+          toast({ variant: "destructive", description: "Please enter your current password." });
           setLoading(false);
           return;
         }
         if (!form.newPassword) {
-          toast.error("Please enter a new password.");
+          toast({ variant: "destructive", description: "Please enter a new password." });
           setLoading(false);
           return;
         }
         if (form.newPassword !== form.confirmPassword) {
-          toast.error("New passwords do not match.");
+          toast({ variant: "destructive", description: "New passwords do not match." });
           setLoading(false);
           return;
         }
@@ -212,14 +243,24 @@ export default function AdminProfilePage() {
       const newDocs = documents.filter((d) => !d.isExisting).map((d) => d.file);
 
       if (profileFile) {
-        await updateAdminImage(profileFile);
+        if (hasExistingImage) {
+          await updateAdminImage(profileFile);
+        } else {
+          await uploadAdminImage(profileFile);
+          setHasExistingImage(true)
+        }
       }
 
       if (newDocs.length > 0) {
-        await uploadAdminDocuments(newDocs);
+        const hadExisting = documents.some((d) => d.isExisting)
+        if (hadExisting) {
+          await updateAdminDocuments(newDocs)
+        } else {
+          await uploadAdminDocuments(newDocs)
+        }
       }
 
-      toast.success("Profile updated successfully");
+      toast({ description: "Profile updated successfully" });
 
       // Reset password fields
       setForm((p) => ({
@@ -231,10 +272,10 @@ export default function AdminProfilePage() {
 
       // Reload profile data
       // In a real implementation, you would fetch the updated profile
-      toast.success("Profile updated successfully");
+      toast({ description: "Profile updated successfully" });
     } catch (error: any) {
       console.error("Error updating profile:", error);
-      toast.error(error.response?.data?.message || "Failed to update profile");
+      toast({ variant: "destructive", description: error.response?.data?.message || "Failed to update profile" });
     } finally {
       setLoading(false);
     }
