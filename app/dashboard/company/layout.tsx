@@ -4,6 +4,7 @@ import { CompanyDashboardSidebar } from "@/components/company-dashboard-sidebar"
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { fetchCompanyProfile } from "@/lib/api";
+import { Toaster } from "@/components/ui/toaster";
 import Link from "next/link";
 
 export default function CompanyDashboardLayout({
@@ -87,6 +88,7 @@ export default function CompanyDashboardLayout({
         )}
         {children}
       </main>
+      <Toaster />
     </div>
   );
 }

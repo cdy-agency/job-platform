@@ -20,7 +20,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { toast } from "@/components/ui/use-toast";
+import { toast } from "@/hooks/use-toast";
 import { JOB_CATEGORIES } from "@/app/dashboard/company/post-job/page";
 import { fetchEmployeeProfile, updateEmployeeProfile, deactivateEmployeeAccount, activateEmployeeAccount, deleteEmployeeAccount } from "@/lib/api";
 import {

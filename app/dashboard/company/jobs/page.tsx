@@ -25,6 +25,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useToast } from "@/hooks/use-toast";
 
 type Job = {
   _id: string;
@@ -43,6 +44,7 @@ export default function ManageJobsPage() {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [jobToDelete, setJobToDelete] = useState<string | null>(null);
   const router = useRouter();
+  const { toast } = useToast();
 
   useEffect(() => {
     const fetchdata = async () => {
@@ -96,6 +98,9 @@ export default function ManageJobsPage() {
                   try {
                     await deleteJob(jobToDelete);
                     setJobs((prev) => prev.filter((j) => j._id !== jobToDelete));
+                    toast({ title: "Job deleted", description: "The job has been removed." })
+                  } catch (e: any) {
+                    toast({ title: "Failed to delete job", description: e?.response?.data?.message || "Please try again.", variant: "destructive" })
                   } finally {
                     setConfirmOpen(false);
                     setJobToDelete(null);

@@ -185,7 +185,7 @@ const SidebarContent = ({
             <AppAvatar name="Admin User" size={40} />
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-medium text-white">Admin User</p>
-              <p className="truncate text-xs text-gray-400">admin@jobhub.com</p>
+              <p className="truncate text-xs text-gray-400">admin@AkaziLink.com</p>
               <div className="mt-1 flex items-center gap-1">
                 <div className="h-2 w-2 rounded-full bg-green-400"></div>
                 <span className="text-xs text-green-400">Super Admin</span>

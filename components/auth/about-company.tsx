@@ -1,8 +1,9 @@
 import React, { useState } from "react";
 import { completeCompanyNextSteps } from "@/lib/api";
-import { toast } from "sonner";
+import { useToast } from "@/hooks/use-toast";
 
 export default function CompanyInfoForm() {
+  const { toast } = useToast()
   const [about, setAbout] = useState("");
   const [docs, setDocs] = useState<File[]>([]);
   const [submitting, setSubmitting] = useState(false);
@@ -30,12 +31,12 @@ export default function CompanyInfoForm() {
     e.preventDefault();
     
     if (!about.trim()) {
-      toast.error("Please provide information about your company");
+      toast({ variant: "destructive", description: "Please provide information about your company" });
       return;
     }
     
     if (docs.length === 0) {
-      toast.error("Please upload at least one proof document");
+      toast({ variant: "destructive", description: "Please upload at least one proof document" });
       return;
     }
 
@@ -59,14 +60,14 @@ export default function CompanyInfoForm() {
         documents: documentStrings
       });
       
-      toast.success("Information submitted successfully! Your account will be reviewed by admin.");
+      toast({ description: "Information submitted successfully! Your account will be reviewed by admin." });
       
       // Reset form
       setAbout("");
       setDocs([]);
     } catch (error: any) {
       console.error('Submission error:', error);
-      toast.error(error?.response?.data?.message || "Submission failed. Please try again.");
+      toast({ variant: "destructive", description: error?.response?.data?.message || "Submission failed. Please try again." });
     } finally {
       setSubmitting(false);
     }

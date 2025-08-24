@@ -3,14 +3,13 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/toaster";
-import "toastify-js/src/toastify.css";
 import { AuthProvider } from "@/context/authContext";
 import WhatsAppButton from "../components/whatsapp";
 
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "JobHub - Find Your Next Career Opportunity",
+  title: "Akazi-Link - Find Your Next Career Opportunity",
   description: "Connect with top companies and find your dream job",
 };
 

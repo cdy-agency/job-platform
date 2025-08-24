@@ -2,7 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
-import { toast } from 'sonner'
+import { useToast } from '@/hooks/use-toast'
 import { getCompanies } from '@/lib/api/admin'
 
 interface AdminCompany {
@@ -24,6 +24,7 @@ const normalizeCompanies = (payload: any): AdminCompany[] => {
 }
 
 export default function CompanyList() {
+  const { toast } = useToast()
   const [companies, setCompanies] = useState<AdminCompany[]>([])
   const [loading, setLoading] = useState<boolean>(true)
 
@@ -34,7 +35,7 @@ export default function CompanyList() {
         const res = await getCompanies()
         setCompanies(normalizeCompanies(res))
       } catch (e: any) {
-        toast.error(e?.response?.data?.message)
+        toast({ variant: 'destructive', description: e?.response?.data?.message || 'Failed to load companies' })
       } finally {
         setLoading(false)
       }

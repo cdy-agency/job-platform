@@ -6,7 +6,7 @@ import { Bell, Briefcase, Clock, Eye, FileText, Search } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { fetchEmployeeApplications, fetchEmployeeProfile, fetchJobs, applyToJob, fetchJobSuggestions } from "@/lib/api"
-import { useToast } from "@/components/ui/use-toast"
+import { useToast } from "@/hooks/use-toast"
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -24,12 +24,20 @@ export default function UserDashboardPage() {
   const [applyMessage, setApplyMessage] = useState<string>("")
   const [applyFile, setApplyFile] = useState<File | null>(null)
   const [applySubmitting, setApplySubmitting] = useState(false)
+  const [appliedJobIds, setAppliedJobIds] = useState<Set<string>>(new Set())
 
   useEffect(() => {
     Promise.all([fetchEmployeeProfile(), fetchEmployeeApplications(), fetchJobSuggestions()])
       .then(([p, apps, suggestions]) => {
         setProfile(p || null)
-        setApplications(apps || [])
+        const appList = Array.isArray(apps) ? apps : []
+        setApplications(appList)
+        const appliedIds = new Set<string>(
+          appList
+            .map((a: any) => a?.jobId?._id || a?.jobId?.id || a?.jobId || a?.job?._id || a?.job?.id)
+            .filter(Boolean)
+        )
+        setAppliedJobIds(appliedIds)
         const jobsArray = Array.isArray(suggestions) ? suggestions : []
         setRecommended(jobsArray.slice(0, 3))
       })
@@ -65,8 +73,22 @@ export default function UserDashboardPage() {
                   setApplyOpen(false)
                   setApplyMessage("")
                   setApplyFile(null)
+                  setAppliedJobIds(prev => {
+                    const next = new Set(prev)
+                    next.add(applyJobId)
+                    return next
+                  })
                 } catch (e: any) {
-                  toast({ title: 'Failed to apply', description: e?.response?.data?.message || 'Please log in as an employee.', variant: 'destructive' })
+                  const message = e?.response?.data?.message || 'Please log in as an employee.'
+                  toast({ title: 'Failed to apply', description: message, variant: 'destructive' })
+                  if (typeof message === 'string' && message.toLowerCase().includes('already applied')) {
+                    setAppliedJobIds(prev => {
+                      const next = new Set(prev)
+                      next.add(applyJobId)
+                      return next
+                    })
+                    setApplyOpen(false)
+                  }
                 } finally {
                   setApplySubmitting(false)
                 }
@@ -270,8 +292,9 @@ export default function UserDashboardPage() {
                       size="sm"
                       className="bg-[#834de3] text-white hover:bg-[#6b3ac2]"
                       onClick={() => { setApplyOpen(true); setApplyJobId(job._id); }}
+                      disabled={appliedJobIds.has(String(job._id))}
                     >
-                      Apply
+                      {appliedJobIds.has(String(job._id)) ? 'Already Applied' : 'Apply'}
                     </Button>
                   </div>
                 </div>

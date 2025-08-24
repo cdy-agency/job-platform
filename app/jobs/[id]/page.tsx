@@ -27,7 +27,7 @@ import { AppAvatar } from "@/components/ui/avatar";
 import { formatDeadline } from "@/lib/utils";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/authContext";
 
 const mainPurple = "#834de3";
