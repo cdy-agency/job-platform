@@ -9,7 +9,7 @@ import WhatsAppButton from "../components/whatsapp";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "JobHub - Find Your Next Career Opportunity",
+  title: "Akazi-Link - Find Your Next Career Opportunity",
   description: "Connect with top companies and find your dream job",
 };
 

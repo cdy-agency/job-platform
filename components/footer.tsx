@@ -9,7 +9,7 @@ export function Footer() {
       <div className="mx-auto max-w-6xl py-12">
         <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 md:grid-cols-4">
           <div>
-            <h3 className="mb-4 text-lg font-semibold text-gray-800">JobHub</h3>
+            <h3 className="mb-4 text-lg font-semibold text-gray-800">Akazi-Link</h3>
             <p className="text-sm text-gray-600">
               Connecting talent with opportunity. Find your dream job or the perfect candidate.
             </p>
@@ -76,13 +76,13 @@ export function Footer() {
             </div>
             <div className="mt-4">
               <p className="text-sm text-gray-600">
-                Contact us at <span className="text-blue-500">support@jobhub.com</span>
+                Contact us at <span className="text-blue-500">support@akazilink.com</span>
               </p>
             </div>
           </div>
         </div>
         <div className="mt-8 border-t pt-8 text-center text-sm text-gray-600">
-          <p>&copy; {new Date().getFullYear()} JobHub. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} Akazi-Link. All rights reserved.</p>
         </div>
       </div>
     </footer>
