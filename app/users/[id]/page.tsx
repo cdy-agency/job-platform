@@ -4,7 +4,7 @@ import React from "react";
 import { useParams, notFound } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/context/authContext";
-import { fetchUserById } from "@/lib/api";
+import { fetchUserById, sendWorkRequest } from "@/lib/api";
 import { Mail, Phone, MapPin, Calendar, Bookmark, User, ArrowLeft, Send } from "lucide-react";
 import NavBar from "@/components/home/NavBar";
 import { AppAvatar } from "@/components/ui/avatar";
@@ -13,6 +13,24 @@ import { useRouter } from "next/navigation";
 import { useToast } from "@/components/ui/use-toast";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
+
+
+interface Employee {
+  id?: string
+  _id?: string
+  name: string
+  email?: string
+  dateOfBirth?: Date
+  phoneNumber?: string
+  jobPreferences?: string[]
+  about?: string
+  experience?: string
+  education?: string
+  skills?: string[]
+  profileImage?: any
+  documents?: any[]
+  location?: string
+}
 
 export default function UserProfile() {
   const params = useParams();
@@ -26,6 +44,8 @@ export default function UserProfile() {
   const [sendingOffer, setSendingOffer] = useState(false);
   const router = useRouter();
   const { toast } = useToast();
+  const [selectedEmployee , setSelectedEmployee] = useState<Employee | null>(null)
+  const [sending, setSending] = useState<boolean>(false)
 
   React.useEffect(() => {
     if (!token) {
@@ -64,6 +84,7 @@ export default function UserProfile() {
         setLoading(false);
       });
   }, [id, token, router]);
+
 
   // Loading state
   if (loading) {
@@ -147,30 +168,22 @@ export default function UserProfile() {
   }
 
   const handleSendOffer = async () => {
-    if (!offerMessage.trim()) return;
-    
-    setSendingOffer(true);
+    if (!selectedEmployee?._id && !selectedEmployee?.id) return
+    setSending(true)
     try {
-      // Here you would call the API to send the offer
-      // For now, we'll just show a success message
-      toast({
-        title: "Offer sent successfully!",
-        description: "The candidate will be notified of your job offer.",
-        variant: "default"
-      });
-      
-      setShowOfferModal(false);
-      setOfferMessage("");
+      await sendWorkRequest(String(selectedEmployee._id || selectedEmployee.id), offerMessage || undefined)
+      toast({ title: "Offer Sent", description: "Job offer has been sent successfully." })
+      setOfferMessage("")
     } catch (error: any) {
       toast({
-        title: "Failed to send offer",
-        description: error?.response?.data?.message || "Please try again later.",
-        variant: "destructive"
-      });
+        title: "Error",
+        description: error?.response?.data?.message || "Failed to send job offer",
+        variant: "destructive",
+      })
     } finally {
-      setSendingOffer(false);
+      setSending(false)
     }
-  };
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">

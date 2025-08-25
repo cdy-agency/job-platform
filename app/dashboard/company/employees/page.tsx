@@ -96,10 +96,9 @@ export default function Employees() {
       setShowOfferBox(false)
     } catch (error: any) {
       toast({
-        title: "Error",
-        description: error?.response?.data?.message || "Failed to send job offer",
-        variant: "destructive",
-      })
+          title: `Failed to load profile data`,
+          description: "Try Again!",
+        });
     } finally {
       setSending(false)
     }

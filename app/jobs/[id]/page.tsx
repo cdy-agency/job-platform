@@ -26,7 +26,6 @@ import { applyToJob, checkJobApplication } from "@/lib/api";
 import { AppAvatar } from "@/components/ui/avatar";
 import { formatDeadline } from "@/lib/utils";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/context/authContext";
 
@@ -132,7 +131,7 @@ export default function JobDetailsPage() {
           image: jobImage,
         };
 
-        console.log('Mapped Job Data:', mapped); // Debug log to see mapped data
+        console.log('Mapped Job Data:', mapped); 
         setJob(mapped);
       })
       .catch((error) => {
@@ -306,7 +305,7 @@ export default function JobDetailsPage() {
       setApplyOpen(false);
       setApplyMessage('');
       setApplyFile(null);
-      setHasApplied(true); // Update local state after successful application
+      setHasApplied(true); 
     } catch (error: any) {
       toast({ 
         title: 'Failed to submit application', 

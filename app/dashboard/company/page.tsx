@@ -172,67 +172,7 @@ export default function CompanyDashboardPage() {
           </Card>
         </div>
 
-        {/* Job Offer */}
         <div className="">
-          {/* <div className="lg:col-span-1">
-            <Card className="shadow-sm hover:shadow-md transition bg-white">
-              <CardHeader>
-                <CardTitle className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                  <Send className="h-5 w-5 text-purple-600" /> Send Job Offer
-                </CardTitle>
-                <CardDescription className="text-gray-600">Invite an employee to apply</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div>
-                  <label className="text-sm font-medium text-gray-700">Select Employee</label>
-                  <Select onValueChange={setSelectedEmployeeId} value={selectedEmployeeId}>
-                    <SelectTrigger className="w-full border-gray-300 bg-white">
-                      <SelectValue placeholder="Choose an employee" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {employees.map((e) => (
-                        <SelectItem key={e._id || e.id} value={String(e._id || e.id)}>
-                          {e.name || e.fullName || e.email || "Employee"}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-700">Message (optional)</label>
-                  <Textarea
-                    placeholder="Write a personalized message..."
-                    value={offerMessage}
-                    onChange={(e) => setOfferMessage(e.target.value)}
-                    className="min-h-[100px] border-gray-300 resize-none"
-                  />
-                </div>
-                <Button
-                  onClick={async () => {
-                    if (!selectedEmployeeId) {
-                      toast({ title: "Select an employee", description: "Please pick an employee first.", variant: "destructive" })
-                      return
-                    }
-                    setSending(true)
-                    try {
-                      await sendWorkRequest(selectedEmployeeId, offerMessage || undefined)
-                      setOfferMessage("")
-                      setSelectedEmployeeId("")
-                      toast({ title: "Offer sent", description: "Job offer sent successfully." })
-                    } catch (e: any) {
-                      toast({ title: "Failed", description: e?.response?.data?.message || "Unable to send job offer", variant: "destructive" })
-                    } finally {
-                      setSending(false)
-                    }
-                  }}
-                  disabled={sending}
-                  className="w-full bg-purple-600 hover:bg-purple-700 text-white"
-                >
-                  {sending ? "Sending..." : "Send Offer"}
-                </Button>
-              </CardContent>
-            </Card>
-          </div> */}
         <Card className="shadow-sm hover:shadow-md transition bg-white">
           <CardHeader className="flex justify-between items-center">
             <div>

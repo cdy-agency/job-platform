@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { AppAvatar } from "@/components/ui/avatar"
 import { getImage, formatDeadline } from "@/lib/utils"
+import { checkJobApplication } from "@/lib/api"
 
 export default function UserDashboardPage() {
   const [profile, setProfile] = useState<any>(null)
@@ -24,6 +25,7 @@ export default function UserDashboardPage() {
   const [applyMessage, setApplyMessage] = useState<string>("")
   const [applyFile, setApplyFile] = useState<File | null>(null)
   const [applySubmitting, setApplySubmitting] = useState(false)
+  const [jobApplicationStatus, setJobApplicationStatus] = useState<Record<string, boolean>>({})
 
   useEffect(() => {
     Promise.all([fetchEmployeeProfile(), fetchEmployeeApplications(), fetchJobSuggestions()])
@@ -32,9 +34,41 @@ export default function UserDashboardPage() {
         setApplications(apps || [])
         const jobsArray = Array.isArray(suggestions) ? suggestions : []
         setRecommended(jobsArray.slice(0, 3))
+        
+        // Check application status for each recommended job
+        checkApplicationsForJobs(jobsArray.slice(0, 3))
       })
       .finally(() => setLoading(false))
   }, [])
+
+  const checkApplicationsForJobs = async (jobs: any[]) => {
+    const statusMap: Record<string, boolean> = {}
+    
+    await Promise.all(
+      jobs.map(async (job) => {
+        try {
+          const response = await checkJobApplication(job._id)
+          statusMap[job._id] = response.hasApplied || false
+        } catch (error) {
+          statusMap[job._id] = false
+        }
+      })
+    )
+    
+    setJobApplicationStatus(statusMap)
+  }
+
+  const handleApplySuccess = () => {
+    setJobApplicationStatus(prev => ({
+      ...prev,
+      [applyJobId]: true
+    }))
+    
+    setApplyOpen(false)
+    setApplyMessage("")
+    setApplyFile(null)
+    setApplyJobId("")
+  }
 
   if (loading) return <div className="p-6">Loading...</div>
 
@@ -62,9 +96,7 @@ export default function UserDashboardPage() {
                 try {
                   await applyToJob(applyJobId, { coverLetter: applyMessage || undefined, resumeFile: applyFile, appliedVia: 'normal' })
                   toast({ title: 'Application submitted', description: 'Your application has been sent.' })
-                  setApplyOpen(false)
-                  setApplyMessage("")
-                  setApplyFile(null)
+                  handleApplySuccess()
                 } catch (e: any) {
                   toast({ title: 'Failed to apply', description: e?.response?.data?.message || 'Please log in as an employee.', variant: 'destructive' })
                 } finally {
@@ -243,39 +275,52 @@ export default function UserDashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {recommended.map((job: any) => (
-                <div key={job._id} className="flex items-center justify-between">
-                  <div className="flex items-start gap-3">
-                    <AppAvatar image={job.companyId?.logo} name={job.companyId?.companyName} size={40} />
-                    <div>
-                      <h4 className="font-medium text-black">{job.title}</h4>
-                      <p className="text-sm text-black">{job.companyId?.companyName || 'Company'}</p>
-                      <div className="mt-1 flex gap-2">
-                        <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-black">{job.employmentType}</span>
-                        {job.location && (
-                          <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-black">
-                            {job.location}
-                          </span>
-                        )}
+              {recommended.map((job: any) => {
+                const hasApplied = jobApplicationStatus[job._id]
+                
+                return (
+                  <div key={job._id} className="flex items-center justify-between">
+                    <div className="flex items-start gap-3">
+                      <AppAvatar image={job.companyId?.logo} name={job.companyId?.companyName} size={40} />
+                      <div>
+                        <h4 className="font-medium text-black">{job.title}</h4>
+                        <p className="text-sm text-black">{job.companyId?.companyName || 'Company'}</p>
+                        <div className="mt-1 flex gap-2">
+                          <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-black">{job.employmentType}</span>
+                          {job.location && (
+                            <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-black">
+                              {job.location}
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Link href={`/jobs/${job._id}`}>
-                      <Button size="sm" className="bg-white text-[#834de3] border border-[#834de3] hover:bg-[#f5f0ff]">
-                        View
+                    <div className="flex items-center gap-2">
+                      <Link href={`/jobs/${job._id}`}>
+                        <Button size="sm" className="bg-white text-[#834de3] border border-[#834de3] hover:bg-[#f5f0ff]">
+                          View
+                        </Button>
+                      </Link>
+                      <Button
+                        size="sm"
+                        className={hasApplied 
+                          ? "bg-gray-100 text-gray-500 cursor-not-allowed" 
+                          : "bg-[#834de3] text-white hover:bg-[#6b3ac2]"
+                        }
+                        disabled={hasApplied}
+                        onClick={() => {
+                          if (!hasApplied) {
+                            setApplyOpen(true)
+                            setApplyJobId(job._id)
+                          }
+                        }}
+                      >
+                        {hasApplied ? 'Already Applied' : 'Apply'}
                       </Button>
-                    </Link>
-                    <Button
-                      size="sm"
-                      className="bg-[#834de3] text-white hover:bg-[#6b3ac2]"
-                      onClick={() => { setApplyOpen(true); setApplyJobId(job._id); }}
-                    >
-                      Apply
-                    </Button>
+                    </div>
                   </div>
-                </div>
-              ))}
+                )
+              })}
               <div className="pt-2 text-center">
                 <Link href="/jobs">
                   <Button className="bg-white text-[#834de3] border border-[#834de3] hover:bg-[#f5f0ff]">
