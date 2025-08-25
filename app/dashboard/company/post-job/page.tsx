@@ -25,7 +25,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
-import { toast } from "@/components/ui/use-toast"
+import { toast } from "@/hooks/use-toast"
 import { postJob } from "@/lib/api"
 import { X } from "lucide-react"
 import { useAuth } from "@/context/authContext"

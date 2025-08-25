@@ -10,7 +10,7 @@ import NavBar from "@/components/home/NavBar";
 import { AppAvatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 

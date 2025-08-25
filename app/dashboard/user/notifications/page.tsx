@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { Bell, CheckCircle, Trash2 } from "lucide-react";
 import { fetchEmployeeNotifications, markEmployeeNotificationRead, deleteEmployeeNotification } from "@/lib/api";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 
 interface EmployeeNotification {
   id: string;

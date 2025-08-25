@@ -58,13 +58,20 @@ export default function UserApplicationsPage() {
                     {/* Job info */}
                     <div className="flex items-start gap-4">
                       <div className="h-12 w-12 overflow-hidden rounded-lg border bg-gray-50">
-                        <img
-                          src={job.companyId?.logo || "/placeholder.svg"}
-                          alt={job.companyId?.companyName || "Company"}
-                          className="h-full w-full object-cover"
-                          width={48}
-                          height={48}
-                        />
+                        {(() => {
+                          const logo = job.companyId?.logo?.url || job.companyId?.logo || job.company?.logo?.url || job.company?.logo
+                          const name = job.companyId?.companyName || job.company?.name || "Company"
+                          const src = typeof logo === 'string' && logo.length > 0 ? logo : "/placeholder-logo.png"
+                          return (
+                            <img
+                              src={src}
+                              alt={name}
+                              className="h-full w-full object-cover"
+                              width={48}
+                              height={48}
+                            />
+                          )
+                        })()}
                       </div>
                       <div>
                         <h3 className="font-semibold text-gray-900">{job.title}</h3>
