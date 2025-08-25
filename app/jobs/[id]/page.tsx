@@ -26,12 +26,7 @@ import { applyToJob, checkJobApplication } from "@/lib/api";
 import { AppAvatar } from "@/components/ui/avatar";
 import { formatDeadline } from "@/lib/utils";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-<<<<<<< HEAD
 import { useToast } from "@/components/ui/use-toast";
-=======
-import { Input } from "@/components/ui/input";
-import { useToast } from "@/hooks/use-toast";
->>>>>>> 88d92598c2556e0d93c150ad573110a3cb60bed0
 import { useAuth } from "@/context/authContext";
 
 const mainPurple = "#834de3";
