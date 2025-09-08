@@ -206,7 +206,7 @@ export default function UserDashboardPage() {
             </div>
           </CardContent>
         </Card>
-        <Card className="border-gray-200 bg-white">
+        {/* <Card className="border-gray-200 bg-white">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-black">Profile Views</CardTitle>
           </CardHeader>
@@ -216,8 +216,8 @@ export default function UserDashboardPage() {
               <Eye className="h-5 w-5 text-black" />
             </div>
           </CardContent>
-        </Card>
-        <Card className="border-gray-200 bg-white">
+        </Card> */}
+        {/* <Card className="border-gray-200 bg-white">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-black">Days Active</CardTitle>
           </CardHeader>
@@ -227,7 +227,7 @@ export default function UserDashboardPage() {
               <Clock className="h-5 w-5 text-black" />
             </div>
           </CardContent>
-        </Card>
+        </Card> */}
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">

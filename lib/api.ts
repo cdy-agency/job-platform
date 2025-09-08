@@ -427,6 +427,14 @@ export const fetchJobById = async (jobId: string) => {
     if (payload?._id || payload?.id) return payload
     return null
   }
+  // Try company-owned endpoint first (includes full image metadata)
+  try {
+    const companyRes = await api.get(`/company/job/${jobId}`);
+    const companyJob = extractJob(companyRes.data)
+    if (companyJob) return companyJob
+  } catch (_) {}
+
+  // Fallback to public job endpoint
   try {
     const res = await api.get(`/jobs/${jobId}`);
     return extractJob(res.data)
