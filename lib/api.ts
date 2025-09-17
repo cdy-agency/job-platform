@@ -321,7 +321,7 @@ export const updateJob = async (
   data: Partial<{
     title: string;
     description: string;
-    image?: File;
+    image?: File | string;
     province: string;
     district: string;
     skills: string[];
@@ -337,9 +337,15 @@ export const updateJob = async (
   const formData = new FormData();
   Object.entries(data).forEach(([key, value]) => {
     if (typeof value === 'undefined' || value === null) return;
-    if (key === 'image' && value instanceof File) {
-      formData.append('image', value);
-      return;
+    if (key === 'image') {
+      if (value instanceof File) {
+        formData.append('image', value);
+        return;
+      }
+      if (value === 'delete') {
+        formData.append('image', 'delete');
+        return;
+      }
     }
     if (Array.isArray(value)) {
       value.forEach((v) => formData.append(key, String(v)));
@@ -658,8 +664,8 @@ export const updateAdminDocuments = async (files: File[]) => {
   return res.data;
 };
 
-export const deleteAdminDocument = async (index: string) => {
-  const res = await api.delete(`/admin/delete/document/${index}`);
+export const deleteAdminDocument = async (notificationId: string) => {
+  const res = await api.delete(`/admin/delete/document/${notificationId}`);
   return res.data;
 };
 
@@ -764,3 +770,9 @@ export const deleteAdminNotification = async (notificationId: string) => {
 }
 
 export { api };
+
+// Company job status toggle
+export const toggleCompanyJobStatus = async (id: string, isActive: boolean) => {
+  const res = await api.patch(`/company/job/${id}/status`, { isActive });
+  return res.data;
+};

@@ -41,10 +41,12 @@ export default function UserDashboardPage() {
         )
         setAppliedJobIds(appliedIds)
         const jobsArray = Array.isArray(suggestions) ? suggestions : []
-        setRecommended(jobsArray.slice(0, 3))
+        const filtered = jobsArray.filter((j: any) => !j?.isExpired && j?.isActive !== false && !(typeof j?.remainingDays === 'number' && j.remainingDays <= 0))
+        const top = filtered.slice(0, 3)
+        setRecommended(top)
         
         // Check application status for each recommended job
-        checkApplicationsForJobs(jobsArray.slice(0, 3))
+        checkApplicationsForJobs(top)
       })
       .finally(() => setLoading(false))
   }, [])

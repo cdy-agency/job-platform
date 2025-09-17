@@ -17,7 +17,11 @@ export function FeaturedJobs() {
 
   useEffect(() => {
     fetchJobs()
-      .then((list) => setJobs((list || []).slice(0, 4)))
+      .then((list) => {
+        const arr = Array.isArray(list) ? list : []
+        const filtered = arr.filter((j: any) => !j?.isExpired && !(typeof j?.remainingDays === 'number' && j.remainingDays <= 0))
+        setJobs(filtered.slice(0, 4))
+      })
       .catch(() => setJobs([]));
   }, []);
 
