@@ -448,7 +448,7 @@ export default function PostJobPage() {
 														<SelectItem key={category.value} value={category.value}>
 															{category.label}
 														</SelectItem>
-													))}
+												</div>))}
 												</SelectContent>
 											</Select>
 											<FormMessage />
