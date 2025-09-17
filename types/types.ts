@@ -9,7 +9,8 @@ export interface EmployeeUser {
 export interface CompanyUser {
   id: string
   companyName: string,
-  location: string
+  province: string
+  district: string
   phoneNumber: string,
   website: string
   logo: string

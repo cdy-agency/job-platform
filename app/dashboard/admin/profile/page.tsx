@@ -429,7 +429,7 @@ export default function AdminProfilePage() {
             {/* Documents manager */}
             <div>
               <label className="block text-xs font-medium text-gray-700 mb-2">
-                Related Documents
+                RDB Registration Document
               </label>
               <div className="space-y-3">
                 {/* Document upload area */}

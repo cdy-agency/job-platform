@@ -1,7 +1,7 @@
 "use client"
 
-import { useRef, useState } from "react"
-import { useRouter } from "next/navigation"
+import { useRef, useState, useEffect } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
@@ -25,9 +25,10 @@ import {
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
+import { Checkbox } from "@/components/ui/checkbox"
 import { toast } from "@/hooks/use-toast"
-import { postJob } from "@/lib/api"
-import { X } from "lucide-react"
+import { postJob, fetchJobById, updateJob } from "@/lib/api"
+import { X, Loader } from "lucide-react"
 import { useAuth } from "@/context/authContext"
 
 const employmentEnum = z.enum(["fulltime", "part-time", "internship"])
@@ -47,20 +48,93 @@ export const JOB_CATEGORIES = [
   { value: "factory-workshop", label: "Gukora mu nganda (Factory/Workshop Jobs)" },
 ]
 
-// FIXED SCHEMA - Properly handle arrays with transform
+// Rwanda Provinces and Districts
+const RWANDA_LOCATIONS = {
+  "Kigali": ["Gasabo", "Kicukiro", "Nyarugenge"],
+  "Eastern": ["Bugesera", "Gatsibo", "Kayonza", "Kirehe", "Ngoma", "Nyagatare", "Rwamagana"],
+  "Northern": ["Burera", "Gakenke", "Gicumbi", "Musanze", "Rulindo"],
+  "Southern": ["Gisagara", "Huye", "Kamonyi", "Muhanga", "Nyamagabe", "Nyanza", "Nyaruguru", "Ruhango"],
+  "Western": ["Karongi", "Ngororero", "Nyabihu", "Nyamasheke", "Rubavu", "Rusizi", "Rutsiro"]
+}
+
+// Predefined Benefits Options
+const BENEFITS_OPTIONS = [
+  { 
+    id: "holiday-days", 
+    label: "Holiday Days", 
+    description: "Paid vacation days per month",
+    hasValue: true,
+    valueLabel: "Days per month",
+    valuePlaceholder: "e.g., 2"
+  },
+  { 
+    id: "food-allowance", 
+    label: "Food/Launch Allowance", 
+    description: "Meals provided during work hours",
+    hasValue: false
+  },
+  { 
+    id: "living-allowance", 
+    label: "Living Allowance", 
+    description: "Housing or accommodation support",
+    hasValue: true,
+    valueLabel: "Monthly amount (RWF)",
+    valuePlaceholder: "e.g., 50000"
+  },
+  { 
+    id: "insurance", 
+    label: "Insurance Coverage", 
+    description: "Health and/or life insurance",
+    hasValue: false
+  },
+  { 
+    id: "transport-allowance", 
+    label: "Transport Allowance", 
+    description: "Transportation support",
+    hasValue: true,
+    valueLabel: "Monthly amount (RWF)",
+    valuePlaceholder: "e.g., 30000"
+  },
+  { 
+    id: "training-development", 
+    label: "Training & Development", 
+    description: "Professional development opportunities",
+    hasValue: false
+  }
+]
+
+// Experience options
+const EXPERIENCE_OPTIONS = [
+  { value: "1", label: "1 year" },
+  { value: "2", label: "2 years" },
+  { value: "3+", label: "3+ years" }
+]
+
+// Salary range options
+const SALARY_RANGE_OPTIONS = [
+  { value: "0-50", label: "0 - 50k RWF" },
+  { value: "51-100", label: "51 - 100k RWF" },
+  { value: "101-150+", label: "101 - 150k+ RWF" }
+]
+
+// Enhanced schema for location and benefits
 const jobFormSchema = z.object({
   title: z.string().min(1, { message: "Title is required." }),
   description: z.string().min(1, { message: "Description is required." }),
   image: z.instanceof(File).optional(),
-  skills: z.array(z.string()).transform(val => val || []), // Always return array
-  location: z.string().min(1, { message: "Location is required." }),
+  skills: z.array(z.string()).transform(val => val || []),
+  province: z.string().min(1, { message: "Province is required." }),
+  district: z.string().min(1, { message: "District is required." }),
   experience: z.string().optional(),
   employmentType: employmentEnum,
-  salaryMin: z.string().optional(),
-  salaryMax: z.string().optional(),
+  salaryRange: z.string().optional(),
   category: z.string().min(1, { message: "Category is required." }),
-  responsibilities: z.array(z.string()).transform(val => val || []), // Always return array
-  benefits: z.array(z.string()).transform(val => val || []), // Always return array
+  responsibilities: z.array(z.string()).transform(val => val || []),
+  selectedBenefits: z.array(z.object({
+    id: z.string(),
+    label: z.string(),
+    value: z.string().optional()
+  })).optional(),
   applicationDeadline: z.string().optional(),
 })
 
@@ -68,12 +142,18 @@ type JobFormValues = z.infer<typeof jobFormSchema>
 
 export default function PostJobPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
   const [skillsInput, setSkillsInput] = useState("")
   const [responsibilityInput, setResponsibilityInput] = useState("")
-  const [benefitInput, setBenefitInput] = useState("")
+  const [selectedBenefits, setSelectedBenefits] = useState<{[key: string]: {selected: boolean, value: string}}>({})
+  const [availableDistricts, setAvailableDistricts] = useState<string[]>([])
+  
   const fileInputRef = useRef<HTMLInputElement | null>(null)
   const { user } = useAuth()
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const jobId = searchParams.get('edit') // ?edit=jobId for editing mode
+  const isEditMode = !!jobId
 
   const form = useForm<JobFormValues>({
     resolver: zodResolver(jobFormSchema),
@@ -82,21 +162,108 @@ export default function PostJobPage() {
       description: "",
       image: undefined,
       skills: [],
-      location: "",
+      province: "",
+      district: "",
       experience: "",
       employmentType: "fulltime",
-      salaryMin: "",
-      salaryMax: "",
+      salaryRange: "",
       category: "",
       responsibilities: [],
-      benefits: [],
+      selectedBenefits: [],
       applicationDeadline: "",
     },
     mode: "onChange",
   })
 
+  // Load existing job data for editing
+  useEffect(() => {
+    if (isEditMode && jobId) {
+      loadJobForEditing(jobId)
+    }
+  }, [isEditMode, jobId])
+
+  const loadJobForEditing = async (id: string) => {
+    setIsLoading(true)
+    try {
+      const jobData = await fetchJobById(id)
+      if (jobData) {
+        // Get province and district from job data
+        const province = jobData.province || ""
+        const district = jobData.district || ""
+        
+        // Set available districts based on province
+        if (province && RWANDA_LOCATIONS[province as keyof typeof RWANDA_LOCATIONS]) {
+          setAvailableDistricts(RWANDA_LOCATIONS[province as keyof typeof RWANDA_LOCATIONS])
+        }
+
+        // Parse existing benefits
+        const existingBenefits: {[key: string]: {selected: boolean, value: string}} = {}
+        if (jobData.benefits && Array.isArray(jobData.benefits)) {
+          jobData.benefits.forEach((benefit: string) => {
+            // Try to match with predefined benefits
+            const matchedBenefit = BENEFITS_OPTIONS.find(opt => 
+              benefit.toLowerCase().includes(opt.label.toLowerCase())
+            )
+            if (matchedBenefit) {
+              // Extract value if it has one (look for numbers)
+              const valueMatch = benefit.match(/(\d+)/)
+              existingBenefits[matchedBenefit.id] = {
+                selected: true,
+                value: valueMatch ? valueMatch[1] : ""
+              }
+            }
+          })
+        }
+        setSelectedBenefits(existingBenefits)
+
+        // Update form with existing data
+        form.reset({
+          title: jobData.title || "",
+          description: jobData.description || "",
+          skills: jobData.skills || [],
+          province,
+          district,
+          experience: jobData.experience || "",
+          employmentType: jobData.employmentType || "fulltime",
+          salaryRange: jobData.salary || "",
+          category: jobData.category || "",
+          responsibilities: jobData.responsibilities || [],
+          applicationDeadline: jobData.applicationDeadline ? 
+            new Date(jobData.applicationDeadline).toISOString().split('T')[0] : "",
+        })
+      }
+    } catch (error) {
+      console.error("Error loading job for editing:", error)
+      toast({
+        title: "Error",
+        description: "Failed to load job data for editing",
+        variant: "destructive",
+      })
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  // Handle province change
+  const handleProvinceChange = (province: string) => {
+    form.setValue("province", province)
+    form.setValue("district", "") // Reset district
+    setAvailableDistricts(RWANDA_LOCATIONS[province as keyof typeof RWANDA_LOCATIONS] || [])
+  }
+
+  // Handle benefit selection
+  const handleBenefitChange = (benefitId: string, checked: boolean, value?: string) => {
+    setSelectedBenefits(prev => ({
+      ...prev,
+      [benefitId]: {
+        selected: checked,
+        value: value || prev[benefitId]?.value || ""
+      }
+    }))
+  }
+
   const addItem = (
-    fieldName: "skills" | "responsibilities" | "benefits",
+    fieldName: "skills" | "responsibilities",
     value: string,
     setValue: (v: string) => void
   ) => {
@@ -107,7 +274,7 @@ export default function PostJobPage() {
   }
 
   const removeItem = (
-    fieldName: "skills" | "responsibilities" | "benefits",
+    fieldName: "skills" | "responsibilities",
     index: number
   ) => {
     const current = form.getValues(fieldName) || []
@@ -116,13 +283,11 @@ export default function PostJobPage() {
     form.setValue(fieldName, updated, { shouldDirty: true, shouldValidate: true })
   }
 
-  // ENHANCED SUBMIT FUNCTION with better error handling and user ID debugging
+  // Enhanced submit function for both create and update
   async function onSubmit(values: JobFormValues) {
     setIsSubmitting(true)
     
     try {
-
-      
       const companyId = (user as any)?.id || 
                        (user as any)?._id || 
                        (user as any)?.userId || 
@@ -131,41 +296,66 @@ export default function PostJobPage() {
                        "temp-company-id"
                        
       if (!companyId || companyId === "temp-company-id") {
-        console.warn("⚠️ Using temporary company ID for testing");
-        // Don't return, continue with temp ID to test the API call
+        console.warn("⚠️ Using temporary company ID for testing")
       }
 
-      console.log("About to call postJob API...");
+      // Build benefits array from selected benefits
+      const benefits: string[] = []
+      Object.entries(selectedBenefits).forEach(([benefitId, data]) => {
+        if (data.selected) {
+          const benefitOption = BENEFITS_OPTIONS.find(opt => opt.id === benefitId)
+          if (benefitOption) {
+            let benefitText = benefitOption.label
+            if (benefitOption.hasValue && data.value) {
+              benefitText += ` (${data.value}${benefitOption.valueLabel?.includes('Days') ? ' days' : ' RWF'})`
+            }
+            benefits.push(benefitText)
+          }
+        }
+      })
+
       const jobData = {
         title: values.title,
         description: values.description,
         image: values.image,
         skills: values.skills || [],
-        location: values.location,
+        province: values.province,
+        district: values.district,
         experience: values.experience || "",
         employmentType: values.employmentType,
-        salaryMin: values.salaryMin || "",
-        salaryMax: values.salaryMax || "",
+        salary: values.salaryRange || "",
         category: values.category,
         responsibilities: values.responsibilities || [],
-        benefits: values.benefits || [],
-        companyId,
+        benefits,
+        ...(isEditMode ? {} : { companyId }), // Only include companyId for new jobs
         applicationDeadline: values.applicationDeadline || "",
+        companyId
       }
-      console.log("Job data being sent:", jobData);
 
-      const result = await postJob(jobData)
-      console.log("API call successful:", result);
+      console.log("Job data being sent:", jobData)
 
-      toast({
-        title: "Job posted successfully!",
-        description: "Your job has been posted and is now live.",
-      })
+      let result
+      if (isEditMode && jobId) {
+        result = await updateJob(jobId, jobData)
+        console.log("Job updated successfully:", result)
+        toast({
+          title: "Job updated successfully!",
+          description: "Your job has been updated and is now live.",
+        })
+      } else {
+        result = await postJob(jobData)
+        console.log("Job posted successfully:", result)
+        toast({
+          title: "Job posted successfully!",
+          description: "Your job has been posted and is now live.",
+        })
+      }
+      
       router.push("/dashboard/company/jobs")
     } catch (e: any) {
-      
+      console.error("Error:", e)
       toast({
-        title: "Failed to post job",
+        title: `Failed to ${isEditMode ? 'update' : 'post'} job`,
         description: e?.response?.data?.message || e?.message || "Please try again. Check console for details.",
         variant: "destructive",
       })
@@ -174,17 +364,34 @@ export default function PostJobPage() {
     }
   }
 
+  if (isLoading) {
+    return (
+      <div className="container space-y-6 p-6 pb-16">
+        <div className="flex items-center justify-center py-12">
+          <Loader className="animate-spin h-8 w-8" />
+          <span className="ml-2">Loading job data...</span>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="container space-y-6 p-6 pb-16">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight text-gray-800">Post a New Job</h1>
-        <p className="text-gray-600">Create a new job listing to attract qualified candidates</p>
+        <h1 className="text-3xl font-bold tracking-tight text-gray-800">
+          {isEditMode ? 'Edit Job' : 'Post a New Job'}
+        </h1>
+        <p className="text-gray-600">
+          {isEditMode ? 'Update your job listing details' : 'Create a new job listing to attract qualified candidates'}
+        </p>
       </div>
 
       <Card className="border-gray-200 bg-white text-black">
         <CardHeader>
           <CardTitle className="text-gray-800">Job Details</CardTitle>
-          <CardDescription className="text-gray-600">Fill out the form below to create a new job listing</CardDescription>
+          <CardDescription className="text-gray-600">
+            {isEditMode ? 'Modify the form below to update your job listing' : 'Fill out the form below to create a new job listing'}
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
@@ -255,61 +462,107 @@ export default function PostJobPage() {
                 />
               </div>
 
-              {/* Location */}
-              <FormField
-                control={form.control}
-                name="location"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-gray-800">Location</FormLabel>
-                    <FormControl>
-                      <Input placeholder="e.g. Kigali, Musanze, Huye" {...field} className="border-gray-300" required/>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {/* Experience */}
-              <FormField
-                control={form.control}
-                name="experience"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-gray-800">Experience</FormLabel>
-                    <FormControl>
-                      <Input placeholder="e.g. 3+ years, Mid-level" {...field} className="border-gray-300" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {/* Salary Range */}
+              {/* Province & District Location */}
               <div className="grid gap-4 md:grid-cols-2">
                 <FormField
                   control={form.control}
-                  name="salaryMin"
+                  name="province"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-gray-800">Minimum Salary</FormLabel>
-                      <FormControl>
-                        <Input placeholder="e.g. 50000" {...field} className="border-gray-300" />
-                      </FormControl>
-                      <FormDescription className="text-gray-600">Enter amount without currency symbol</FormDescription>
+                      <FormLabel className="text-gray-800">Province</FormLabel>
+                      <Select onValueChange={handleProvinceChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger className="border-gray-300">
+                            <SelectValue placeholder="Select province" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {Object.keys(RWANDA_LOCATIONS).map((province) => (
+                            <SelectItem key={province} value={province}>
+                              {province}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
                 <FormField
                   control={form.control}
-                  name="salaryMax"
+                  name="district"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-gray-800">Maximum Salary</FormLabel>
-                      <FormControl>
-                        <Input placeholder="e.g. 90000" {...field} className="border-gray-300" />
-                      </FormControl>
+                      <FormLabel className="text-gray-800">District</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value} disabled={!availableDistricts.length}>
+                        <FormControl>
+                          <SelectTrigger className="border-gray-300">
+                            <SelectValue placeholder="Select district" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {availableDistricts.map((district) => (
+                            <SelectItem key={district} value={district}>
+                              {district}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormDescription className="text-gray-600">
+                        {!availableDistricts.length ? "Select a province first" : ""}
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              {/* Experience & Salary Range */}
+              <div className="grid gap-4 md:grid-cols-2">
+                <FormField
+                  control={form.control}
+                  name="experience"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-gray-800">Experience Required</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger className="border-gray-300">
+                            <SelectValue placeholder="Select experience level" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {EXPERIENCE_OPTIONS.map((exp) => (
+                            <SelectItem key={exp.value} value={exp.value}>
+                              {exp.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="salaryRange"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-gray-800">Salary Range</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger className="border-gray-300">
+                            <SelectValue placeholder="Select salary range" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {SALARY_RANGE_OPTIONS.map((salary) => (
+                            <SelectItem key={salary.value} value={salary.value}>
+                              {salary.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -430,42 +683,53 @@ export default function PostJobPage() {
                 )}
               />
 
-              {/* Benefits */}
-              <FormField
-                control={form.control}
-                name="benefits"
-                render={() => (
-                  <FormItem>
-                    <FormLabel className="text-gray-800">Benefits</FormLabel>
-                    <div className="flex gap-2">
-                      <Input
-                        placeholder="Type a benefit and press Enter"
-                        value={benefitInput}
-                        onChange={(e) => setBenefitInput(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") {
-                            e.preventDefault()
-                            addItem("benefits", benefitInput, setBenefitInput)
-                          }
-                        }}
-                        className="border-gray-300"
+              {/* Enhanced Benefits Section */}
+              <div>
+                <FormLabel className="text-gray-800 text-base font-medium">Benefits</FormLabel>
+                <FormDescription className="text-gray-600 mb-4">
+                  Select the benefits you offer for this position
+                </FormDescription>
+                <div className="space-y-4">
+                  {BENEFITS_OPTIONS.map((benefit) => (
+                    <div key={benefit.id} className="flex items-start space-x-3 p-4 border border-gray-200 rounded-lg">
+                      <Checkbox
+                        checked={selectedBenefits[benefit.id]?.selected || false}
+                        onCheckedChange={(checked) => 
+                          handleBenefitChange(benefit.id, checked as boolean)
+                        }
+                        className="mt-1"
                       />
-                      <Button type="button" onClick={() => addItem("benefits", benefitInput, setBenefitInput)} className="bg-[#834de3] text-white">
-                        Add
-                      </Button>
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <label className="text-sm font-medium text-gray-800">
+                              {benefit.label}
+                            </label>
+                            <p className="text-sm text-gray-600 mt-1">
+                              {benefit.description}
+                            </p>
+                          </div>
+                          {benefit.hasValue && selectedBenefits[benefit.id]?.selected && (
+                            <div className="ml-4 min-w-[140px]">
+                              <Input
+                                placeholder={benefit.valuePlaceholder}
+                                value={selectedBenefits[benefit.id]?.value || ""}
+                                onChange={(e) => 
+                                  handleBenefitChange(benefit.id, true, e.target.value)
+                                }
+                                className="border-gray-300 text-sm"
+                              />
+                              <p className="text-xs text-gray-500 mt-1">
+                                {benefit.valueLabel}
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
                     </div>
-                    <div className="mt-2 flex flex-wrap gap-2">
-                      {form.watch("benefits").map((benefit, idx) => (
-                        <span key={idx} className="bg-[#f1ebfc] text-[#834de3] px-3 py-1 rounded-full flex items-center gap-2 text-sm">
-                          {benefit}
-                          <X size={16} className="cursor-pointer hover:text-red-500" onClick={() => removeItem("benefits", idx)} />
-                        </span>
-                      ))}
-                    </div>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                  ))}
+                </div>
+              </div>
 
               {/* Application Deadline */}
               <FormField
@@ -482,14 +746,17 @@ export default function PostJobPage() {
                 )}
               />
 
-              {/* ✅ FIXED SUBMIT BUTTON - Removed isValid check */}
+              {/* Submit Button */}
               <div className="flex justify-end pt-6">
                 <Button
                   type="submit"
                   className="bg-[#834de3] text-white hover:bg-[#7239d3] disabled:opacity-50"
                   disabled={isSubmitting}
                 >
-                  {isSubmitting ? "Posting..." : "Post Job"}
+                  {isSubmitting ? 
+                    (isEditMode ? "Updating..." : "Posting...") : 
+                    (isEditMode ? "Update Job" : "Post Job")
+                  }
                 </Button>
               </div>
             </form>

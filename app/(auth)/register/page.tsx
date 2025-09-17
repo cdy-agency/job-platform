@@ -36,7 +36,8 @@ export default function RegisterPage() {
 
     // Company fields
     companyName: "",
-    location: "",
+    district: "",
+    province: "",
     companyPhoneNumber: "",
     website: "",
     logo: null as File | null,
@@ -161,7 +162,8 @@ export default function RegisterPage() {
                         email: formData.email,
                         password: formData.password,
                         confirmPassword: formData.confirmPassword,
-                        location: formData.location,
+                        province: formData.province,
+                        district: formData.district,
                         companyPhoneNumber: formData.companyPhoneNumber,
                         website: formData.website,
                         logo: formData.logo,

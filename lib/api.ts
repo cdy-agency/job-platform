@@ -31,9 +31,14 @@ export const createCompanyFormData = (formData: any): FormData => {
   form.append('password', formData.password);
   form.append('confirmPassword', formData.confirmPassword);
 
-  if (formData.location) {
-    form.append('location', formData.location);
+  if (formData.province) {
+    form.append('province', formData.province);
   }
+
+  if (formData.district) {
+    form.append('district', formData.district);
+  }
+
   if (formData.companyPhoneNumber) {
     form.append('phoneNumber', formData.companyPhoneNumber); // Note: using 'phoneNumber' to match your schema
   }
@@ -260,12 +265,12 @@ export const postJob = async (data: {
   title: string;
   description: string;
   image?: File;
-  location: string,
+  province: string;
+  district: string;
   skills?: string[];
   experience?: string;
   employmentType: 'fulltime' | 'part-time' | 'internship';
-  salaryMin?: string;
-  salaryMax?: string;
+  salary?: string;
   category: string;
   responsibilities?: string[];
   benefits?: string[];
@@ -276,12 +281,12 @@ export const postJob = async (data: {
   formData.append('title', data.title);
   formData.append('description', data.description);
   formData.append('employmentType', data.employmentType);
-  formData.append("location", data.location)
+  formData.append("province", data.province);
+  formData.append("district", data.district);
   formData.append('category', data.category);
   formData.append('companyId', data.companyId);
   if (data.experience) formData.append('experience', data.experience);
-  if (data.salaryMin) formData.append('salaryMin', data.salaryMin);
-  if (data.salaryMax) formData.append('salaryMax', data.salaryMax);
+  if (data.salary) formData.append('salary', data.salary);
   if (data.applicationDeadline) formData.append('applicationDeadline', data.applicationDeadline);
   if (data.image instanceof File) formData.append('image', data.image);
   (data.skills || []).forEach((s) => formData.append('skills', s));
@@ -293,6 +298,7 @@ export const postJob = async (data: {
   });
   return res.data;
 };
+
 
 export const fetchCompanyJobs = async () => {
   const res = await api.get("/company/jobs");
@@ -316,12 +322,12 @@ export const updateJob = async (
     title: string;
     description: string;
     image?: File;
-    location: string,
+    province: string;
+    district: string;
     skills: string[];
     experience: string;
     employmentType: 'fulltime' | 'part-time' | 'internship';
-    salaryMin: string;
-    salaryMax: string;
+    salary: string;
     category: string;
     responsibilities: string[];
     benefits: string[];
@@ -346,7 +352,6 @@ export const updateJob = async (
   });
   return res.data;
 };
-
 export const deleteJob = async (id: string) => {
   const res = await api.delete(`/company/job/${id}`);
   return res.data;

@@ -1,5 +1,12 @@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface CompanyRegistrationProps {
   formData: {
@@ -7,7 +14,8 @@ interface CompanyRegistrationProps {
     email: string;
     password: string;
     confirmPassword: string;
-    location: string;
+    province: string;
+    district: string;
     companyPhoneNumber: string;
     website: string;
     logo: File | null;
@@ -15,86 +23,143 @@ interface CompanyRegistrationProps {
   onInputChange: (field: string, value: string | File | null) => void;
 }
 
+export const provincesWithDistricts: Record<string, string[]> = {
+  Kigali: ["Gasabo", "Kicukiro", "Nyarugenge"],
+  "Eastern Province": [
+    "Bugesera",
+    "Gatsibo",
+    "Kayonza",
+    "Kirehe",
+    "Ngoma",
+    "Nyagatare",
+    "Rwamagana",
+  ],
+  "Northern Province": ["Burera", "Gakenke", "Gicumbi", "Musanze", "Rulindo"],
+  "Western Province": [
+    "Karongi",
+    "Ngororero",
+    "Nyabihu",
+    "Nyamasheke",
+    "Rubavu",
+    "Rusizi",
+    "Rutsiro",
+  ],
+  "Southern Province": [
+    "Gisagara",
+    "Huye",
+    "Kamonyi",
+    "Muhanga",
+    "Nyamagabe",
+    "Nyanza",
+    "Nyaruguru",
+    "Ruhango",
+  ],
+};
+
 const CompanyRegistration = ({ formData, onInputChange }: CompanyRegistrationProps) => {
+  const handleProvinceChange = (province: string) => {
+    onInputChange("province", province);
+    onInputChange("district", ""); // reset district whenever province changes
+  };
+
   return (
     <div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Company Name */}
         <div className="space-y-2">
-          <Label htmlFor="companyName" className="text-sm font-medium text-gray-700">
-            Company Name
-          </Label>
+          <Label htmlFor="companyName">Company Name</Label>
           <Input
             id="companyName"
             type="text"
             placeholder="Company Name"
             value={formData.companyName}
             onChange={(e) => onInputChange("companyName", e.target.value)}
-            className="h-12 px-4 border-gray-200 rounded-xl focus:border-purple-500 focus:ring-purple-500 bg-white text-black"
             required
           />
         </div>
-        {/* Repeat similar for other fields */}
+
+        {/* Email */}
         <div className="space-y-2">
-          <Label htmlFor="email" className="text-sm font-medium text-gray-700">
-            Company Email
-          </Label>
+          <Label htmlFor="email">Company Email</Label>
           <Input
             id="email"
             type="email"
             placeholder="Company Email Address"
             value={formData.email}
             onChange={(e) => onInputChange("email", e.target.value)}
-            className="h-12 px-4 border-gray-200 rounded-xl focus:border-purple-500 focus:ring-purple-500 bg-white text-black"
             required
           />
         </div>
 
+        {/* Province */}
         <div className="space-y-2">
-          <Label htmlFor="location" className="text-sm font-medium text-gray-700">
-            Location
-          </Label>
-          <Input
-            id="location"
-            type="text"
-            placeholder="Company Location (Optional)"
-            value={formData.location}
-            onChange={(e) => onInputChange("location", e.target.value)}
-            className="h-12 px-4 border-gray-200 rounded-xl focus:border-purple-500 focus:ring-purple-500 bg-white text-black"
-          />
+          <Label htmlFor="province">Province</Label>
+          <Select
+            value={formData.province}
+            onValueChange={handleProvinceChange}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select Province" />
+            </SelectTrigger>
+            <SelectContent>
+              {Object.keys(provincesWithDistricts).map((province) => (
+                <SelectItem key={province} value={province}>
+                  {province}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
+        {/* District */}
         <div className="space-y-2">
-          <Label htmlFor="companyPhoneNumber" className="text-sm font-medium text-gray-700">
-            Phone Number
-          </Label>
+          <Label htmlFor="district">District</Label>
+          <Select
+            value={formData.district}
+            onValueChange={(val) => onInputChange("district", val)}
+            disabled={!formData.province} // disable if province not chosen
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select District" />
+            </SelectTrigger>
+            <SelectContent>
+              {formData.province &&
+                provincesWithDistricts[formData.province].map((district) => (
+                  <SelectItem key={district} value={district}>
+                    {district}
+                  </SelectItem>
+                ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Phone */}
+        <div className="space-y-2">
+          <Label htmlFor="companyPhoneNumber">Phone Number</Label>
           <Input
             id="companyPhoneNumber"
             type="tel"
             placeholder="Company Phone Number (Optional)"
             value={formData.companyPhoneNumber}
             onChange={(e) => onInputChange("companyPhoneNumber", e.target.value)}
-            className="h-12 px-4 border-gray-200 rounded-xl focus:border-purple-500 focus:ring-purple-500 bg-white text-black"
           />
         </div>
 
+        {/* Website */}
         <div className="space-y-2 md:col-span-2">
-          <Label htmlFor="website" className="text-sm font-medium text-gray-700">
-            Website
-          </Label>
+          <Label htmlFor="website">Website</Label>
           <Input
             id="website"
             type="url"
             placeholder="Company Website (Optional)"
             value={formData.website}
             onChange={(e) => onInputChange("website", e.target.value)}
-            className="h-12 px-4 border-gray-300 rounded-xl focus:border-purple-500 focus:ring-purple-500 bg-white text-black"
           />
         </div>
 
+        {/* Logo */}
         <div className="space-y-2 md:col-span-2">
-          <Label htmlFor="logo" className="text-sm font-medium text-gray-700">
-            Company Logo 
-          </Label>
+          <Label htmlFor="logo">Company Logo</Label>
           <Input
             id="logo"
             type="file"
@@ -103,37 +168,31 @@ const CompanyRegistration = ({ formData, onInputChange }: CompanyRegistrationPro
               const file = e.target.files?.[0] || null;
               onInputChange("logo", file);
             }}
-            className="h-12 px-4 border-gray-200 rounded-xl focus:border-purple-500 focus:ring-purple-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100 bg-white text-black"
           />
         </div>
       </div>
-      {/* Password Fields */}
+
+      {/* Passwords */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
         <div className="space-y-2">
-          <Label htmlFor="password" className="text-sm font-medium text-gray-700">
-            Password
-          </Label>
+          <Label htmlFor="password">Password</Label>
           <Input
             id="password"
             type="password"
             placeholder="Password"
             value={formData.password}
             onChange={(e) => onInputChange("password", e.target.value)}
-            className="h-12 px-4 border-gray-200 rounded-xl focus:border-purple-500 focus:ring-purple-500 bg-white text-black"
             required
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="confirmPassword" className="text-sm font-medium text-gray-700">
-            Confirm Password
-          </Label>
+          <Label htmlFor="confirmPassword">Confirm Password</Label>
           <Input
             id="confirmPassword"
             type="password"
             placeholder="Confirm Password"
             value={formData.confirmPassword}
             onChange={(e) => onInputChange("confirmPassword", e.target.value)}
-            className="h-12 px-4 border-gray-200 rounded-xl focus:border-purple-500 focus:ring-purple-500 bg-white text-black"
             required
           />
         </div>
