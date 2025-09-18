@@ -448,7 +448,7 @@ export default function PostJobPage() {
 														<SelectItem key={category.value} value={category.value}>
 															{category.label}
 														</SelectItem>
-												</div>))}
+													))}
 												</SelectContent>
 											</Select>
 											<FormMessage />
@@ -656,17 +656,17 @@ export default function PostJobPage() {
 										<FormLabel className="text-gray-800">Skills</FormLabel>
 										<div className="flex gap-2">
 											<Input
-													placeholder="Type a skill and press Enter"
-													value={skillsInput}
-													onChange={(e) => setSkillsInput(e.target.value)}
-													onKeyDown={(e) => {
-														if (e.key === "Enter") {
-															e.preventDefault()
-															addItem("skills", skillsInput, setSkillsInput)
-														}
-													}}
-													className="border-gray-300"
-												/>
+												placeholder="Type a skill and press Enter"
+												value={skillsInput}
+												onChange={(e) => setSkillsInput(e.target.value)}
+												onKeyDown={(e) => {
+													if (e.key === "Enter") {
+														e.preventDefault()
+														addItem("skills", skillsInput, setSkillsInput)
+													}
+												}}
+												className="border-gray-300"
+											/>
 											<Button type="button" onClick={() => addItem("skills", skillsInput, setSkillsInput)} className="bg-[#834de3] text-white">
 												Add
 											</Button>
@@ -693,17 +693,17 @@ export default function PostJobPage() {
 										<FormLabel className="text-gray-800">Responsibilities</FormLabel>
 										<div className="flex gap-2">
 											<Input
-													placeholder="Type a responsibility and press Enter"
-													value={responsibilityInput}
-													onChange={(e) => setResponsibilityInput(e.target.value)}
-													onKeyDown={(e) => {
-														if (e.key === "Enter") {
-															e.preventDefault()
-															addItem("responsibilities", responsibilityInput, setResponsibilityInput)
-														}
-													}}
-													className="border-gray-300"
-												/>
+												placeholder="Type a responsibility and press Enter"
+												value={responsibilityInput}
+												onChange={(e) => setResponsibilityInput(e.target.value)}
+												onKeyDown={(e) => {
+													if (e.key === "Enter") {
+														e.preventDefault()
+														addItem("responsibilities", responsibilityInput, setResponsibilityInput)
+													}
+												}}
+												className="border-gray-300"
+											/>
 											<Button type="button" onClick={() => addItem("responsibilities", responsibilityInput, setResponsibilityInput)} className="bg-[#834de3] text-white">
 												Add
 											</Button>
@@ -721,7 +721,7 @@ export default function PostJobPage() {
 								)}
 							/>
 
-							{/* Enhanced Benefits Section */}
+							{/* Enhanced Benefits Section - CORRECTED */}
 							<div>
 								<FormLabel className="text-gray-800 text-base font-medium">Benefits</FormLabel>
 								<FormDescription className="text-gray-600 mb-4">
@@ -731,12 +731,12 @@ export default function PostJobPage() {
 									{BENEFITS_OPTIONS.map((benefit) => (
 										<div key={benefit.id} className="flex items-start space-x-3 p-4 border border-gray-200 rounded-lg">
 											<Checkbox
-													checked={selectedBenefits[benefit.id]?.selected || false}
-													onCheckedChange={(checked) => 
-														handleBenefitChange(benefit.id, checked as boolean)
-													}
-													className="mt-1"
-												/>
+												checked={selectedBenefits[benefit.id]?.selected || false}
+												onCheckedChange={(checked) => 
+													handleBenefitChange(benefit.id, checked as boolean)
+												}
+												className="mt-1"
+											/>
 											<div className="flex-1">
 												<div className="flex items-center justify-between">
 													<div>
@@ -750,21 +750,22 @@ export default function PostJobPage() {
 													{benefit.hasValue && selectedBenefits[benefit.id]?.selected && (
 														<div className="ml-4 min-w-[140px]">
 															<Input
-																	placeholder={benefit.valuePlaceholder}
-																	value={selectedBenefits[benefit.id]?.value || ""}
-																	onChange={(e) => 
-																		handleBenefitChange(benefit.id, true, e.target.value)
-																	}
-																	className="border-gray-300 text-sm"
-																/>
-																<p className="text-xs text-gray-500 mt-1">
-																	{benefit.valueLabel}
-																</p>
+																placeholder={benefit.valuePlaceholder}
+																value={selectedBenefits[benefit.id]?.value || ""}
+																onChange={(e) => 
+																	handleBenefitChange(benefit.id, true, e.target.value)
+																}
+																className="border-gray-300 text-sm"
+															/>
+															<p className="text-xs text-gray-500 mt-1">
+																{benefit.valueLabel}
+															</p>
 														</div>
 													)}
 												</div>
 											</div>
-										))}
+										</div>
+									))}
 								</div>
 							</div>
 

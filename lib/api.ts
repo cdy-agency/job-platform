@@ -1,4 +1,3 @@
-import { AxiosInstance } from "axios";
 import {
   EmployeeRegisterType,
   LoginType,
