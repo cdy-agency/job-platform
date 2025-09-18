@@ -614,11 +614,15 @@ export default function JobDetailsPage() {
                 Cover Letter
               </label>
               <textarea 
-                value={applyMessage} 
-                onChange={(e) => setApplyMessage(e.target.value)} 
-                placeholder="Tell us why you're excited about this opportunity..."
-                className="block w-full border border-gray-300 rounded-lg p-3 text-sm min-h-[120px] focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
-              />
+                  value={applyMessage} 
+                  onChange={(e) => setApplyMessage(e.target.value)} 
+                  placeholder="Tell us why you're excited about this opportunity..."
+                  maxLength={250}
+                  className="block w-full border border-gray-300 rounded-lg p-3 text-sm min-h-[120px] focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  {applyMessage.length}/250 characters
+                </p>
             </div>
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">

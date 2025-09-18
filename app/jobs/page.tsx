@@ -57,6 +57,8 @@ interface JobDisplay {
   featured?: boolean;
   applicationDeadline?: string;
   remainingDays?: number | null;
+  isExpired?: boolean;
+  isActive?: boolean;
 }
 
 interface CollapsibleSectionProps {
@@ -127,7 +129,7 @@ export default function JobsPage() {
         const jobsArray = extractJobsArray(jobsData);
         
         // Transform the API response to match our JobDisplay interface
-        const transformedJobs: JobDisplay[] = jobsArray.map((job: any) => {
+        const transformedRaw: JobDisplay[] = jobsArray.map((job: any) => {
           const salaryStr = job.salary || (
             job.salaryMin || job.salaryMax
               ? `${job.salaryMin || ''}${job.salaryMin && job.salaryMax ? ' - ' : ''}${job.salaryMax || ''}`
@@ -150,8 +152,13 @@ export default function JobsPage() {
             featured: job.featured || job.isFeatured || false,
             applicationDeadline: job.applicationDeadline,
             remainingDays: typeof job.remainingDays === 'number' ? job.remainingDays : undefined,
+            isExpired: Boolean(job.isExpired),
+            isActive: job.isActive,
           } as JobDisplay
         });
+
+        // Filter out expired/inactive jobs just in case backend didn't filter
+        const transformedJobs = transformedRaw.filter((j) => !j.isExpired && j.isActive !== false && !(typeof j.remainingDays === 'number' && j.remainingDays <= 0));
 
         console.log('Transformed jobs:', transformedJobs); // Debug log
         setJobs(transformedJobs);

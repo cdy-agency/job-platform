@@ -136,7 +136,8 @@ const LogoUpload = ({
   onDragLeave,
   onDrop,
   onProfileInputChange,
-  onRemove
+  onRemove,
+  locked
 }: {
   profilePreview: string | null;
   dragActive: boolean;
@@ -146,6 +147,7 @@ const LogoUpload = ({
   onDrop: (e: React.DragEvent) => void;
   onProfileInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onRemove: () => void;
+  locked: boolean;
 }) => {
   return (
     <div className="md:col-span-1">
@@ -153,9 +155,9 @@ const LogoUpload = ({
         Company Logo
       </label>
       <div
-        onDragOver={onDragOver}
-        onDragLeave={onDragLeave}
-        onDrop={onDrop}
+        onDragOver={locked ? undefined : onDragOver}
+        onDragLeave={locked ? undefined : onDragLeave}
+        onDrop={locked ? undefined : onDrop}
         className={`relative rounded-lg border-2 ${
           dragActive ? "border-dashed border-gray-400" : "border-transparent"
         } overflow-hidden bg-white p-2`}
@@ -187,19 +189,22 @@ const LogoUpload = ({
               accept="image/*"
               onChange={onProfileInputChange}
               className="hidden"
+              disabled={locked}
             />
             <div className="flex gap-2">
               <button
                 type="button"
-                onClick={() => document.getElementById("profileUpload")?.click()}
-                className="flex-1 text-sm px-3 py-1 rounded-md border border-gray-200 bg-white text-gray-700 hover:shadow-sm"
+                onClick={() => !locked && document.getElementById("profileUpload")?.click()}
+                className={`flex-1 text-sm px-3 py-1 rounded-md border ${locked ? 'border-gray-100 bg-gray-50 text-gray-400' : 'border-gray-200 bg-white text-gray-700 hover:shadow-sm'}`}
+                disabled={locked}
               >
                 Change
               </button>
               <button
                 type="button"
-                onClick={onRemove}
-                className="text-sm px-3 py-1 rounded-md border border-gray-200 bg-gray-50 text-gray-700 hover:bg-gray-100"
+                onClick={() => !locked && onRemove()}
+                className={`text-sm px-3 py-1 rounded-md border ${locked ? 'border-gray-100 bg-gray-50 text-gray-400' : 'border-gray-200 bg-gray-50 text-gray-700 hover:bg-gray-100'}`}
+                disabled={locked}
               >
                 Remove
               </button>
@@ -211,6 +216,9 @@ const LogoUpload = ({
           </div>
         </div>
       </div>
+      {locked && (
+        <p className="mt-2 text-xs text-gray-500">Logo changes are locked after approval.</p>
+      )}
     </div>
   );
 };
@@ -220,12 +228,14 @@ const CompanyInfoForm = ({
   form, 
   onChange,
   provincesWithDistricts,
-  availableDistricts
+  availableDistricts,
+  locked
 }: { 
   form: FormData;
   onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => void;
   provincesWithDistricts: Record<string, string[]>;
   availableDistricts: string[];
+  locked: boolean;
 }) => {
   return (
     <div className="md:col-span-2 space-y-3">
@@ -237,7 +247,8 @@ const CompanyInfoForm = ({
           name="companyName"
           value={form.companyName}
           onChange={onChange}
-          className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-[#834de3] focus:ring-[#834de3]/30"
+          className={`mt-1 w-full rounded-md border px-3 py-2 text-sm ${locked ? 'border-gray-200 bg-gray-50 text-gray-500' : 'border-gray-300 focus:border-[#834de3] focus:ring-[#834de3]/30'}`}
+          disabled={locked}
         />
       </div>
 
@@ -262,7 +273,8 @@ const CompanyInfoForm = ({
             name="phoneNumber"
             value={form.phoneNumber}
             onChange={onChange}
-            className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-[#834de3] focus:ring-[#834de3]/30"
+            className={`mt-1 w-full rounded-md border px-3 py-2 text-sm ${locked ? 'border-gray-200 bg-gray-50 text-gray-500' : 'border-gray-300 focus:border-[#834de3] focus:ring-[#834de3]/30'}`}
+            disabled={locked}
           />
         </div>
       </div>
@@ -276,7 +288,8 @@ const CompanyInfoForm = ({
             name="province"
             value={form.province}
             onChange={onChange}
-            className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-[#834de3] focus:ring-[#834de3]/30"
+            disabled={locked}
+            className={`mt-1 w-full rounded-md border px-3 py-2 text-sm ${locked ? 'border-gray-200 bg-gray-50 text-gray-500' : 'border-gray-300 focus:border-[#834de3] focus:ring-[#834de3]/30'}`}
           >
             <option value="">Select Province</option>
             {Object.keys(provincesWithDistricts).map((province) => (
@@ -294,8 +307,8 @@ const CompanyInfoForm = ({
             name="district"
             value={form.district}
             onChange={onChange}
-            disabled={!form.province}
-            className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-[#834de3] focus:ring-[#834de3]/30 disabled:bg-gray-50 disabled:text-gray-500"
+            disabled={locked || !form.province}
+            className={`mt-1 w-full rounded-md border px-3 py-2 text-sm ${locked ? 'border-gray-200 bg-gray-50 text-gray-500' : 'border-gray-300 focus:border-[#834de3] focus:ring-[#834de3]/30'} ${!form.province ? 'disabled:bg-gray-50 disabled:text-gray-500' : ''}`}
           >
             <option value="">Select District</option>
             {availableDistricts.map((district) => (
@@ -316,7 +329,8 @@ const CompanyInfoForm = ({
           value={form.website}
           onChange={onChange}
           placeholder="https://example.com"
-          className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-[#834de3] focus:ring-[#834de3]/30"
+          className={`mt-1 w-full rounded-md border px-3 py-2 text-sm ${locked ? 'border-gray-200 bg-gray-50 text-gray-500' : 'border-gray-300 focus:border-[#834de3] focus:ring-[#834de3]/30'}`}
+          disabled={locked}
         />
       </div>
 
@@ -385,12 +399,14 @@ const TeamMembersManager = ({
   teamMembers,
   onAddMember,
   onUpdateMember,
-  onRemoveMember
+  onRemoveMember,
+  locked
 }: {
   teamMembers: TeamMember[];
   onAddMember: () => void;
   onUpdateMember: (id: string, field: 'position' | 'phoneNumber', value: string) => void;
   onRemoveMember: (id: string) => void;
+  locked: boolean;
 }) => {
   return (
     <div>
@@ -400,8 +416,9 @@ const TeamMembersManager = ({
         </label>
         <button
           type="button"
-          onClick={onAddMember}
-          className="flex items-center gap-1 text-xs px-2 py-1 rounded-md bg-gradient-to-r from-[#834de3] to-[#9260e7] text-white hover:opacity-90"
+          onClick={() => !locked && onAddMember()}
+          disabled={locked}
+          className={`flex items-center gap-1 text-xs px-2 py-1 rounded-md ${locked ? 'bg-gray-100 text-gray-400' : 'bg-gradient-to-r from-[#834de3] to-[#9260e7] text-white hover:opacity-90'}`}
         >
           <span className="text-sm">+</span>
           Add Member
@@ -424,14 +441,16 @@ const TeamMembersManager = ({
               <span className="text-xs font-medium text-gray-600">
                 Team Member #{index + 1}
               </span>
-              <button
-                type="button"
-                onClick={() => onRemoveMember(member.id)}
-                className="text-xs text-red-600 hover:text-red-700 p-1"
-                title="Remove member"
-              >
-                Remove
-              </button>
+              {!locked && (
+                <button
+                  type="button"
+                  onClick={() => onRemoveMember(member.id)}
+                  className="text-xs text-red-600 hover:text-red-700 p-1"
+                  title="Remove member"
+                >
+                  Remove
+                </button>
+              )}
             </div>
             
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -444,7 +463,8 @@ const TeamMembersManager = ({
                   value={member.position}
                   onChange={(e) => onUpdateMember(member.id, 'position', e.target.value)}
                   placeholder="e.g. HR Manager, CEO, Developer"
-                  className="w-full text-xs px-2 py-1 border border-gray-300 rounded-md focus:border-[#834de3] focus:ring-[#834de3]/30"
+                  className={`w-full text-xs px-2 py-1 border rounded-md ${locked ? 'border-gray-200 bg-gray-50 text-gray-500' : 'border-gray-300 focus:border-[#834de3] focus:ring-[#834de3]/30'}`}
+                  disabled={locked}
                 />
               </div>
               
@@ -457,7 +477,8 @@ const TeamMembersManager = ({
                   value={member.phoneNumber}
                   onChange={(e) => onUpdateMember(member.id, 'phoneNumber', e.target.value)}
                   placeholder="+250 7XX XXX XXX"
-                  className="w-full text-xs px-2 py-1 border border-gray-300 rounded-md focus:border-[#834de3] focus:ring-[#834de3]/30"
+                  className={`w-full text-xs px-2 py-1 border rounded-md ${locked ? 'border-gray-200 bg-gray-50 text-gray-500' : 'border-gray-300 focus:border-[#834de3] focus:ring-[#834de3]/30'}`}
+                  disabled={locked}
                 />
               </div>
             </div>
@@ -480,13 +501,15 @@ const DocumentsManager = ({
   docInputRef,
   deletingDocId,
   onDocInputChange,
-  onRemoveDocument
+  onRemoveDocument,
+  locked
 }: {
   documents: DocumentItem[];
   docInputRef: React.RefObject<HTMLInputElement | null>;
   deletingDocId: string | null;
   onDocInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onRemoveDocument: (id: string) => void;
+  locked: boolean;
 }) => {
   return (
     <div>
@@ -503,17 +526,19 @@ const DocumentsManager = ({
           onChange={onDocInputChange}
           className="hidden"
           id="docsInput"
+          disabled={locked}
         />
         <button
           type="button"
-          onClick={() => docInputRef.current?.click()}
-          className="text-sm px-3 py-1 rounded-md bg-gradient-to-r from-[#834de3] to-[#9260e7] text-white shadow-sm hover:opacity-90"
+          onClick={() => !locked && docInputRef.current?.click()}
+          className={`text-sm px-3 py-1 rounded-md ${locked ? 'bg-gray-100 text-gray-400' : 'bg-gradient-to-r from-[#834de3] to-[#9260e7] text-white shadow-sm hover:opacity-90'}`}
+          disabled={locked}
         >
           Upload Documents
         </button>
 
         <p className="text-xs text-gray-500">
-          PDF, DOCX, PNG — max 6MB each
+          {locked ? 'Documents are locked after approval' : 'PDF, DOCX, PNG — max 6MB each'}
         </p>
       </div>
 
@@ -553,14 +578,16 @@ const DocumentsManager = ({
               >
                 Download
               </a>
-              <button
-                type="button"
-                onClick={() => onRemoveDocument(d.id)}
-                disabled={deletingDocId === d.id}
-                className="text-xs text-gray-500 hover:text-red-600 disabled:opacity-50"
-              >
-                {deletingDocId === d.id ? 'Deleting...' : (d.isExisting ? 'Delete' : 'Remove')}
-              </button>
+              {!locked && (
+                <button
+                  type="button"
+                  onClick={() => onRemoveDocument(d.id)}
+                  disabled={deletingDocId === d.id}
+                  className="text-xs text-gray-500 hover:text-red-600 disabled:opacity-50"
+                >
+                  {deletingDocId === d.id ? 'Deleting...' : (d.isExisting ? 'Delete' : 'Remove')}
+                </button>
+              )}
             </div>
           </div>
         ))}
@@ -572,10 +599,12 @@ const DocumentsManager = ({
 // Form Action Buttons Component
 const FormActionButtons = ({
   loading,
-  onReset
+  onReset,
+  locked
 }: {
   loading: boolean;
   onReset: () => void;
+  locked: boolean;
 }) => {
   return (
     <div className="pt-2">
@@ -590,7 +619,8 @@ const FormActionButtons = ({
         <button
           type="button"
           onClick={onReset}
-          className="px-4 py-2 rounded-lg border border-gray-200 bg-white text-sm"
+          className={`px-4 py-2 rounded-lg border ${locked ? 'border-gray-100 bg-gray-50 text-gray-400' : 'border-gray-200 bg-white'} text-sm`}
+          disabled={locked}
         >
           Reset
         </button>
@@ -719,6 +749,7 @@ const DocumentDeleteModal = ({
 // Main Company Profile Page Component
 export default function CompanyProfilePage() {
   const hook = useCompanyProfile();
+  const isApproved = hook.profileData?.status === 'approved';
 
   return (
     <div className="min-h-screen bg-gray-50 px-4 py-10 flex justify-center">
@@ -754,6 +785,7 @@ export default function CompanyProfilePage() {
               onDrop={hook.onDrop}
               onProfileInputChange={hook.onProfileInputChange}
               onRemove={hook.removeProfileImage}
+              locked={false}
             />
 
             <CompanyInfoForm
@@ -761,6 +793,7 @@ export default function CompanyProfilePage() {
               onChange={hook.handleChange}
               provincesWithDistricts={hook.provincesWithDistricts}
               availableDistricts={hook.getAvailableDistricts()}
+              locked={false}
             />
           </div>
 
@@ -769,6 +802,7 @@ export default function CompanyProfilePage() {
             onAddMember={hook.addTeamMember}
             onUpdateMember={hook.updateTeamMember}
             onRemoveMember={hook.removeTeamMember}
+            locked={false}
           />
 
           <DocumentsManager
@@ -777,11 +811,13 @@ export default function CompanyProfilePage() {
             deletingDocId={hook.deletingDocId}
             onDocInputChange={hook.onDocInputChange}
             onRemoveDocument={hook.removeDocument}
+            locked={isApproved}
           />
 
           <FormActionButtons
             loading={hook.loading}
             onReset={hook.resetForm}
+            locked={false}
           />
         </form>
       </div>
