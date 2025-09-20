@@ -7,7 +7,6 @@ import {
   Building,
   Users,
   CheckCircle,
-  XCircle,
   Home,
   LogOut,
   Menu,
@@ -49,12 +48,6 @@ const navItems = [
     href: "/dashboard/admin/companies",
     icon: Building,
     shortCode: "MC",
-  },
-  {
-    title: "Profile",
-    href: "/dashboard/admin/profile",
-    icon: User,
-    shortCode: "P",
   },
 ];
 
@@ -182,7 +175,6 @@ const SidebarContent = ({
       {(!isCollapsed || isMobile) ? (
         <div className="space-y-3">
           <div className="flex items-center gap-3 p-3 rounded-lg bg-gray-800/50">
-            <AppAvatar name="Admin User" size={40} />
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-medium text-white">Admin User</p>
               <p className="truncate text-xs text-gray-400">admin@AkaziLink.com</p>
@@ -223,7 +215,7 @@ export function AdminDashboardSidebar() {
   const pathname = usePathname();
   const [unread, setUnread] = useState<number>(0);
   const [isCollapsed, setIsCollapsed] = useState<boolean>(false);
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
   const router = useRouter();
 
   useEffect(() => {

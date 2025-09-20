@@ -310,8 +310,12 @@ export const fetchJobApplicants = async (jobId: string) => {
   return data?.applicants || data?.data?.applicants || data;
 };
 
-export const updateApplicantStatus = async (applicationId: string, status: 'pending' | 'reviewed' | 'interview' | 'hired' | 'rejected') => {
-  const res = await api.patch(`/company/applications/${applicationId}/status`, { status })
+export const updateApplicantStatus = async (
+  applicationId: string,
+  status: 'hired' | 'rejected',
+  message: string
+) => {
+  const res = await api.patch(`/company/applications/${applicationId}/status`, { status, message })
   return res.data
 }
 

@@ -17,6 +17,13 @@ export interface CompanyUser {
   role: "company"
 }
 
+export interface admin {
+  id:  string,
+  name: string,
+  email: string, 
+  role: "superadmin"  
+}
+
 export type AuthUser = EmployeeUser | CompanyUser
 
 

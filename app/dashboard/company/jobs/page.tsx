@@ -19,13 +19,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
+import { Pencil, Trash2, Power, Loader2 } from "lucide-react";
 
 interface Job {
   _id: string;
@@ -73,7 +70,9 @@ export default function ManageJobsPage() {
 
   const isJobInactive = (job: Job) => {
     if (job.isActive === false) return true;
-    return Boolean(job.isExpired || (typeof job.remainingDays === 'number' && job.remainingDays <= 0));
+    return Boolean(
+      job.isExpired || (typeof job.remainingDays === "number" && job.remainingDays <= 0)
+    );
   };
 
   const handleToggleStatus = async (job: Job) => {
@@ -81,23 +80,122 @@ export default function ManageJobsPage() {
     try {
       const nextActive = isJobInactive(job);
       await toggleCompanyJobStatus(job._id, nextActive);
-      setJobs(prev => prev.map(j => j._id === job._id ? { ...j, isActive: nextActive, isExpired: false, remainingDays: j.remainingDays } : j));
-      toast({ title: nextActive ? 'Job activated' : 'Job deactivated' });
+      setJobs((prev) =>
+        prev.map((j) =>
+          j._id === job._id
+            ? { ...j, isActive: nextActive, isExpired: false, remainingDays: j.remainingDays }
+            : j
+        )
+      );
+      toast({ title: nextActive ? "Job activated" : "Job deactivated" });
     } catch (e: any) {
-      toast({ title: 'Failed to toggle status', description: e?.response?.data?.message || 'Please try again', variant: 'destructive' });
+      toast({
+        title: "Failed to toggle status",
+        description: e?.response?.data?.message || "Please try again",
+        variant: "destructive",
+      });
     } finally {
       setTogglingId(null);
     }
   };
 
+  const renderTable = (data: Job[]) => {
+    if (data.length === 0) {
+      return (
+        <div className="text-gray-500 text-center p-8">
+          No jobs found in this category.
+        </div>
+      );
+    }
+
+    return (
+      <div className="overflow-x-auto">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Title</TableHead>
+              <TableHead>Type</TableHead>
+              <TableHead>Category</TableHead>
+              <TableHead>Posted</TableHead>
+              <TableHead>Deadline</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {data.map((job) => {
+              const inactive = isJobInactive(job);
+              return (
+                <TableRow key={job._id}>
+                  <TableCell className="font-medium">{job.title}</TableCell>
+                  <TableCell>{job.employmentType || "N/A"}</TableCell>
+                  <TableCell>{job.category || "N/A"}</TableCell>
+                  <TableCell>
+                    {job.createdAt ? new Date(job.createdAt).toLocaleDateString() : "—"}
+                  </TableCell>
+                  <TableCell>
+                    {job.applicationDeadline
+                      ? new Date(job.applicationDeadline).toLocaleDateString()
+                      : "—"}
+                  </TableCell>
+                  <TableCell>
+                    {inactive ? (
+                      <Badge variant="secondary">Draft</Badge>
+                    ) : (
+                      <Badge className="bg-green-100 text-green-700">Published</Badge>
+                    )}
+                  </TableCell>
+                  <TableCell className="flex justify-end gap-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleEdit(job._id)}
+                      className="flex items-center gap-1"
+                    >
+                      <Pencil size={14} />
+                      Edit
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleToggleStatus(job)}
+                      disabled={togglingId === job._id}
+                      className="flex items-center gap-1"
+                    >
+                      {togglingId === job._id ? (
+                        <Loader2 size={14} className="animate-spin" />
+                      ) : (
+                        <Power size={14} />
+                      )}
+                      {inactive ? "Activate" : "Deactivate"}
+                    </Button>
+                    <Button
+                      size="sm"
+                      onClick={() => handleDelete(job._id)}
+                      className="flex items-center gap-1"
+                    >
+                      <Trash2 size={14} />
+                      Delete
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              );
+            })}
+          </TableBody>
+        </Table>
+      </div>
+    );
+  };
+
   if (loading) return <div className="p-6">Loading...</div>;
+
+  const publishedJobs = jobs.filter((job) => !isJobInactive(job));
+  const draftJobs = jobs.filter((job) => isJobInactive(job));
 
   return (
     <div className="min-h-screen bg-gray-50 px-4 py-10 flex justify-center">
       <div className="w-full max-w-6xl">
-        <h1 className="text-2xl font-bold text-gray-900 mb-6">
-          Manage Posted Jobs
-        </h1>
+        <h1 className="text-2xl font-bold text-gray-900 mb-6">Manage Posted Jobs</h1>
 
         {/* Delete Confirmation Dialog */}
         <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
@@ -119,9 +217,13 @@ export default function ManageJobsPage() {
                   try {
                     await deleteJob(jobToDelete);
                     setJobs((prev) => prev.filter((j) => j._id !== jobToDelete));
-                    toast({ title: "Job deleted", description: "The job has been removed." })
+                    toast({ title: "Job deleted", description: "The job has been removed." });
                   } catch (e: any) {
-                    toast({ title: "Failed to delete job", description: e?.response?.data?.message || "Please try again.", variant: "destructive" })
+                    toast({
+                      title: "Failed to delete job",
+                      description: e?.response?.data?.message || "Please try again.",
+                      variant: "destructive",
+                    });
                   } finally {
                     setConfirmOpen(false);
                     setJobToDelete(null);
@@ -134,79 +236,27 @@ export default function ManageJobsPage() {
           </DialogContent>
         </Dialog>
 
-        {jobs.length === 0 ? (
-          <p className="text-gray-500 text-center">No jobs posted yet.</p>
-        ) : (
-          <div className="bg-white rounded-xl shadow border border-gray-200 overflow-hidden">
-            <Table>
-              <TableHeader className="bg-gray-100">
-                <TableRow>
-                  <TableHead>Title</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Category</TableHead>
-                  <TableHead>Posted</TableHead>
-                  <TableHead>Deadline</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {jobs.map((job) => {
-                  const inactive = isJobInactive(job);
-                  return (
-                    <TableRow key={job._id}>
-                      <TableCell className="font-medium">{job.title}</TableCell>
-                      <TableCell>{job.employmentType || "N/A"}</TableCell>
-                      <TableCell>{job.category || "N/A"}</TableCell>
-                      <TableCell>
-                        {job.createdAt
-                          ? new Date(job.createdAt).toLocaleDateString()
-                          : "—"}
-                      </TableCell>
-                      <TableCell>
-                        {job.applicationDeadline
-                          ? new Date(job.applicationDeadline).toLocaleDateString()
-                          : "—"}
-                      </TableCell>
-                      <TableCell>
-                        {inactive ? (
-                          <span className="text-xs px-2 py-1 rounded bg-gray-200 text-gray-700">
-                            Inactive
-                          </span>
-                        ) : (
-                          <span className="text-xs px-2 py-1 rounded bg-green-100 text-green-700">
-                            Active
-                          </span>
-                        )}
-                      </TableCell>
-                      <TableCell className="flex justify-end gap-2">
-                        <button
-                          onClick={() => handleEdit(job._id)}
-                          className={`text-sm px-3 py-1 rounded-md border border-gray-300 text-[#834de3] hover:bg-[#834de3]/10`}
-                        >
-                          Edit
-                        </button>
-                        <button
-                          onClick={() => handleToggleStatus(job)}
-                          disabled={togglingId === job._id}
-                          className={`text-sm px-3 py-1 rounded-md border ${inactive ? 'border-green-300 text-green-700 hover:bg-green-50' : 'border-gray-300 text-gray-700 hover:bg-gray-50'}`}
-                        >
-                          {togglingId === job._id ? 'Saving...' : (inactive ? 'Activate' : 'Deactivate')}
-                        </button>
-                        <button
-                          onClick={() => handleDelete(job._id)}
-                          className="text-sm px-3 py-1 rounded-md border border-red-300 text-red-600 hover:bg-red-100"
-                        >
-                          Delete
-                        </button>
-                      </TableCell>
-                    </TableRow>
-                  )
-                })}
-              </TableBody>
-            </Table>
-          </div>
-        )}
+        {/* Tabs */}
+        <Tabs defaultValue="all" className="w-full">
+          <TabsList className="mb-6 bg-white shadow-sm p-1 rounded-lg">
+            <TabsTrigger value="all" className="flex items-center gap-2">
+              All
+              <Badge variant="outline">{jobs.length}</Badge>
+            </TabsTrigger>
+            <TabsTrigger value="published" className="flex items-center gap-2">
+              Published
+              <Badge variant="outline">{publishedJobs.length}</Badge>
+            </TabsTrigger>
+            <TabsTrigger value="draft" className="flex items-center gap-2">
+              Draft
+              <Badge variant="outline">{draftJobs.length}</Badge>
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="all">{renderTable(jobs)}</TabsContent>
+          <TabsContent value="published">{renderTable(publishedJobs)}</TabsContent>
+          <TabsContent value="draft">{renderTable(draftJobs)}</TabsContent>
+        </Tabs>
       </div>
     </div>
   );

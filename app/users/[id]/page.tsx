@@ -48,26 +48,11 @@ export default function UserProfile() {
   const [sending, setSending] = useState<boolean>(false)
 
   React.useEffect(() => {
-    if (!token) {
-      router.push("/login");
-      return;
-    }
-
-    if (!id) {
-      setError(true);
-      setLoading(false);
-      return;
-    }
-
-    setLoading(true);
-    setError(false);
-    
+  
     fetchUserById(id)
       .then((response) => {
-        console.log('User API Response:', response); // Debug log
-        // Handle different response structures
         const userData = response?.user || response?.data?.user || response;
-        
+
         if (!userData) {
           setError(true);
           setUser(null);
