@@ -1,5 +1,10 @@
 import { api } from '@/lib/axiosInstance'
 
+export const getLoggedinCompany = async () => {
+  const res = await api.get('/admin/me')
+  return res.data
+}
+
 export const getCompanies = async () => {
   const res = await api.get('/admin/companies')
   return res.data

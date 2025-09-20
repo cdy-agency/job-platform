@@ -5,21 +5,15 @@ import { useEffect, useState } from "react"
 import { Bell, PlusCircle, Users, Briefcase, Eye, Send, Calendar, MapPin, User } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { fetchCompanyJobs, fetchCompanyProfile, fetchJobApplicants, fetchEmployeesDirectory, sendWorkRequest } from "@/lib/api"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Textarea } from "@/components/ui/textarea"
+import { fetchCompanyJobs, fetchCompanyProfile, fetchJobApplicants, fetchEmployeesDirectory } from "@/lib/api"
 import { useToast } from "@/hooks/use-toast"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Badge } from "@/components/ui/badge"
 
 export default function CompanyDashboardPage() {
   const [profile, setProfile] = useState<any>(null)
   const [jobs, setJobs] = useState<any[]>([])
   const [applicants, setApplicants] = useState<any[]>([])
   const [employees, setEmployees] = useState<any[]>([])
-  const [selectedEmployeeId, setSelectedEmployeeId] = useState<string>("")
-  const [offerMessage, setOfferMessage] = useState<string>("")
-  const [sending, setSending] = useState<boolean>(false)
   const [loading, setLoading] = useState(true)
   const { toast } = useToast()
 

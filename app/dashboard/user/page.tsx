@@ -95,7 +95,7 @@ export default function UserDashboardPage() {
               <Textarea value={applyMessage} onChange={(e) => setApplyMessage(e.target.value)} placeholder="Tell us why you're a good fit..." className="min-h-[120px]" />
             </div>
             <div>
-              <label className="text-sm text-gray-700">Resume / Document</label>
+              <label className="text-sm text-gray-700">CV</label>
               <input type="file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" onChange={(e) => setApplyFile(e.target.files?.[0] || null)} className="block w-full text-sm" />
             </div>
           </div>
@@ -376,7 +376,7 @@ export default function UserDashboardPage() {
                 </div>
                 <div>
                   <h4 className="font-medium text-black">Upload your resume</h4>
-                  <p className="text-sm text-black">Add your latest resume to apply for jobs faster</p>
+                  <p className="text-sm text-black">Add your latest CV to apply for jobs faster</p>
                 </div>
               </div>
               <Link href="/dashboard/user/profile">

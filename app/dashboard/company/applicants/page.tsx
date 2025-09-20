@@ -101,7 +101,7 @@ export default function ManageApplicantsPage() {
   const selectedEmployee: any = useMemo(() => (selected && typeof selected.employeeId === 'object') ? selected.employeeId : null, [selected])
   const selectedResume: string | undefined = useMemo(() => (selected && (selected as any)?.resume) ? (selected as any).resume : undefined, [selected])
 
-  if (loading) return <div className="p-6">Loading...</div>
+  // if (loading) return <div className="p-6">Loading...</div>
 
   const filteredApplicants = useMemo(() => {
     if (statusFilter === 'all') return applicants
@@ -300,7 +300,7 @@ export default function ManageApplicantsPage() {
                   <Button variant="default" onClick={() => { setViewOpen(true); openStatusModal(selected, 'hired') }}>Hire</Button>
                 )}
                 {selected.status !== 'rejected' && (
-                  <Button variant="destructive" onClick={() => { setViewOpen(true); openStatusModal(selected, 'rejected') }}>Reject</Button>
+                  <Button onClick={() => { setViewOpen(true); openStatusModal(selected, 'rejected') }}>Reject</Button>
                 )}
               </div>
             )}
@@ -325,7 +325,7 @@ export default function ManageApplicantsPage() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setStatusModalOpen(false)}>Cancel</Button>
-            <Button onClick={submitStatusChange} disabled={statusSubmitting} className={statusAction === 'rejected' ? 'bg-red-600 hover:bg-red-700 text-white' : ''}>
+            <Button onClick={submitStatusChange} disabled={statusSubmitting} className={statusAction === 'rejected' ? 'bg-red-600 hover:bg-red-700 text-white' : 'bg-slate-300'}>
               {statusSubmitting ? 'Sending...' : 'Send'}
             </Button>
           </DialogFooter>

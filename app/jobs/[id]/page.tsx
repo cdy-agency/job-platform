@@ -626,7 +626,7 @@ export default function JobDetailsPage() {
             </div>
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Resume / Portfolio
+                CV
               </label>
               <input 
                 type="file" 

@@ -44,11 +44,6 @@ export default function UsersDirectoryPage() {
   const { token } = useAuth();
 
   useEffect(() => {
-    if (!token) {
-      router.push("/login");
-      return;
-    }
-
     setLoading(true);
     fetchUsersDirectory()
       .then((list: any[]) => {
