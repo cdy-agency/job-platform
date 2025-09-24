@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
+import PaginationControls from "@/components/pagination-controls";
 
 type Applicant = {
   _id: string;
@@ -16,6 +17,17 @@ type Applicant = {
   status: "pending" | "reviewed" | "interview" | "hired" | "rejected";
   createdAt?: string;
 };
+
+interface PaginationData {
+  currentPage: number;
+  totalPages: number;
+  totalItems: number;
+  itemsPerPage: number;
+  hasNextPage: boolean;
+  hasPrevPage: boolean;
+  startIndex: number;
+  endIndex: number;
+}
 
 export default function ManageApplicantsPage() {
   const [jobs, setJobs] = useState<Array<{ _id: string; title: string }>>([]);
@@ -33,6 +45,16 @@ export default function ManageApplicantsPage() {
   const [showOfferBox, setShowOfferBox] = useState(false);
   const [offerMessage, setOfferMessage] = useState("");
   const [offerSending, setOfferSending] = useState(false);
+  const [pagination, setPagination] = useState<PaginationData>({
+    currentPage: 1,
+    totalPages: 1,
+    totalItems: 0,
+    itemsPerPage: 10,
+    hasNextPage: false,
+    hasPrevPage: false,
+    startIndex: 0,
+    endIndex: 0,
+  });
   const { toast } = useToast();
 
   useEffect(() => {
@@ -48,11 +70,28 @@ export default function ManageApplicantsPage() {
 
   useEffect(() => {
     if (!selectedJobId) return
-    setLoadingApplicants(true)
-    fetchJobApplicants(selectedJobId)
-      .then((list) => setApplicants(list || []))
-      .finally(() => setLoadingApplicants(false))
+    loadApplicants(1)
   }, [selectedJobId])
+
+  const loadApplicants = async (page: number = 1) => {
+    if (!selectedJobId) return
+    setLoadingApplicants(true)
+    try {
+      const data = await fetchJobApplicants(selectedJobId, { page, limit: 10 })
+      setApplicants(data?.applicants || data || [])
+      if (data?.pagination) {
+        setPagination(data.pagination)
+      }
+    } catch (error) {
+      console.error('Error loading applicants:', error)
+    } finally {
+      setLoadingApplicants(false)
+    }
+  }
+
+  const handlePageChange = (page: number) => {
+    loadApplicants(page)
+  }
 
   const openStatusModal = (app: Applicant, action: "hired" | "rejected") => {
     setSelected(app)
@@ -218,6 +257,16 @@ export default function ManageApplicantsPage() {
                 </div>
               </div>
             ))}
+          </div>
+        )}
+        
+        {!loadingApplicants && applicants.length > 0 && (
+          <div className="mt-8">
+            <PaginationControls 
+              pagination={pagination} 
+              onPageChange={handlePageChange}
+              className="flex flex-col sm:flex-row items-center justify-between gap-4"
+            />
           </div>
         )}
       </div>

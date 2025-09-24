@@ -7,6 +7,7 @@ import { getImage } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { fetchAllEmployees } from "@/lib/api"
 import { useToast } from "@/hooks/use-toast"
+import PaginationControls from "@/components/pagination-controls"
 
 interface Employee {
   _id: string;
@@ -20,27 +21,55 @@ interface Employee {
   createdAt: string;
 }
 
+interface PaginationData {
+  currentPage: number;
+  totalPages: number;
+  totalItems: number;
+  itemsPerPage: number;
+  hasNextPage: boolean;
+  hasPrevPage: boolean;
+  startIndex: number;
+  endIndex: number;
+}
+
 export default function ManageEmployeesPage() {
   const { toast } = useToast()
   const [searchTerm, setSearchTerm] = useState("")
   const [employees, setEmployees] = useState<Employee[]>([])
   const [loading, setLoading] = useState(true)
+  const [pagination, setPagination] = useState<PaginationData>({
+    currentPage: 1,
+    totalPages: 1,
+    totalItems: 0,
+    itemsPerPage: 10,
+    hasNextPage: false,
+    hasPrevPage: false,
+    startIndex: 0,
+    endIndex: 0,
+  })
 
   useEffect(() => {
-    loadEmployees()
+    loadEmployees(1)
   }, [])
 
-  const loadEmployees = async () => {
+  const loadEmployees = async (page: number = 1) => {
     try {
       setLoading(true)
-      const response = await fetchAllEmployees()
+      const response = await fetchAllEmployees({ page, limit: 10 })
       setEmployees(response.employees || [])
+      if (response.pagination) {
+        setPagination(response.pagination)
+      }
     } catch (error: any) {
       console.error("Error loading employees:", error)
       toast({ variant: "destructive", description: error?.response?.data?.message || "Failed to load employees" })
     } finally {
       setLoading(false)
     }
+  }
+
+  const handlePageChange = (page: number) => {
+    loadEmployees(page)
   }
 
   const filtered = employees.filter((e) => {
@@ -182,6 +211,16 @@ export default function ManageEmployeesPage() {
               </div> */}
             </div>
           ))}
+        </div>
+      )}
+      
+      {!loading && employees.length > 0 && (
+        <div className="mt-8">
+          <PaginationControls 
+            pagination={pagination} 
+            onPageChange={handlePageChange}
+            className="flex flex-col sm:flex-row items-center justify-between gap-4"
+          />
         </div>
       )}
     </div>

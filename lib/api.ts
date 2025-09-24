@@ -304,8 +304,13 @@ export const fetchCompanyJobs = async () => {
   return res.data.jobs;
 };
 
-export const fetchJobApplicants = async (jobId: string) => {
-  const res = await api.get(`/company/applicants/${jobId}`);
+export const fetchJobApplicants = async (jobId: string, params?: { page?: number; limit?: number }) => {
+  const queryParams = new URLSearchParams();
+  if (params?.page) queryParams.append('page', params.page.toString());
+  if (params?.limit) queryParams.append('limit', params.limit.toString());
+  
+  const url = `/company/applicants/${jobId}${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+  const res = await api.get(url);
   const data = res.data;
   return data?.applicants || data?.data?.applicants || data;
 };
@@ -512,8 +517,13 @@ export const completeCompanyNextSteps = async (payload: { about?: string; docume
 
 
 // Company browsing employees and sending work requests
-export const fetchEmployeesDirectory = async (category?: string) => {
-  const res = await api.get('/company/employees', { params: category ? { category } : undefined })
+export const fetchEmployeesDirectory = async (category?: string, params?: { page?: number; limit?: number }) => {
+  const queryParams: any = {};
+  if (category) queryParams.category = category;
+  if (params?.page) queryParams.page = params.page.toString();
+  if (params?.limit) queryParams.limit = params.limit.toString();
+  
+  const res = await api.get('/company/employees', { params: queryParams })
   const data = res.data
   return data?.employees || data?.data?.employees || data
 }
@@ -672,8 +682,23 @@ export const deleteAdminDocument = async (notificationId: string) => {
   return res.data;
 };
 
-export const fetchAllEmployees = async () => {
-  const res = await api.get('/admin/employees');
+export const fetchAllEmployees = async (params?: { page?: number; limit?: number }) => {
+  const queryParams = new URLSearchParams();
+  if (params?.page) queryParams.append('page', params.page.toString());
+  if (params?.limit) queryParams.append('limit', params.limit.toString());
+  
+  const url = `/admin/employees${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+  const res = await api.get(url);
+  return res.data;
+};
+
+export const fetchAllCompanies = async (params?: { page?: number; limit?: number }) => {
+  const queryParams = new URLSearchParams();
+  if (params?.page) queryParams.append('page', params.page.toString());
+  if (params?.limit) queryParams.append('limit', params.limit.toString());
+  
+  const url = `/admin/companies${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+  const res = await api.get(url);
   return res.data;
 };
 
@@ -745,12 +770,17 @@ export const deleteCompanyNotification = async (notificationId: string) => {
   }
 }
 
-export const fetchAdminNotifications = async () => {
+export const fetchAdminNotifications = async (params?: { page?: number; limit?: number }) => {
   try {
-    const res = await api.get('/admin/notifications')
-    return res.data
+    const queryParams = new URLSearchParams();
+    if (params?.page) queryParams.append('page', params.page.toString());
+    if (params?.limit) queryParams.append('limit', params.limit.toString());
+    
+    const url = `/admin/notifications${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+    const res = await api.get(url);
+    return res.data;
   } catch {
-    return []
+    return [];
   }
 }
 

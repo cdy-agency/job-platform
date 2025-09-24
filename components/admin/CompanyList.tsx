@@ -3,7 +3,7 @@
 import React, { useEffect, useMemo, useState } from "react"
 import Link from "next/link"
 import { useToast } from "@/hooks/use-toast"
-import { getCompanies } from "@/lib/api/admin"
+import { fetchAllCompanies } from "@/lib/api"
 import {
   Select,
   SelectContent,
@@ -11,6 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import PaginationControls from "@/components/pagination-controls"
 
 interface AdminCompany {
   _id: string
@@ -19,6 +20,17 @@ interface AdminCompany {
   createdAt: string
   status?: string
   profileCompletionStatus?: string
+}
+
+interface PaginationData {
+  currentPage: number;
+  totalPages: number;
+  totalItems: number;
+  itemsPerPage: number;
+  hasNextPage: boolean;
+  hasPrevPage: boolean;
+  startIndex: number;
+  endIndex: number;
 }
 
 const normalizeCompanies = (payload: any): AdminCompany[] => {
@@ -37,24 +49,42 @@ export default function CompanyList() {
   const [companies, setCompanies] = useState<AdminCompany[]>([])
   const [loading, setLoading] = useState<boolean>(true)
   const [selectedStatus, setSelectedStatus] = useState<string>("all")
+  const [pagination, setPagination] = useState<PaginationData>({
+    currentPage: 1,
+    totalPages: 1,
+    totalItems: 0,
+    itemsPerPage: 10,
+    hasNextPage: false,
+    hasPrevPage: false,
+    startIndex: 0,
+    endIndex: 0,
+  })
 
   useEffect(() => {
-    const load = async () => {
-      try {
-        setLoading(true)
-        const res = await getCompanies()
-        setCompanies(normalizeCompanies(res))
-      } catch (e: any) {
-        toast({
-          variant: "destructive",
-          description: e?.response?.data?.message || "Failed to load companies",
-        })
-      } finally {
-        setLoading(false)
-      }
-    }
-    load()
+    loadCompanies(1)
   }, [])
+
+  const loadCompanies = async (page: number = 1) => {
+    try {
+      setLoading(true)
+      const res = await fetchAllCompanies({ page, limit: 10 })
+      setCompanies(normalizeCompanies(res))
+      if (res.pagination) {
+        setPagination(res.pagination)
+      }
+    } catch (e: any) {
+      toast({
+        variant: "destructive",
+        description: e?.response?.data?.message || "Failed to load companies",
+      })
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handlePageChange = (page: number) => {
+    loadCompanies(page)
+  }
 
   const filteredCompanies = useMemo(() => {
     if (selectedStatus === "all") return companies
@@ -161,6 +191,16 @@ export default function CompanyList() {
           </tbody>
         </table>
       </div>
+      
+      {!loading && companies.length > 0 && (
+        <div className="mt-8">
+          <PaginationControls 
+            pagination={pagination} 
+            onPageChange={handlePageChange}
+            className="flex flex-col sm:flex-row items-center justify-between gap-4"
+          />
+        </div>
+      )}
     </div>
   )
 }

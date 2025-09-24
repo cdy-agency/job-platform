@@ -8,6 +8,7 @@ import Hero from "@/components/home/hero";
 import HowItsWorks from "@/components/home/howItsWorks";
 import ForCompanies from "@/components/home/forCompanies";
 import { FeaturedJobs } from "@/components/featured-jobs";
+import HelpNotification from "@/components/help-notification";
 
 export default function Home() {
   const router = useRouter();
@@ -22,6 +23,7 @@ export default function Home() {
         <ForCompanies />
       </main>
       <Footer />
+      <HelpNotification />
     </div>
   );
 }

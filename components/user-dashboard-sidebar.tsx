@@ -12,7 +12,8 @@ import {
   Menu, 
   User,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  BookOpenText
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
@@ -53,6 +54,12 @@ const navItems = [
     href: "/dashboard/user/applications",
     icon: Briefcase,
     shortCode: "MA",
+  },
+  {
+    title: "Guidelines",
+    href: "/dashboard/user/guidelines",
+    icon: BookOpenText,
+    shortCode: "GD",
   },
 ]
 

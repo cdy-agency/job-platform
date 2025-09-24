@@ -12,6 +12,7 @@ import { AppAvatar } from "@/components/ui/avatar"
 import { getImage } from "@/lib/utils"
 import { useToast } from "@/hooks/use-toast"
 import { Textarea } from "@/components/ui/textarea"
+import PaginationControls from "@/components/pagination-controls"
 
 const getImageUrl = (profileImage: any) => {
   if (typeof profileImage === "string") return profileImage
@@ -48,12 +49,33 @@ interface Employee {
   location?: string
 }
 
+interface PaginationData {
+  currentPage: number;
+  totalPages: number;
+  totalItems: number;
+  itemsPerPage: number;
+  hasNextPage: boolean;
+  hasPrevPage: boolean;
+  startIndex: number;
+  endIndex: number;
+}
+
 export default function Employees() {
   const [employees, setEmployees] = useState<Employee[]>([])
   const [loading, setLoading] = useState(true)
   const [category, setCategory] = useState<string>("all")
   const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null)
   const [showModal, setShowModal] = useState(false)
+  const [pagination, setPagination] = useState<PaginationData>({
+    currentPage: 1,
+    totalPages: 1,
+    totalItems: 0,
+    itemsPerPage: 10,
+    hasNextPage: false,
+    hasPrevPage: false,
+    startIndex: 0,
+    endIndex: 0,
+  })
 
   const [showOfferBox, setShowOfferBox] = useState(false)
   const [offerMessage, setOfferMessage] = useState("")
@@ -61,18 +83,27 @@ export default function Employees() {
   const { toast } = useToast()
 
   useEffect(() => {
-    const load = async () => {
-      try {
-        const data = await fetchEmployeesDirectory(category === 'all' ? undefined : category)
-        setEmployees(data || [])
-      } catch (e) {
-        console.error(e)
-      } finally {
-        setLoading(false)
-      }
-    }
-    load()
+    loadEmployees(1)
   }, [category])
+
+  const loadEmployees = async (page: number = 1) => {
+    try {
+      setLoading(true)
+      const data = await fetchEmployeesDirectory(category === 'all' ? undefined : category, { page, limit: 10 })
+      setEmployees(data?.employees || [])
+      if (data?.pagination) {
+        setPagination(data.pagination)
+      }
+    } catch (e) {
+      console.error(e)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handlePageChange = (page: number) => {
+    loadEmployees(page)
+  }
 
   const openModal = (employee: Employee) => {
     setSelectedEmployee(employee)
@@ -167,6 +198,16 @@ export default function Employees() {
             </tbody>
           </table>
         </div>
+        
+        {!loading && employees.length > 0 && (
+          <div className="mt-8">
+            <PaginationControls 
+              pagination={pagination} 
+              onPageChange={handlePageChange}
+              className="flex flex-col sm:flex-row items-center justify-between gap-4"
+            />
+          </div>
+        )}
 
         {/* Modern Modal */}
         {showModal && selectedEmployee && (

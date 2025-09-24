@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import { Bell, CheckCircle, Trash2 } from "lucide-react"
 import { fetchAdminNotifications, markAdminNotificationRead, deleteAdminNotification } from "@/lib/api"
+import PaginationControls from "@/components/pagination-controls"
 
 interface NotificationItem {
   id: string
@@ -11,37 +12,67 @@ interface NotificationItem {
   read: boolean
 }
 
+interface PaginationData {
+  currentPage: number;
+  totalPages: number;
+  totalItems: number;
+  itemsPerPage: number;
+  hasNextPage: boolean;
+  hasPrevPage: boolean;
+  startIndex: number;
+  endIndex: number;
+}
+
 export default function AdminNotificationsPage() {
   const [items, setItems] = useState<NotificationItem[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
+  const [pagination, setPagination] = useState<PaginationData>({
+    currentPage: 1,
+    totalPages: 1,
+    totalItems: 0,
+    itemsPerPage: 10,
+    hasNextPage: false,
+    hasPrevPage: false,
+    startIndex: 0,
+    endIndex: 0,
+  })
 
   useEffect(() => {
-    const load = async () => {
-      try {
-        const res = await fetchAdminNotifications()
-        if (res?.message?.toLowerCase?.().includes("access denied")) {
-          setError("Access denied. Log in as an admin.")
-          setItems([])
-          return
-        }
-        const list = Array.isArray(res?.notifications) ? res.notifications : Array.isArray(res) ? res : []
-        const normalized: NotificationItem[] = list.map((n: any, index: number) => ({
-          // Generate unique ID if _id is not available
-          id: String(n._id || n.id || `notification-${Date.now()}-${index}`),
-          message: String(n.message || n.title || ""),
-          date: n.createdAt || n.date || undefined,
-          read: Boolean(n.read),
-        }))
-        setItems(normalized)
-      } catch (e: any) {
-        setError(e?.response?.data?.message || "Failed to load notifications")
-      } finally {
-        setLoading(false)
-      }
-    }
-    load()
+    loadNotifications(1)
   }, [])
+
+  const loadNotifications = async (page: number = 1) => {
+    try {
+      setLoading(true)
+      const res = await fetchAdminNotifications({ page, limit: 10 })
+      if (res?.message?.toLowerCase?.().includes("access denied")) {
+        setError("Access denied. Log in as an admin.")
+        setItems([])
+        return
+      }
+      const list = Array.isArray(res?.notifications) ? res.notifications : Array.isArray(res) ? res : []
+      const normalized: NotificationItem[] = list.map((n: any, index: number) => ({
+        // Generate unique ID if _id is not available
+        id: String(n._id || n.id || `notification-${Date.now()}-${index}`),
+        message: String(n.message || n.title || ""),
+        date: n.createdAt || n.date || undefined,
+        read: Boolean(n.read),
+      }))
+      setItems(normalized)
+      if (res?.pagination) {
+        setPagination(res.pagination)
+      }
+    } catch (e: any) {
+      setError(e?.response?.data?.message || "Failed to load notifications")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handlePageChange = (page: number) => {
+    loadNotifications(page)
+  }
 
   const markAsRead = async (id: string) => {
     try {
@@ -121,6 +152,16 @@ export default function AdminNotificationsPage() {
           </div>
         ))}
       </div>
+      
+      {!loading && items.length > 0 && (
+        <div className="mt-8">
+          <PaginationControls 
+            pagination={pagination} 
+            onPageChange={handlePageChange}
+            className="flex flex-col sm:flex-row items-center justify-between gap-4"
+          />
+        </div>
+      )}
     </div>
   )
 }
