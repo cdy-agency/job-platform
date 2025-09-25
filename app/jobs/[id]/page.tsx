@@ -35,7 +35,8 @@ type CompanyShape = {
   name: string;
   logo?: string;
   about?: string;
-  location?: string;
+  province?: string;
+  district?: string;
   website?: string;
   employeeCount?: string;
 };
@@ -44,7 +45,8 @@ type JobShape = {
   id: string;
   title: string;
   company: CompanyShape;
-  location: string;
+  district: string;
+  province: string;
   employmentType: string;
   salary?: string;
   category: string;
@@ -52,6 +54,7 @@ type JobShape = {
   experience?: string;
   responsibilities: string[];
   requirements: string[];
+  benefits: string[]; 
   skills: string[];
   featured?: boolean;
   applicationDeadline?: string;
@@ -112,11 +115,13 @@ export default function JobDetailsPage() {
             name: found.companyId?.companyName || found.company?.name || 'Company Name', 
             logo: companyLogo,
             about: found.companyId?.about || found.company?.about || 'Company description not available.',
-            location: found.companyId?.location || found.company?.location || found.location,
+            province: found.companyId?.province || found.company?.province || found.province,
+            district: found.companyId?.district || found.company?.district || found.district,
             website: found.companyId?.website || found.company?.website,
             employeeCount: found.companyId?.employeeCount || found.company?.employeeCount,
           },
-          location: found.location || found.companyId?.location || '—',
+          province: found.province || found.companyId?.province || '—',
+          district: found.district || found.companyId?.district || '—',
           employmentType: found.employmentType || 'full-time',
           salary: found.salary || salaryRange || '—',
           category: found.category || 'General',
@@ -125,6 +130,7 @@ export default function JobDetailsPage() {
           responsibilities: Array.isArray(found.responsibilities) ? found.responsibilities : [],
           requirements: Array.isArray(found.requirements) ? found.requirements : [],
           skills: Array.isArray(found.skills) ? found.skills : [],
+          benefits: Array.isArray(found.benefits) ? found.benefits : [],
           featured: Boolean(found.featured),
           applicationDeadline: found.applicationDeadline,
           remainingDays: typeof found.remainingDays === 'number' ? found.remainingDays : null,
@@ -385,7 +391,7 @@ export default function JobDetailsPage() {
                 <span>•</span>
                 <span className="flex items-center gap-1">
                   <MapPin className="h-4 w-4" />
-                  {job.location}
+                  {job.district}, {job.province}
                 </span>
               </div>
 
@@ -493,7 +499,7 @@ export default function JobDetailsPage() {
                 <MapPin className="h-4 w-4" />
                 <span className="text-sm font-medium">Location</span>
               </div>
-              <p className="text-gray-900">{job.location}</p>
+              <p className="text-gray-900">{job.province}, {job.district}</p>
             </div>
             
             <div className="bg-white p-4 rounded-lg border">
@@ -533,6 +539,23 @@ export default function JobDetailsPage() {
                   <li key={i} className="flex items-start gap-3">
                     <Award className="h-5 w-5 text-blue-500 mt-0.5 flex-shrink-0" />
                     <span className="text-gray-700">{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </section>
+        )}
+
+        {/* Benefits */}
+        {job.benefits && job.benefits.length > 0 && (
+          <section id="benefits" className="mb-12">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">Benefits</h2>
+            <div className="bg-white p-6 rounded-lg border">
+              <ul className="space-y-3">
+                {job.benefits.map((benefit, i) => (
+                  <li key={i} className="flex items-start gap-3">
+                    <Star className="h-5 w-5 text-purple-500 mt-0.5 flex-shrink-0" />
+                    <span className="text-gray-700">{benefit}</span>
                   </li>
                 ))}
               </ul>
