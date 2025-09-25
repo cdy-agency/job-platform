@@ -85,59 +85,94 @@ export default function UserDashboardPage() {
   return (
     <div className="container space-y-8 p-6 pb-16">
       <Dialog open={applyOpen} onOpenChange={setApplyOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Apply to job</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-3">
-            <div>
-              <label className="text-sm text-gray-700">Cover Letter</label>
-              <Textarea value={applyMessage} onChange={(e) => setApplyMessage(e.target.value)} placeholder="Tell us why you're a good fit..." className="min-h-[120px]" />
-            </div>
-            <div>
-              <label className="text-sm text-gray-700">CV</label>
-              <input type="file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" onChange={(e) => setApplyFile(e.target.files?.[0] || null)} className="block w-full text-sm" />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button
-              onClick={async () => {
-                setApplySubmitting(true)
-                try {
-                  await applyToJob(applyJobId, { coverLetter: applyMessage || undefined, resumeFile: applyFile, appliedVia: 'normal' })
-                  toast({ title: 'Application submitted', description: 'Your application has been sent.' })
-                  handleApplySuccess()
-                  setApplyOpen(false)
-                  setApplyMessage("")
-                  setApplyFile(null)
-                  setAppliedJobIds(prev => {
-                    const next = new Set(prev)
-                    next.add(applyJobId)
-                    return next
-                  })
-                } catch (e: any) {
-                  const message = e?.response?.data?.message || 'Please log in as an employee.'
-                  toast({ title: 'Failed to apply', description: message, variant: 'destructive' })
-                  if (typeof message === 'string' && message.toLowerCase().includes('already applied')) {
-                    setAppliedJobIds(prev => {
-                      const next = new Set(prev)
-                      next.add(applyJobId)
-                      return next
-                    })
-                    setApplyOpen(false)
-                  }
-                } finally {
-                  setApplySubmitting(false)
-                }
-              }}
-              disabled={applySubmitting || !applyJobId}
-              className="bg-[#834de3] text-white hover:bg-[#6b3ac2]"
-            >
-              {applySubmitting ? 'Submitting...' : 'Submit'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+  <DialogContent>
+    <DialogHeader>
+      <DialogTitle>Apply to job</DialogTitle>
+    </DialogHeader>
+    <div className="space-y-3">
+      <div>
+        <label className="text-sm text-gray-700">Cover Letter</label>
+        <Textarea
+          value={applyMessage}
+          onChange={(e) => {
+            const value = e.target.value
+            // Prevent exceeding 250 chars
+            if (value.length <= 250) {
+              setApplyMessage(value)
+            }
+          }}
+          placeholder="Tell us why you're a good fit..."
+          className="min-h-[120px]"
+        />
+        <p className="text-xs text-gray-500 mt-1">
+          {applyMessage.length}/250 characters
+        </p>
+      </div>
+      <div>
+        <label className="text-sm text-gray-700">CV</label>
+        <input
+          type="file"
+          accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+          onChange={(e) => setApplyFile(e.target.files?.[0] || null)}
+          className="block w-full text-sm"
+        />
+      </div>
+    </div>
+    <DialogFooter>
+      <Button
+        onClick={async () => {
+          setApplySubmitting(true)
+          try {
+            await applyToJob(applyJobId, {
+              coverLetter: applyMessage || undefined,
+              resumeFile: applyFile,
+              appliedVia: "normal",
+            })
+            toast({
+              title: "Application submitted",
+              description: "Your application has been sent.",
+            })
+            handleApplySuccess()
+            setApplyOpen(false)
+            setApplyMessage("")
+            setApplyFile(null)
+            setAppliedJobIds((prev) => {
+              const next = new Set(prev)
+              next.add(applyJobId)
+              return next
+            })
+          } catch (e: any) {
+            const message =
+              e?.response?.data?.message || "Please log in as an employee."
+            toast({
+              title: "Failed to apply",
+              description: message,
+              variant: "destructive",
+            })
+            if (
+              typeof message === "string" &&
+              message.toLowerCase().includes("already applied")
+            ) {
+              setAppliedJobIds((prev) => {
+                const next = new Set(prev)
+                next.add(applyJobId)
+                return next
+              })
+              setApplyOpen(false)
+            }
+          } finally {
+            setApplySubmitting(false)
+          }
+        }}
+        disabled={applySubmitting || !applyJobId}
+        className="bg-[#834de3] text-white hover:bg-[#6b3ac2]"
+      >
+        {applySubmitting ? "Submitting..." : "Submit"}
+      </Button>
+    </DialogFooter>
+  </DialogContent>
+</Dialog>
+
       <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-black">Dashboard</h1>

@@ -17,12 +17,17 @@ import {
   Eye,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/hooks/use-toast";
 import { JOB_CATEGORIES } from "@/app/dashboard/company/post-job/page";
-import { fetchEmployeeProfile, updateEmployeeProfile, deactivateEmployeeAccount, activateEmployeeAccount, deleteEmployeeAccount } from "@/lib/api";
+import {
+  fetchEmployeeProfile,
+  updateEmployeeProfile,
+  deactivateEmployeeAccount,
+  activateEmployeeAccount,
+  deleteEmployeeAccount,
+} from "@/lib/api";
 import {
   uploadEmployeeImage,
   updateEmployeeImage,
@@ -37,7 +42,9 @@ interface EmployeeProfile {
   name?: string;
   email?: string;
   phoneNumber?: string;
-  location?: string;
+  province?: string;
+  district?: string;
+  gender?: string;
   profileImage?: string | { url: string; name: string; type: string };
   about?: string;
   experience?: string;
@@ -51,7 +58,44 @@ interface EmployeeProfile {
     uploadedAt?: string;
     url?: string;
   }>;
+  isActive?: boolean;
+  // keep other fields if backend sends them
+  [key: string]: any;
 }
+
+// Provinces & districts mapping (matches your earlier data)
+const provincesWithDistricts: Record<string, string[]> = {
+  Kigali: ["Gasabo", "Kicukiro", "Nyarugenge"],
+  "Eastern Province": [
+    "Bugesera",
+    "Gatsibo",
+    "Kayonza",
+    "Kirehe",
+    "Ngoma",
+    "Nyagatare",
+    "Rwamagana",
+  ],
+  "Northern Province": ["Burera", "Gakenke", "Gicumbi", "Musanze", "Rulindo"],
+  "Western Province": [
+    "Karongi",
+    "Ngororero",
+    "Nyabihu",
+    "Nyamasheke",
+    "Rubavu",
+    "Rusizi",
+    "Rutsiro",
+  ],
+  "Southern Province": [
+    "Gisagara",
+    "Huye",
+    "Kamonyi",
+    "Muhanga",
+    "Nyamagabe",
+    "Nyanza",
+    "Nyaruguru",
+    "Ruhango",
+  ],
+};
 
 export default function UserProfilePage() {
   const [profile, setProfile] = useState<EmployeeProfile | null>(null);
@@ -68,8 +112,7 @@ export default function UserProfilePage() {
   });
   const [passwordLoading, setPasswordLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("personal");
-  const [confirmOpen, setConfirmOpen] = useState<null | 'deactivate' | 'activate' | 'delete'>(null);
-  const [newPreference, setNewPreference] = useState("")
+  const [confirmOpen, setConfirmOpen] = useState<null | "deactivate" | "activate" | "delete">(null);
 
   useEffect(() => {
     fetchEmployeeProfile()
@@ -79,28 +122,41 @@ export default function UserProfilePage() {
 
   const handleUpdate = async () => {
     if (!profile) return;
-    
-    // Debug logging
-    console.log('Profile data to update:', profile);
-    console.log('Token from localStorage:', localStorage.getItem('token'));
-    console.log('User from localStorage:', localStorage.getItem('user'));
-    
+
+    // Debugging logs (kept from original)
+    console.log("Profile data to update:", profile);
+    console.log("Token from localStorage:", localStorage.getItem("token"));
+    console.log("User from localStorage:", localStorage.getItem("user"));
+
     setLoading(true);
     try {
-      const result = await updateEmployeeProfile({
+      const payload = {
         name: profile.name || "",
         phoneNumber: profile.phoneNumber || "",
-        location: profile.location || "",
+        // send province, district, gender (instead of location)
+        province: profile.province || "",
+        district: profile.district || "",
+        gender: profile.gender || "",
         about: profile.about || "",
         experience: profile.experience || "",
         education: profile.education || "",
         skills: profile.skills || [],
         jobPreferences: profile.jobPreferences || [],
-      });
-      console.log('Update successful:', result);
+      };
+
+      const result = await updateEmployeeProfile(payload);
+      console.log("Update successful:", result);
+      // refresh profile from server to reflect normalized data (optional)
+      try {
+        const refreshed = await fetchEmployeeProfile();
+        setProfile(refreshed);
+      } catch (err) {
+        // ignore refresh errors
+      }
+
       toast({ title: "Profile updated successfully", description: "Your changes have been saved." });
     } catch (err: any) {
-      console.error('Update failed with error:', err);
+      console.error("Update failed with error:", err);
       toast({
         title: "Update failed",
         description: err?.response?.data?.message || "Please try again",
@@ -155,9 +211,7 @@ export default function UserProfilePage() {
     setImageUploading(true);
 
     try {
-      const res = profile?.profileImage
-        ? await updateEmployeeImage(file)
-        : await uploadEmployeeImage(file);
+      const res = profile?.profileImage ? await updateEmployeeImage(file) : await uploadEmployeeImage(file);
 
       const imageUrl = res.url || res.profileImage?.url || res.profileImage;
       setProfile((prev) => ({
@@ -214,7 +268,8 @@ export default function UserProfilePage() {
       });
     } finally {
       setDocumentsUploading(false);
-      e.target.value = "";
+      // clear file input
+      (e.target as HTMLInputElement).value = "";
     }
   };
 
@@ -248,21 +303,21 @@ export default function UserProfilePage() {
   };
 
   const getImageUrl = (profileImage: any) => {
-    if (typeof profileImage === 'string') return profileImage;
+    if (typeof profileImage === "string") return profileImage;
     if (profileImage?.url) return profileImage.url;
     return null;
   };
 
   const getDocumentUrl = (document: any) => {
-    if (typeof document === 'string') return document;
+    if (typeof document === "string") return document;
     if (document?.url) return document.url;
     return null;
   };
 
   const getDocumentName = (document: any) => {
-    if (typeof document === 'string') return 'Document';
+    if (typeof document === "string") return "Document";
     if (document?.name) return document.name;
-    return 'Document';
+    return "Document";
   };
 
   const tabItems = [
@@ -271,6 +326,9 @@ export default function UserProfilePage() {
     { id: "education", label: "Education", icon: GraduationCap },
     { id: "documents", label: "Documents", icon: FileText },
   ];
+
+  // Helper for provinces list
+  const PROVINCES = Object.keys(provincesWithDistricts);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-indigo-50">
@@ -308,21 +366,15 @@ export default function UserProfilePage() {
               )}
             </Button>
             <Button
-              onClick={() => setConfirmOpen((profile as any)?.isActive === false ? 'activate' : 'deactivate')}
+              onClick={() => setConfirmOpen((profile as any)?.isActive === false ? "activate" : "deactivate")}
               variant="outline"
               className={`w-full sm:w-auto ${
-                (profile as any)?.isActive === false 
-                  ? 'border-green-200 text-green-600 hover:bg-green-50' 
-                  : 'border-red-200 text-red-600 hover:bg-red-50'
+                (profile as any)?.isActive === false ? "border-green-200 text-green-600 hover:bg-green-50" : "border-red-200 text-red-600 hover:bg-red-50"
               }`}
             >
-              {(profile as any)?.isActive === false ? 'Activate account' : 'Deactivate account'}
+              {(profile as any)?.isActive === false ? "Activate account" : "Deactivate account"}
             </Button>
-            <Button
-              onClick={() => setConfirmOpen('delete')}
-              variant="outline"
-              className="border-red-300 text-red-700 hover:bg-red-100 w-full sm:w-auto"
-            >
+            <Button onClick={() => setConfirmOpen("delete")} variant="outline" className="border-red-300 text-red-700 hover:bg-red-100 w-full sm:w-auto">
               Delete account
             </Button>
           </div>
@@ -333,12 +385,12 @@ export default function UserProfilePage() {
           <div className="mb-6 p-3 rounded-md bg-gray-50 border border-gray-200">
             <div className="flex items-center gap-2">
               <span className="text-sm font-medium text-gray-700">Account Status:</span>
-              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                (profile as any)?.isActive === false
-                  ? 'bg-red-100 text-red-800'
-                  : 'bg-green-100 text-green-800'
-              }`}>
-                {(profile as any)?.isActive === false ? 'Deactivated' : 'Active'}
+              <span
+                className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                  (profile as any)?.isActive === false ? "bg-red-100 text-red-800" : "bg-green-100 text-green-800"
+                }`}
+              >
+                {(profile as any)?.isActive === false ? "Deactivated" : "Active"}
               </span>
             </div>
           </div>
@@ -354,15 +406,7 @@ export default function UserProfilePage() {
                 <div className="text-center mb-6">
                   <div className="relative inline-block">
                     <div className="w-32 h-32 rounded-full border-4 border-purple-200 overflow-hidden mx-auto bg-gradient-to-br from-purple-100 to-indigo-100">
-                      <img
-                        src={
-                          imagePreview ||
-                          getImageUrl(profile?.profileImage) ||
-                          "/placeholder.svg"
-                        }
-                        alt="Profile"
-                        className="w-full h-full object-cover"
-                      />
+                      <img src={imagePreview || getImageUrl(profile?.profileImage) || "/placeholder.svg"} alt="Profile" className="w-full h-full object-cover" />
                       {imageUploading && (
                         <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full">
                           <div className="h-6 w-6 animate-spin border-2 border-white border-t-transparent rounded-full" />
@@ -371,25 +415,13 @@ export default function UserProfilePage() {
                     </div>
                     <label className="absolute -bottom-2 -right-2 bg-purple-600 hover:bg-purple-700 text-white p-2 rounded-full cursor-pointer shadow-lg transition-all">
                       <Camera className="h-4 w-4" />
-                      <input
-                        type="file"
-                        className="hidden"
-                        accept="image/*"
-                        onChange={handleImageSelect}
-                      />
+                      <input type="file" className="hidden" accept="image/*" onChange={handleImageSelect} />
                     </label>
                   </div>
-                  <h3 className="text-xl font-semibold text-gray-900 mt-4">
-                    {profile?.name || "Your Name"}
-                  </h3>
+                  <h3 className="text-xl font-semibold text-gray-900 mt-4">{profile?.name || "Your Name"}</h3>
                   <p className="text-gray-500 text-sm">{profile?.email || "your.email@example.com"}</p>
                   {profile?.profileImage && (
-                    <Button
-                      onClick={handleDeleteImage}
-                      variant="ghost"
-                      size="sm"
-                      className="mt-3 text-red-600 hover:text-red-700 hover:bg-red-50"
-                    >
+                    <Button onClick={handleDeleteImage} variant="ghost" size="sm" className="mt-3 text-red-600 hover:text-red-700 hover:bg-red-50">
                       <Trash2 className="h-4 w-4 mr-1" />
                       Remove Photo
                     </Button>
@@ -404,33 +436,17 @@ export default function UserProfilePage() {
                   </h4>
                   <div className="flex flex-wrap gap-2">
                     {profile?.skills?.map((skill) => (
-                      <span
-                        key={skill}
-                        className="inline-flex items-center gap-1 bg-gradient-to-r from-purple-100 to-indigo-100 text-purple-700 px-3 py-1 rounded-full text-sm font-medium border border-purple-200"
-                      >
+                      <span key={skill} className="inline-flex items-center gap-1 bg-gradient-to-r from-purple-100 to-indigo-100 text-purple-700 px-3 py-1 rounded-full text-sm font-medium border border-purple-200">
                         {skill}
-                        <button
-                          onClick={() => handleRemoveSkill(skill)}
-                          className="hover:bg-purple-200 rounded-full p-0.5"
-                        >
+                        <button onClick={() => handleRemoveSkill(skill)} className="hover:bg-purple-200 rounded-full p-0.5">
                           <X className="h-3 w-3" />
                         </button>
                       </span>
                     ))}
                   </div>
                   <div className="flex gap-2">
-                    <Input
-                      value={newSkill}
-                      onChange={(e) => setNewSkill(e.target.value)}
-                      placeholder="Add new skill"
-                      className="text-sm"
-                      onKeyPress={(e) => e.key === 'Enter' && handleAddSkill()}
-                    />
-                    <Button
-                      onClick={handleAddSkill}
-                      size="sm"
-                      className="bg-purple-600 hover:bg-purple-700 text-white"
-                    >
+                    <Input value={newSkill} onChange={(e) => setNewSkill(e.target.value)} placeholder="Add new skill" className="text-sm" onKeyPress={(e) => e.key === "Enter" && handleAddSkill()} />
+                    <Button onClick={handleAddSkill} size="sm" className="bg-purple-600 hover:bg-purple-700 text-white">
                       <Plus className="h-4 w-4" />
                     </Button>
                   </div>
@@ -452,9 +468,7 @@ export default function UserProfilePage() {
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id)}
                         className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all font-medium text-sm ${
-                          activeTab === tab.id
-                            ? "bg-white text-purple-700 shadow-sm border border-purple-200"
-                            : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+                          activeTab === tab.id ? "bg-white text-purple-700 shadow-sm border border-purple-200" : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
                         }`}
                       >
                         <IconComponent className="h-4 w-4" />
@@ -470,98 +484,132 @@ export default function UserProfilePage() {
                 {activeTab === "personal" && (
                   <div className="space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {/* Full Name */}
                       <div className="space-y-2">
                         <label className="text-sm font-medium text-gray-700">Full Name</label>
                         <Input
                           value={profile?.name || ""}
-                          onChange={(e) =>
-                            setProfile((prev) => ({
-                              ...prev!,
-                              name: e.target.value,
-                            }))
-                          }
+                          onChange={(e) => setProfile((prev) => ({ ...prev!, name: e.target.value }))}
                           placeholder="Enter your full name"
                         />
                       </div>
+
+                      {/* Email */}
                       <div className="space-y-2">
                         <label className="text-sm font-medium text-gray-700">Email Address</label>
-                        <Input
-                          value={profile?.email || ""}
-                          disabled
-                          className="bg-gray-50"
-                        />
+                        <Input value={profile?.email || ""} disabled className="bg-gray-50" />
                       </div>
+
+                      {/* Phone Number */}
                       <div className="space-y-2">
                         <label className="text-sm font-medium text-gray-700">Phone Number</label>
                         <Input
                           value={profile?.phoneNumber || ""}
-                          onChange={(e) =>
-                            setProfile((prev) => ({
-                              ...prev!,
-                              phoneNumber: e.target.value,
-                            }))
-                          }
+                          onChange={(e) => setProfile((prev) => ({ ...prev!, phoneNumber: e.target.value }))}
                           placeholder="Enter your phone number"
                         />
                       </div>
+
+                      {/* Province select */}
                       <div className="space-y-2">
-                        <label className="text-sm font-medium text-gray-700">Location</label>
-                        <Input
-                          value={profile?.location || ""}
+                        <label className="text-sm font-medium text-gray-700">Province</label>
+                        <select
+                          value={profile?.province || ""}
                           onChange={(e) =>
                             setProfile((prev) => ({
                               ...prev!,
-                              location: e.target.value,
+                              province: e.target.value,
+                              district: "", // reset district when province changes
                             }))
                           }
-                          placeholder="Enter your location"
-                        />
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                        >
+                          <option value="">Select province</option>
+                          {PROVINCES.map((p) => (
+                            <option key={p} value={p}>
+                              {p}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      {/* District select (depends on province) */}
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-gray-700">District</label>
+                        <select
+                          value={profile?.district || ""}
+                          onChange={(e) => setProfile((prev) => ({ ...prev!, district: e.target.value }))}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                          disabled={!profile?.province}
+                        >
+                          <option value="">Select district</option>
+                          {profile?.province &&
+                            provincesWithDistricts[profile.province]?.map((d) => (
+                              <option key={d} value={d}>
+                                {d}
+                              </option>
+                            ))}
+                        </select>
+                      </div>
+
+                      {/* Gender */}
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-gray-700">Gender</label>
+                        <select
+                          value={profile?.gender || ""}
+                          onChange={(e) => setProfile((prev) => ({ ...prev!, gender: e.target.value }))}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                        >
+                          <option value="">Select gender</option>
+                          <option value="male">Male</option>
+                          <option value="female">Female</option>
+                          <option value="other">Other</option>
+                        </select>
                       </div>
                     </div>
+
+                    {/* About */}
                     <div className="space-y-2">
                       <label className="text-sm font-medium text-gray-700">About Me</label>
                       <textarea
                         value={profile?.about || ""}
-                        onChange={(e) =>
-                          setProfile((prev) => ({
-                            ...prev!,
-                            about: e.target.value,
-                          }))
-                        }
+                        onChange={(e) => setProfile((prev) => ({ ...prev!, about: e.target.value }))}
                         placeholder="Tell us about yourself..."
                         rows={4}
                         className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:border-purple-300 focus:ring-2 focus:ring-purple-100 transition-all resize-none"
                       />
                     </div>
+
+                    {/* Job Preferences */}
                     <div className="space-y-2">
                       <label className="text-sm font-medium text-gray-700">Job Preferences</label>
                       <div className="bg-white border border-gray-300 rounded-md p-4">
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                           {JOB_CATEGORIES.map((category) => {
-                            const checked = (profile?.jobPreferences || []).includes(category.value)
+                            const checked = (profile?.jobPreferences || []).includes(category.value);
                             return (
                               <label key={category.value} className="flex items-center space-x-2 text-sm text-gray-700">
                                 <input
                                   type="checkbox"
                                   checked={checked}
-                                  onChange={(e) => {
-                                    setProfile(prev => {
-                                      const current = new Set(prev?.jobPreferences || [])
-                                      if (e.target.checked) current.add(category.value)
-                                      else current.delete(category.value)
-                                      return { ...prev!, jobPreferences: Array.from(current) }
+                                  onChange={(e) =>
+                                    setProfile((prev) => {
+                                      const current = new Set(prev?.jobPreferences || []);
+                                      if (e.target.checked) current.add(category.value);
+                                      else current.delete(category.value);
+                                      return { ...prev!, jobPreferences: Array.from(current) };
                                     })
-                                  }}
+                                  }
                                   className="h-4 w-4 text-[#834de3] focus:ring-[#834de3] border-gray-300 rounded"
                                 />
                                 <span>{category.label}</span>
                               </label>
-                            )
+                            );
                           })}
                         </div>
                         {(profile?.jobPreferences || []).length > 0 && (
                           <div className="mt-3 pt-2 border-t border-gray-200 text-xs text-gray-600">
-                            Selected: {(profile?.jobPreferences || []).map((v) => JOB_CATEGORIES.find(c => c.value === v)?.label || v).join(', ')}
+                            Selected: {(profile?.jobPreferences || []).map((v) => JOB_CATEGORIES.find((c) => c.value === v)?.label || v).join(", ")}
                           </div>
                         )}
                       </div>
@@ -577,12 +625,7 @@ export default function UserProfilePage() {
                       <label className="text-sm font-medium text-gray-700">Professional Experience</label>
                       <textarea
                         value={profile?.experience || ""}
-                        onChange={(e) =>
-                          setProfile((prev) => ({
-                            ...prev!,
-                            experience: e.target.value,
-                          }))
-                        }
+                        onChange={(e) => setProfile((prev) => ({ ...prev!, experience: e.target.value }))}
                         placeholder="Describe your work experience, achievements, and responsibilities..."
                         rows={8}
                         className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:border-purple-300 focus:ring-2 focus:ring-purple-100 transition-all resize-none"
@@ -598,12 +641,7 @@ export default function UserProfilePage() {
                       <label className="text-sm font-medium text-gray-700">Educational Background</label>
                       <textarea
                         value={profile?.education || ""}
-                        onChange={(e) =>
-                          setProfile((prev) => ({
-                            ...prev!,
-                            education: e.target.value,
-                          }))
-                        }
+                        onChange={(e) => setProfile((prev) => ({ ...prev!, education: e.target.value }))}
                         placeholder="List your educational qualifications, certifications, and academic achievements..."
                         rows={8}
                         className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:border-purple-300 focus:ring-2 focus:ring-purple-100 transition-all resize-none"
@@ -621,19 +659,8 @@ export default function UserProfilePage() {
                         <p className="text-gray-500 text-sm">Upload and manage your important documents</p>
                       </div>
                       <div>
-                        <input
-                          type="file"
-                          multiple
-                          id="doc-upload"
-                          className="hidden"
-                          accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                          onChange={handleFileUpload}
-                        />
-                        <Button
-                          onClick={() => document.getElementById("doc-upload")?.click()}
-                          disabled={documentsUploading}
-                          className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white"
-                        >
+                        <input type="file" multiple id="doc-upload" className="hidden" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" onChange={handleFileUpload} />
+                        <Button onClick={() => document.getElementById("doc-upload")?.click()} disabled={documentsUploading} className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white">
                           {documentsUploading ? (
                             <div className="flex items-center">
                               <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
@@ -652,39 +679,24 @@ export default function UserProfilePage() {
                     <div className="grid gap-4">
                       {profile?.documents?.length ? (
                         profile.documents.map((doc, index) => (
-                          <div
-                            key={index}
-                            className="flex items-center justify-between p-4 border border-gray-200 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors"
-                          >
+                          <div key={index} className="flex items-center justify-between p-4 border border-gray-200 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors">
                             <div className="flex items-center gap-3">
                               <div className="p-2 bg-purple-100 rounded-lg">
                                 <FileText className="h-5 w-5 text-purple-600" />
                               </div>
                               <div>
                                 <p className="font-medium text-gray-900">{getDocumentName(doc)}</p>
-                                <p className="text-sm text-gray-500">
-                                  Uploaded {doc.uploadedAt ? new Date(doc.uploadedAt).toLocaleDateString() : 'Recently'}
-                                </p>
+                                <p className="text-sm text-gray-500">Uploaded {doc.uploadedAt ? new Date(doc.uploadedAt).toLocaleDateString() : "Recently"}</p>
                               </div>
                             </div>
                             <div className="flex items-center gap-2">
                               {getDocumentUrl(doc) && (
-                                <a
-                                  href={getDocumentUrl(doc)}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="flex items-center gap-1 text-purple-600 hover:text-purple-700 text-sm font-medium"
-                                >
+                                <a href={getDocumentUrl(doc)} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-purple-600 hover:text-purple-700 text-sm font-medium">
                                   <Eye className="h-4 w-4" />
                                   View
                                 </a>
                               )}
-                              <Button
-                                onClick={() => handleRemoveDocument(index)}
-                                variant="ghost"
-                                size="sm"
-                                className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                              >
+                              <Button onClick={() => handleRemoveDocument(index)} variant="ghost" size="sm" className="text-red-600 hover:text-red-700 hover:bg-red-50">
                                 <Trash2 className="h-4 w-4" />
                               </Button>
                             </div>
@@ -717,31 +729,12 @@ export default function UserProfilePage() {
                   <h3 className="text-xl font-semibold text-gray-900">Change Password</h3>
                 </div>
                 <div className="space-y-4">
-                  <Input
-                    type="password"
-                    placeholder="Current Password"
-                    value={passwordData.oldPassword}
-                    onChange={(e) => setPasswordData(prev => ({ ...prev, oldPassword: e.target.value }))}
-                  />
-                  <Input
-                    type="password"
-                    placeholder="New Password"
-                    value={passwordData.newPassword}
-                    onChange={(e) => setPasswordData(prev => ({ ...prev, newPassword: e.target.value }))}
-                  />
-                  <Input
-                    type="password"
-                    placeholder="Confirm New Password"
-                    value={passwordData.confirmPassword}
-                    onChange={(e) => setPasswordData(prev => ({ ...prev, confirmPassword: e.target.value }))}
-                  />
+                  <Input type="password" placeholder="Current Password" value={passwordData.oldPassword} onChange={(e) => setPasswordData((prev) => ({ ...prev, oldPassword: e.target.value }))} />
+                  <Input type="password" placeholder="New Password" value={passwordData.newPassword} onChange={(e) => setPasswordData((prev) => ({ ...prev, newPassword: e.target.value }))} />
+                  <Input type="password" placeholder="Confirm New Password" value={passwordData.confirmPassword} onChange={(e) => setPasswordData((prev) => ({ ...prev, confirmPassword: e.target.value }))} />
                 </div>
                 <div className="flex gap-3 mt-6">
-                  <Button
-                    onClick={handlePasswordReset}
-                    disabled={passwordLoading}
-                    className="flex-1 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white"
-                  >
+                  <Button onClick={handlePasswordReset} disabled={passwordLoading} className="flex-1 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white">
                     {passwordLoading ? (
                       <div className="flex items-center justify-center">
                         <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
@@ -754,11 +747,7 @@ export default function UserProfilePage() {
                       </>
                     )}
                   </Button>
-                  <Button
-                    onClick={() => setShowPasswordReset(false)}
-                    variant="outline"
-                    className="flex-1"
-                  >
+                  <Button onClick={() => setShowPasswordReset(false)} variant="outline" className="flex-1">
                     Cancel
                   </Button>
                 </div>
@@ -766,48 +755,52 @@ export default function UserProfilePage() {
             </div>
           </div>
         )}
+
+        {/* Confirm Modal for deactivate/activate/delete */}
         {confirmOpen && (
           <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md">
               <div className="p-6">
                 <div className="mb-4">
                   <h3 className="text-xl font-semibold text-gray-900">
-                    {confirmOpen === 'delete' ? 'Delete Account' : 
-                     confirmOpen === 'deactivate' ? 'Deactivate Account' : 'Activate Account'}
+                    {confirmOpen === "delete" ? "Delete Account" : confirmOpen === "deactivate" ? "Deactivate Account" : "Activate Account"}
                   </h3>
                   <p className="text-sm text-gray-600 mt-1">
-                    {confirmOpen === 'delete' ? 'This action will permanently delete your account and cannot be undone.' :
-                     confirmOpen === 'deactivate' ? 'Your account will be deactivated and you won\'t be able to access the platform.' :
-                     'Your account will be reactivated and you\'ll regain access to all features.'}
+                    {confirmOpen === "delete"
+                      ? "This action will permanently delete your account and cannot be undone."
+                      : confirmOpen === "deactivate"
+                      ? "Your account will be deactivated and you won't be able to access the platform."
+                      : "Your account will be reactivated and you'll regain access to all features."}
                   </p>
                 </div>
                 <div className="flex gap-3 mt-6 justify-end">
-                  <Button variant="outline" onClick={() => setConfirmOpen(null)}>Cancel</Button>
+                  <Button variant="outline" onClick={() => setConfirmOpen(null)}>
+                    Cancel
+                  </Button>
                   <Button
-                    className={confirmOpen === 'delete' ? 'bg-red-600 text-white hover:bg-red-700' : 'bg-[#834de3] text-white hover:bg-[#6b3ac2]'}
+                    className={confirmOpen === "delete" ? "bg-red-600 text-white hover:bg-red-700" : "bg-[#834de3] text-white hover:bg-[#6b3ac2]"}
                     onClick={async () => {
                       try {
-                        if (confirmOpen === 'deactivate') await deactivateEmployeeAccount();
-                        if (confirmOpen === 'activate') await activateEmployeeAccount();
-                        if (confirmOpen === 'delete') await deleteEmployeeAccount();
+                        if (confirmOpen === "deactivate") await deactivateEmployeeAccount();
+                        if (confirmOpen === "activate") await activateEmployeeAccount();
+                        if (confirmOpen === "delete") await deleteEmployeeAccount();
                         const refreshed = await fetchEmployeeProfile();
                         setProfile(refreshed);
-                        toast({ 
-                          title: "Success", 
-                          description: `Account ${confirmOpen === 'delete' ? 'deleted' : confirmOpen === 'deactivate' ? 'deactivated' : 'activated'} successfully` 
+                        toast({
+                          title: "Success",
+                          description: `Account ${confirmOpen === "delete" ? "deleted" : confirmOpen === "deactivate" ? "deactivated" : "activated"} successfully`,
                         });
                       } catch (err: any) {
                         toast({
                           title: "Error",
                           description: err?.response?.data?.message || "Failed to process request",
-                          variant: "destructive"
+                          variant: "destructive",
                         });
                       }
                       setConfirmOpen(null);
                     }}
                   >
-                    {confirmOpen === 'delete' ? 'Delete Account' : 
-                     confirmOpen === 'deactivate' ? 'Deactivate' : 'Activate'}
+                    {confirmOpen === "delete" ? "Delete Account" : confirmOpen === "deactivate" ? "Deactivate" : "Activate"}
                   </Button>
                 </div>
               </div>

@@ -33,6 +33,7 @@ export default function RegisterPage() {
     dateOfBirth: "",
     employeePhoneNumber: "",
     jobPreferences: [] as string[],
+    gender: "",
 
     // Company fields
     companyName: "",
@@ -68,6 +69,9 @@ export default function RegisterPage() {
           email: formData.email,
           password: formData.password,
           confirmPassword: formData.confirmPassword,
+          province: formData.province,
+          district: formData.district,
+          gender: formData.gender,
           dateOfBirth: formData.dateOfBirth,
           phoneNumber: formData.employeePhoneNumber,
           jobPreferences: formData.jobPreferences,
@@ -177,6 +181,9 @@ export default function RegisterPage() {
                         email: formData.email,
                         password: formData.password,
                         confirmPassword: formData.confirmPassword,
+                        province: formData.province,
+                        district: formData.district,
+                        gender: formData.gender,
                         dateOfBirth: formData.dateOfBirth,
                         employeePhoneNumber: formData.employeePhoneNumber,
                         jobPreferences: formData.jobPreferences,

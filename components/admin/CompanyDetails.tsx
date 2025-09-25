@@ -78,6 +78,15 @@ export default function CompanyDetails({ companyId }: { companyId: string }) {
     )
   }, [company])
 
+  const isApproved = (company?.status === 'approved' || company?.isApproved === true)
+  const isRejected = (company?.status === 'rejected')
+  const isDisabled = (company?.status === 'disabled' || company?.isActive === false)
+  const canApprove = !isApproved && !isRejected
+  const canReject = !isApproved && !isRejected
+  const canEnable = isApproved && isDisabled
+  const canDisable = isApproved && !isDisabled
+  const canDelete = true
+
   const onApprove = async () => {
     try {
       setActionLoading(true)
@@ -206,39 +215,50 @@ export default function CompanyDetails({ companyId }: { companyId: string }) {
         <div className="flex flex-wrap gap-2">
           <button
             onClick={onApprove}
-            disabled={actionLoading}
-            className="rounded-md bg-purple-600 px-4 py-2 text-sm font-medium text-white hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 disabled:opacity-50"
+            disabled={actionLoading || !canApprove}
+            className={`rounded-md px-4 py-2 text-sm font-medium text-white focus:outline-none focus:ring-2 ${canApprove ? 'bg-purple-600 hover:bg-purple-700 focus:ring-purple-500' : 'bg-gray-300 cursor-not-allowed'} disabled:opacity-50`}
+            title={canApprove ? 'Approve this company' : 'Approval not available'}
           >
             Approve
           </button>
           <button
             onClick={() => setRejectModalOpen(true)}
-            disabled={actionLoading}
-            className="rounded-md bg-purple-600 px-4 py-2 text-sm font-medium text-white hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 disabled:opacity-50"
+            disabled={actionLoading || !canReject}
+            className={`rounded-md px-4 py-2 text-sm font-medium text-white focus:outline-none focus:ring-2 ${canReject ? 'bg-amber-600 hover:bg-amber-700 focus:ring-amber-500' : 'bg-gray-300 cursor-not-allowed'} disabled:opacity-50`}
+            title={canReject ? 'Reject this company' : 'Rejection not available'}
           >
             Reject
           </button>
           <button
             onClick={onDisable}
-            disabled={actionLoading}
-            className="rounded-md bg-purple-600 px-4 py-2 text-sm font-medium text-white hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 disabled:opacity-50"
+            disabled={actionLoading || !canDisable}
+            className={`rounded-md px-4 py-2 text-sm font-medium text-white focus:outline-none focus:ring-2 ${canDisable ? 'bg-purple-600 hover:bg-purple-700 focus:ring-purple-500' : 'bg-gray-300 cursor-not-allowed'} disabled:opacity-50`}
+            title={canDisable ? 'Disable this company' : 'Disable only available on approved accounts'}
           >
             Disable
           </button>
           <button
             onClick={onEnable}
-            disabled={actionLoading}
-            className="rounded-md bg-purple-600 px-4 py-2 text-sm font-medium text-white hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 disabled:opacity-50"
+            disabled={actionLoading || !canEnable}
+            className={`rounded-md px-4 py-2 text-sm font-medium text-white focus:outline-none focus:ring-2 ${canEnable ? 'bg-purple-600 hover:bg-purple-700 focus:ring-purple-500' : 'bg-gray-300 cursor-not-allowed'} disabled:opacity-50`}
+            title={canEnable ? 'Enable this company' : 'Enable only available when disabled'}
           >
             Enable
           </button>
           <button
             onClick={onDelete}
-            disabled={actionLoading}
-            className="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 disabled:opacity-50"
+            disabled={actionLoading || !canDelete}
+            className={`rounded-md px-4 py-2 text-sm font-medium text-white focus:outline-none focus:ring-2 ${canDelete ? 'bg-red-600 hover:bg-red-700 focus:ring-red-500' : 'bg-gray-300 cursor-not-allowed'} disabled:opacity-50`}
+            title={'Delete this company'}
           >
             Delete
           </button>
+        </div>
+        <div className="mt-3 text-xs text-gray-500">
+          {isApproved && !isDisabled && (<p>Approved: you can Disable or Delete.</p>)}
+          {isApproved && isDisabled && (<p>Disabled: you can Enable or Delete.</p>)}
+          {isRejected && (<p>Rejected: you can Delete only.</p>)}
+          {!isApproved && !isRejected && (<p>Pending: you can Approve or Reject.</p>)}
         </div>
       </div>
 

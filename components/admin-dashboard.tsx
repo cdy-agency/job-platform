@@ -49,6 +49,12 @@ const navItems = [
     icon: Building,
     shortCode: "MC",
   },
+  {
+    title: "Profile",
+    href: "/dashboard/admin/profile",
+    icon: User,
+    shortCode: "MC",
+  },
 ];
 
 interface SidebarContentProps {

@@ -117,7 +117,7 @@ const CompanyRegistration = ({ formData, onInputChange }: CompanyRegistrationPro
           <Select
             value={formData.district}
             onValueChange={(val) => onInputChange("district", val)}
-            disabled={!formData.province} // disable if province not chosen
+            disabled={!formData.province}
           >
             <SelectTrigger>
               <SelectValue placeholder="Select District" />

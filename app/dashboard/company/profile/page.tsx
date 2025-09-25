@@ -514,7 +514,7 @@ const DocumentsManager = ({
   return (
     <div>
       <label className="block text-xs font-medium text-gray-700 mb-2">
-        Related Documents
+        Registration Document
       </label>
 
       <div className="flex items-center gap-3">

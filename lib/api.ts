@@ -342,28 +342,42 @@ export const updateJob = async (
     applicationDeadline: string;
   }>
 ) => {
-  const formData = new FormData();
+  const hasFileImage = data.image instanceof File;
+  // If we are sending a real file, use multipart to the file-enabled route
+  if (hasFileImage) {
+    const formData = new FormData();
+    Object.entries(data).forEach(([key, value]) => {
+      if (typeof value === 'undefined' || value === null) return;
+      if (key === 'image') {
+        if (value instanceof File) {
+          formData.append('image', value);
+          return;
+        }
+      }
+      if (Array.isArray(value)) {
+        value.forEach((v) => formData.append(key, String(v)));
+        return;
+      }
+      formData.append(key, String(value));
+    });
+    const res = await api.patch(`/company/job/${id}`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return res.data;
+  }
+
+  // Otherwise, avoid multipart and call basic route without upload middleware
+  const payload: any = {};
   Object.entries(data).forEach(([key, value]) => {
-    if (typeof value === 'undefined' || value === null) return;
-    if (key === 'image') {
-      if (value instanceof File) {
-        formData.append('image', value);
-        return;
-      }
-      if (value === 'delete') {
-        formData.append('image', 'delete');
-        return;
-      }
-    }
+    if (typeof value === 'undefined') return;
+    // Allow passing 'delete' string for image removal
     if (Array.isArray(value)) {
-      value.forEach((v) => formData.append(key, String(v)));
+      payload[key] = value;
       return;
     }
-    formData.append(key, String(value));
+    payload[key] = value as any;
   });
-  const res = await api.patch(`/company/job/${id}`, formData, {
-    headers: { 'Content-Type': 'multipart/form-data' },
-  });
+  const res = await api.patch(`/company/job/${id}/basic`, payload);
   return res.data;
 };
 export const deleteJob = async (id: string) => {

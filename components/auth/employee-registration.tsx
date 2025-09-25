@@ -1,22 +1,44 @@
-import React, { useState, useEffect } from "react";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { JOB_CATEGORIES } from "@/app/dashboard/company/post-job/page";
+"use client"
+
+import React, { useState, useEffect } from "react"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Button } from "@/components/ui/button"
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select"
+import {
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+} from "@/components/ui/popover"
+import { Calendar } from "@/components/ui/calendar"
+import { CalendarIcon } from "lucide-react"
+import { format } from "date-fns"
+import { JOB_CATEGORIES } from "@/app/dashboard/company/post-job/page"
+import { provincesWithDistricts } from "./company-registration"
 
 interface EmployeeRegistrationProps {
   formData: {
-    name: string;
-    email: string;
-    password: string;
-    confirmPassword: string;
-    dateOfBirth: string;
-    employeePhoneNumber: string;
-    jobPreferences: string[];
-  };
-  onInputChange: (field: string, value: any) => void;
+    name: string
+    email: string
+    password: string
+    province: string
+    district: string
+    gender: string
+    confirmPassword: string
+    dateOfBirth: string
+    employeePhoneNumber: string
+    jobPreferences: string[]
+  }
+  onInputChange: (field: string, value: any) => void
   errors?: {
-    [key: string]: string;
-  };
+    [key: string]: string
+  }
 }
 
 const EmployeeRegistration = ({
@@ -24,32 +46,46 @@ const EmployeeRegistration = ({
   onInputChange,
   errors = {},
 }: EmployeeRegistrationProps) => {
-  const [selectedJobs, setSelectedJobs] = useState<string[]>([]);
+  const [selectedJobs, setSelectedJobs] = useState<string[]>([])
+  const [date, setDate] = useState<Date | undefined>(
+    formData.dateOfBirth ? new Date(formData.dateOfBirth) : undefined
+  )
 
-  // Sync with parent data when it changes
+  // sync job preferences
   useEffect(() => {
     if (Array.isArray(formData.jobPreferences)) {
-      setSelectedJobs(formData.jobPreferences);
+      setSelectedJobs(formData.jobPreferences)
     }
-  }, [formData.jobPreferences]);
+  }, [formData.jobPreferences])
 
   const handleJobPreferenceChange = (jobValue: string) => {
     const updatedPreferences = selectedJobs.includes(jobValue)
       ? selectedJobs.filter((pref) => pref !== jobValue)
-      : [...selectedJobs, jobValue];
+      : [...selectedJobs, jobValue]
 
-    setSelectedJobs(updatedPreferences);
-    onInputChange("jobPreferences", updatedPreferences);
-  };
+    setSelectedJobs(updatedPreferences)
+    onInputChange("jobPreferences", updatedPreferences)
+  }
+
+  const handleProvinceChange = (province: string) => {
+    onInputChange("province", province)
+    onInputChange("district", "") // reset district when province changes
+  }
+
+  const handleDateChange = (newDate: Date | undefined) => {
+    setDate(newDate)
+    onInputChange(
+      "dateOfBirth",
+      newDate ? format(newDate, "dd/MM/yyyy") : ""
+    )
+  }
 
   return (
     <>
-      {/* Basic Info Fields */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Name */}
         <div className="space-y-2">
-          <Label htmlFor="name" className="text-sm font-medium text-gray-700">
-            Full Name
-          </Label>
+          <Label htmlFor="name">Full Name</Label>
           <Input
             id="name"
             type="text"
@@ -59,15 +95,12 @@ const EmployeeRegistration = ({
             className="bg-white text-black"
             required
           />
-          {errors.name && (
-            <p className="text-sm text-red-500">{errors.name}</p>
-          )}
+          {errors.name && <p className="text-sm text-red-500">{errors.name}</p>}
         </div>
 
+        {/* Email */}
         <div className="space-y-2">
-          <Label htmlFor="email" className="text-sm font-medium text-gray-700">
-            Email
-          </Label>
+          <Label htmlFor="email">Email</Label>
           <Input
             id="email"
             type="email"
@@ -77,34 +110,97 @@ const EmployeeRegistration = ({
             className="bg-white text-black"
             required
           />
-          {errors.email && (
-            <p className="text-sm text-red-500">{errors.email}</p>
-          )}
+          {errors.email && <p className="text-sm text-red-500">{errors.email}</p>}
         </div>
 
+        {/* Date of Birth */}
         <div className="space-y-2">
-          <Label
-            htmlFor="dateOfBirth"
-            className="text-sm font-medium text-gray-700"
-          >
-            Date of Birth (Optional)
-          </Label>
-          <Input
-            id="dateOfBirth"
-            type="date"
-            value={formData.dateOfBirth}
-            onChange={(e) => onInputChange("dateOfBirth", e.target.value)}
-            className="bg-white text-black"
-          />
+          <Label htmlFor="dob">Date of Birth (Optional)</Label>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                className={`w-full justify-start text-left font-normal ${
+                  !date ? "text-muted-foreground" : ""
+                }`}
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {date ? format(date, "dd/MM/yyyy") : <span>Pick a date</span>}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="p-0" align="start">
+              <Calendar
+                mode="single"
+                selected={date}
+                onSelect={handleDateChange}
+                captionLayout="dropdown"
+                fromYear={1950}
+                toYear={new Date().getFullYear()}
+              />
+            </PopoverContent>
+          </Popover>
         </div>
 
+        {/* Province */}
         <div className="space-y-2">
-          <Label
-            htmlFor="phoneNumber"
-            className="text-sm font-medium text-gray-700"
+          <Label htmlFor="province">Province</Label>
+          <Select value={formData.province} onValueChange={handleProvinceChange}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select Province" />
+            </SelectTrigger>
+            <SelectContent>
+              {Object.keys(provincesWithDistricts).map((province) => (
+                <SelectItem key={province} value={province}>
+                  {province}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* District */}
+        <div className="space-y-2">
+          <Label htmlFor="district">District</Label>
+          <Select
+            value={formData.district}
+            onValueChange={(val) => onInputChange("district", val)}
+            disabled={!formData.province}
           >
-            Phone Number
-          </Label>
+            <SelectTrigger>
+              <SelectValue placeholder="Select District" />
+            </SelectTrigger>
+            <SelectContent>
+              {formData.province &&
+                provincesWithDistricts[formData.province].map((district) => (
+                  <SelectItem key={district} value={district}>
+                    {district}
+                  </SelectItem>
+                ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Gender */}
+        <div className="space-y-2">
+          <Label htmlFor="gender">Gender</Label>
+          <Select
+            value={formData.gender}
+            onValueChange={(val) => onInputChange("gender", val)}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select Gender" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="male">Male</SelectItem>
+              <SelectItem value="female">Female</SelectItem>
+              <SelectItem value="other">Other</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Phone */}
+        <div className="space-y-2">
+          <Label htmlFor="phoneNumber">Phone Number</Label>
           <Input
             id="phoneNumber"
             type="text"
@@ -115,22 +211,15 @@ const EmployeeRegistration = ({
             className="bg-white text-black"
           />
           {errors.employeePhoneNumber && (
-            <p className="text-sm text-red-500">
-              {errors.employeePhoneNumber}
-            </p>
+            <p className="text-sm text-red-500">{errors.employeePhoneNumber}</p>
           )}
         </div>
       </div>
 
-      {/* Password Fields */}
+      {/* Passwords */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
         <div className="space-y-2">
-          <Label
-            htmlFor="password"
-            className="text-sm font-medium text-gray-700"
-          >
-            Password
-          </Label>
+          <Label htmlFor="password">Password</Label>
           <Input
             id="password"
             type="password"
@@ -146,12 +235,7 @@ const EmployeeRegistration = ({
         </div>
 
         <div className="space-y-2">
-          <Label
-            htmlFor="confirmPassword"
-            className="text-sm font-medium text-gray-700"
-          >
-            Confirm Password
-          </Label>
+          <Label htmlFor="confirmPassword">Confirm Password</Label>
           <Input
             id="confirmPassword"
             type="password"
@@ -168,15 +252,12 @@ const EmployeeRegistration = ({
         </div>
       </div>
 
-      {/* Job Preferences Multi-select */}
+      {/* Job Preferences */}
       <div className="mt-4 space-y-3">
-        <Label className="text-sm font-medium text-gray-700">
-          Job Preferences
-          <span className="text-xs text-gray-500 ml-2">
-            (Select all that apply)
-          </span>
+        <Label>
+          Job Preferences{" "}
+          <span className="text-xs text-gray-500 ml-2">(Select all that apply)</span>
         </Label>
-
         <div className="bg-white border border-gray-300 rounded-md p-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {JOB_CATEGORIES.map((category) => (
@@ -197,40 +278,10 @@ const EmployeeRegistration = ({
               </div>
             ))}
           </div>
-
-          {selectedJobs.length > 0 && (
-            <div className="mt-4 pt-3 border-t border-gray-200">
-              <div className="flex flex-wrap gap-2">
-                <span className="text-xs text-gray-600 font-medium">Selected:</span>
-                {selectedJobs.map((jobValue) => {
-                  const category = JOB_CATEGORIES.find(cat => cat.value === jobValue);
-                  return (
-                    <span
-                      key={jobValue}
-                      className="inline-flex items-center px-3 py-1 rounded-full text-xs bg-blue-100 text-[#834de3] font-medium"
-                    >
-                      {category?.label || jobValue}
-                      <button
-                        type="button"
-                        onClick={() => handleJobPreferenceChange(jobValue)}
-                        className="ml-2 text-[#834de3] hover:text-red-500 focus:outline-none"
-                      >
-                        ×
-                      </button>
-                    </span>
-                  );
-                })}
-              </div>
-            </div>
-          )}
         </div>
-        
-        {errors.jobPreferences && (
-          <p className="text-sm text-red-500">{errors.jobPreferences}</p>
-        )}
       </div>
     </>
-  );
-};
+  )
+}
 
-export default EmployeeRegistration;
+export default EmployeeRegistration
