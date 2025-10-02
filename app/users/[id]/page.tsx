@@ -153,22 +153,23 @@ export default function UserProfile() {
   }
 
   const handleSendOffer = async () => {
-    if (!selectedEmployee?._id && !selectedEmployee?.id) return
-    setSending(true)
-    try {
-      await sendWorkRequest(String(selectedEmployee._id || selectedEmployee.id), offerMessage || undefined)
-      toast({ title: "Offer Sent", description: "Job offer has been sent successfully." })
-      setOfferMessage("")
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error?.response?.data?.message || "Failed to send job offer",
-        variant: "destructive",
-      })
-    } finally {
-      setSending(false)
-    }
+  if (!user?._id && !user?.id) return;
+  setSendingOffer(true);
+  try {
+    await sendWorkRequest(String(user._id || user.id), offerMessage || undefined);
+    toast({ title: "Offer Sent", description: "Job offer has been sent successfully." });
+    setOfferMessage("");
+    setShowOfferModal(false);
+  } catch (error: any) {
+    toast({
+      title: "Error",
+      description: error?.response?.data?.message || "Failed to send job offer",
+      variant: "destructive",
+    });
+  } finally {
+    setSendingOffer(false);
   }
+};
 
   return (
     <div className="min-h-screen bg-gray-50">

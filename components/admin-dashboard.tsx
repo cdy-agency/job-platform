@@ -50,11 +50,17 @@ const navItems = [
     shortCode: "MC",
   },
   {
-    title: "Profile",
-    href: "/dashboard/admin/profile",
-    icon: User,
+    title: "Domestic Work",
+    href: "/dashboard/admin/domestic-work",
+    icon: Users,
     shortCode: "MC",
   },
+  // {
+  //   title: "Profile",
+  //   href: "/dashboard/admin/profile",
+  //   icon: User,
+  //   shortCode: "MC",
+  // },
 ];
 
 interface SidebarContentProps {

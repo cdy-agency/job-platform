@@ -3,13 +3,12 @@
 import { useState, useEffect } from "react"
 import { fetchEmployeesDirectory, sendWorkRequest } from "@/lib/api"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { JOB_CATEGORIES } from "@/app/dashboard/company/post-job/page"
+import { JOB_CATEGORIES } from "@/lib/constantData"
 import {
   X, MapPin, Phone, Calendar, Send
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { AppAvatar } from "@/components/ui/avatar"
-import { getImage } from "@/lib/utils"
 import { useToast } from "@/hooks/use-toast"
 import { Textarea } from "@/components/ui/textarea"
 import PaginationControls from "@/components/pagination-controls"
@@ -47,6 +46,8 @@ interface Employee {
   profileImage?: any
   documents?: any[]
   location?: string
+  province?: string
+  district?: string
 }
 
 interface PaginationData {
@@ -90,8 +91,8 @@ export default function Employees() {
     try {
       setLoading(true)
       const data = await fetchEmployeesDirectory(category === 'all' ? undefined : category, { page, limit: 10 })
-      setEmployees(data?.employees || [])
-      if (data?.pagination) {
+      setEmployees(data.employees || [])
+      if (data.pagination) {
         setPagination(data.pagination)
       }
     } catch (e) {
@@ -171,7 +172,9 @@ export default function Employees() {
                 <th className="px-4 py-2 text-left">Name</th>
                 <th className="px-4 py-2 text-left">Email</th>
                 <th className="px-4 py-2 text-left">Phone</th>
-                <th className="px-4 py-2 text-left">Location</th>
+                <th className="px-4 py-2 text-left">Province</th>
+                <th className="px-4 py-2 text-left">District</th>
+                <th className="px-4 py-2 text-left">Skills</th>
                 <th className="px-4 py-2 text-right">Actions</th>
               </tr>
             </thead>
@@ -184,7 +187,17 @@ export default function Employees() {
                   <td className="px-4 py-2 font-medium">{employee.name}</td>
                   <td className="px-4 py-2">{employee.email || "-"}</td>
                   <td className="px-4 py-2">{employee.phoneNumber || "-"}</td>
-                  <td className="px-4 py-2">{employee.location || "-"}</td>
+                  <td className="px-4 py-2">{employee.province || "-"}</td>
+                  <td className="px-4 py-2">{employee.district || "-"}</td>
+                  <td className="px-4 py-2">
+                    {employee.skills && employee.skills.length > 0 ? (
+                      <div className="flex flex-wrap gap-1">
+                        {employee.skills.map((skill, i) => (
+                          <span key={i} className="px-2 py-0.5 bg-purple-100 text-purple-700 rounded-full text-xs font-medium">{skill}</span>
+                        ))}
+                      </div>
+                    ) : "-"}
+                  </td>
                   <td className="px-4 py-2 text-right">
                     <Button
                       onClick={() => openModal(employee)}

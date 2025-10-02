@@ -95,6 +95,7 @@ const NavBar = () => {
                   { href: "/", label: "Home" },
                   { href: "/jobs", label: "Jobs" },
                   { href: "/users", label: "Users" },
+                  { href: "/domestic-work", label: "Domestic Work" },
                   { href: "/contact", label: "Contact" },
                 ].map((item) => (
                   <Link

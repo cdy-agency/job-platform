@@ -30,92 +30,14 @@ import { toast } from "@/hooks/use-toast"
 import { postJob, fetchJobById, updateJob } from "@/lib/api"
 import { X, Loader } from "lucide-react"
 import { useAuth } from "@/context/authContext"
+import { JOB_CATEGORIES } from "@/lib/constantData"
+import { RWANDA_LOCATIONS } from "@/lib/constantData"
+import { BENEFITS_OPTIONS } from "@/lib/constantData"
+import { EXPERIENCE_OPTIONS } from "@/lib/constantData"
+import { SALARY_RANGE_OPTIONS } from "@/lib/constantData"
+import JobDetailsPage from "@/app/jobs/[id]/page"
 
 const employmentEnum = z.enum(["fulltime", "part-time", "internship"])
-
-export const JOB_CATEGORIES = [
-  { value: "general-labour", label: "Akazi rusange (General Labour)" },
-  { value: "domestic-work", label: "Akazi ko mu rugo (Domestic Work)" },
-  { value: "cleaning-janitorial", label: "Isuku (Cleaning & Janitorial)" },
-  { value: "construction", label: "Ubwubatsi (Construction)" },
-  { value: "drivers-riders", label: "Abashoferi n'Abamotari (Drivers & Riders)" },
-  { value: "sales-marketing", label: "Abacuruzi/Marketing (Sales & Promotion)" },
-  { value: "health-care", label: "Ubuvuzi n'Ububyaza (Health & Care)" },
-  { value: "education-assistants", label: "Abarezi n'abafasha mu mashuri (Education & Assistants)" },
-  { value: "it-digital", label: "Abashinzwe ikoranabuhanga (IT & Digital Jobs)" },
-  { value: "packaging-production", label: "Gutunganya no gupakira (Packaging & Production)" },
-  { value: "creative-media", label: "Akazi k'Ubuhanzi n'Imyidagaduro (Creative & Media)" },
-  { value: "factory-workshop", label: "Gukora mu nganda (Factory/Workshop Jobs)" },
-]
-
-// Rwanda Provinces and Districts
-const RWANDA_LOCATIONS = {
-  "Kigali": ["Gasabo", "Kicukiro", "Nyarugenge"],
-  "Eastern": ["Bugesera", "Gatsibo", "Kayonza", "Kirehe", "Ngoma", "Nyagatare", "Rwamagana"],
-  "Northern": ["Burera", "Gakenke", "Gicumbi", "Musanze", "Rulindo"],
-  "Southern": ["Gisagara", "Huye", "Kamonyi", "Muhanga", "Nyamagabe", "Nyanza", "Nyaruguru", "Ruhango"],
-  "Western": ["Karongi", "Ngororero", "Nyabihu", "Nyamasheke", "Rubavu", "Rusizi", "Rutsiro"]
-}
-
-// Predefined Benefits Options
-const BENEFITS_OPTIONS = [
-  { 
-    id: "holiday-days", 
-    label: "Holiday Days", 
-    description: "Paid vacation days per month",
-    hasValue: true,
-    valueLabel: "Days per month",
-    valuePlaceholder: "e.g., 2"
-  },
-  { 
-    id: "food-allowance", 
-    label: "Food/Launch Allowance", 
-    description: "Meals provided during work hours",
-    hasValue: false
-  },
-  { 
-    id: "living-allowance", 
-    label: "Living Allowance", 
-    description: "Housing or accommodation support",
-    hasValue: true,
-    valueLabel: "Monthly amount (RWF)",
-    valuePlaceholder: "e.g., 50000"
-  },
-  { 
-    id: "insurance", 
-    label: "Insurance Coverage", 
-    description: "Health and/or life insurance",
-    hasValue: false
-  },
-  { 
-    id: "transport-allowance", 
-    label: "Transport Allowance", 
-    description: "Transportation support",
-    hasValue: true,
-    valueLabel: "Monthly amount (RWF)",
-    valuePlaceholder: "e.g., 30000"
-  },
-  { 
-    id: "training-development", 
-    label: "Training & Development", 
-    description: "Professional development opportunities",
-    hasValue: false
-  }
-]
-
-// Experience options
-const EXPERIENCE_OPTIONS = [
-  { value: "1", label: "1 year" },
-  { value: "2", label: "2 years" },
-  { value: "3+", label: "3+ years" }
-]
-
-// Salary range options
-const SALARY_RANGE_OPTIONS = [
-  { value: "0-50", label: "0 - 50k RWF" },
-  { value: "51-100", label: "51 - 100k RWF" },
-  { value: "101-150+", label: "101 - 150k+ RWF" }
-]
 
 // Enhanced schema for location and benefits
 const jobFormSchema = z.object({
@@ -129,6 +51,7 @@ const jobFormSchema = z.object({
   employmentType: employmentEnum,
   salaryRange: z.string().optional(),
   category: z.string().min(1, { message: "Category is required." }),
+  otherBenefits: z.array(z.string()).transform(val => val || []),
   responsibilities: z.array(z.string()).transform(val => val || []),
   selectedBenefits: z.array(z.object({
     id: z.string(),
@@ -145,6 +68,7 @@ export default function PostJobPage() {
 	const [isLoading, setIsLoading] = useState(false)
 	const [skillsInput, setSkillsInput] = useState("")
 	const [responsibilityInput, setResponsibilityInput] = useState("")
+	const [otherBenefits, setOtherBenefits] = useState("")
 	const [selectedBenefits, setSelectedBenefits] = useState<{[key: string]: {selected: boolean, value: string}}>({})
 	const [availableDistricts, setAvailableDistricts] = useState<string[]>([])
 	const [existingImageUrl, setExistingImageUrl] = useState<string | null>(null)
@@ -154,7 +78,7 @@ export default function PostJobPage() {
 	const { user } = useAuth()
 	const router = useRouter()
 	const searchParams = useSearchParams()
-	const jobId = searchParams.get('edit') // ?edit=jobId for editing mode
+	const jobId = searchParams.get('edit') 
 	const isEditMode = !!jobId
 
 	const form = useForm<JobFormValues>({
@@ -170,6 +94,7 @@ export default function PostJobPage() {
 			employmentType: "fulltime",
 			salaryRange: "",
 			category: "",
+			otherBenefits: [],
 			responsibilities: [],
 			selectedBenefits: [],
 			applicationDeadline: "",
@@ -229,6 +154,7 @@ export default function PostJobPage() {
 					employmentType: jobData.employmentType || "fulltime",
 					salaryRange: jobData.salary || "",
 					category: jobData.category || "",
+					otherBenefits: jobData.otherBenefits || [],
 					responsibilities: jobData.responsibilities || [],
 					applicationDeadline: jobData.applicationDeadline ? 
 						new Date(jobData.applicationDeadline).toISOString().split('T')[0] : "",
@@ -275,7 +201,7 @@ export default function PostJobPage() {
 	}
 
 	const addItem = (
-		fieldName: "skills" | "responsibilities",
+		fieldName: "skills" | "otherBenefits" | "responsibilities",
 		value: string,
 		setValue: (v: string) => void
 	) => {
@@ -286,7 +212,7 @@ export default function PostJobPage() {
 	}
 
 	const removeItem = (
-		fieldName: "skills" | "responsibilities",
+		fieldName: "skills" | "otherBenefits" | "responsibilities"	,
 		index: number
 	) => {
 		const current = form.getValues(fieldName) || []
@@ -338,11 +264,14 @@ export default function PostJobPage() {
 				salary: values.salaryRange || "",
 				category: values.category,
 				responsibilities: values.responsibilities || [],
+				otherBenefits: values.otherBenefits || [],
 				benefits,
 				...(isEditMode ? {} : { companyId }), // Only include companyId for new jobs
 				applicationDeadline: values.applicationDeadline || "",
 				companyId
 			}
+
+			console.log("Form values:", jobData)
 
 			// Delete existing image on edit when requested and no new image selected
 			if (isEditMode && !values.image && removeExistingImage) {
@@ -709,9 +638,9 @@ export default function PostJobPage() {
 											</Button>
 										</div>
 										<div className="mt-2 flex flex-wrap gap-2">
-											{form.watch("responsibilities").map((resp, idx) => (
+											{form.watch("responsibilities").map((responsibility, idx) => (
 												<span key={idx} className="bg-[#f1ebfc] text-[#834de3] px-3 py-1 rounded-full flex items-center gap-2 text-sm">
-													{resp}
+													{responsibility}
 													<X size={16} className="cursor-pointer hover:text-red-500" onClick={() => removeItem("responsibilities", idx)} />
 												</span>
 											))}
@@ -768,6 +697,43 @@ export default function PostJobPage() {
 									))}
 								</div>
 							</div>
+
+							{/* Other Benefits */}
+							<FormField
+								control={form.control}
+								name="otherBenefits"
+								render={() => (
+									<FormItem>
+										<FormLabel className="text-gray-800">other Benefits</FormLabel>
+										<div className="flex gap-2">
+											<Input
+												placeholder="Type a other benefits and press Enter"
+												value={otherBenefits}
+												onChange={(e) => setOtherBenefits(e.target.value)}
+												onKeyDown={(e) => {
+													if (e.key === "Enter") {
+														e.preventDefault()
+														addItem("otherBenefits", otherBenefits, setOtherBenefits)
+													}
+												}}
+												className="border-gray-300"
+											/>
+											<Button type="button" onClick={() => addItem("otherBenefits", otherBenefits, setOtherBenefits)} className="bg-[#834de3] text-white">
+												Add
+											</Button>
+										</div>
+										<div className="mt-2 flex flex-wrap gap-2">
+											{form.watch("otherBenefits").map((benefit, idx) => (
+												<span key={idx} className="bg-[#f1ebfc] text-[#834de3] px-3 py-1 rounded-full flex items-center gap-2 text-sm">
+													{benefit}
+													<X size={16} className="cursor-pointer hover:text-red-500" onClick={() => removeItem("otherBenefits", idx)} />
+												</span>
+											))}
+										</div>
+										<FormMessage />
+									</FormItem>
+								)}
+							/>
 
 							{/* Application Deadline */}
 							<FormField

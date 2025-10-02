@@ -6,13 +6,10 @@ import {
   Search,
   MapPin,
   Briefcase,
-  DollarSign,
-  Users,
   Clock,
   GraduationCap,
   ChevronDown,
   ChevronUp,
-  Building,
   Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";

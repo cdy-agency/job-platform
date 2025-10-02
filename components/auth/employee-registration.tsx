@@ -19,7 +19,7 @@ import {
 import { Calendar } from "@/components/ui/calendar"
 import { CalendarIcon } from "lucide-react"
 import { format } from "date-fns"
-import { JOB_CATEGORIES } from "@/app/dashboard/company/post-job/page"
+import { JOB_CATEGORIES } from "@/lib/constantData"
 import { provincesWithDistricts } from "./company-registration"
 
 interface EmployeeRegistrationProps {

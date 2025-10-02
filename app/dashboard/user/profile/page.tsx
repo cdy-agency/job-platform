@@ -20,7 +20,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/hooks/use-toast";
-import { JOB_CATEGORIES } from "@/app/dashboard/company/post-job/page";
+import { JOB_CATEGORIES } from "@/lib/constantData";
 import {
   fetchEmployeeProfile,
   updateEmployeeProfile,

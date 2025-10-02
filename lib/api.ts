@@ -271,6 +271,7 @@ export const postJob = async (data: {
   employmentType: 'fulltime' | 'part-time' | 'internship';
   salary?: string;
   category: string;
+  otherBenefits?: string[];
   responsibilities?: string[];
   benefits?: string[];
   companyId: string;
@@ -289,6 +290,7 @@ export const postJob = async (data: {
   if (data.applicationDeadline) formData.append('applicationDeadline', data.applicationDeadline);
   if (data.image instanceof File) formData.append('image', data.image);
   (data.skills || []).forEach((s) => formData.append('skills', s));
+  (data.otherBenefits || []).forEach((r) => formData.append('otherBenefits', r));
   (data.responsibilities || []).forEach((r) => formData.append('responsibilities', r));
   (data.benefits || []).forEach((b) => formData.append('benefits', b));
 
@@ -337,6 +339,7 @@ export const updateJob = async (
     employmentType: 'fulltime' | 'part-time' | 'internship';
     salary: string;
     category: string;
+    otherBenefits: string[];
     responsibilities: string[];
     benefits: string[];
     applicationDeadline: string;
@@ -539,7 +542,17 @@ export const fetchEmployeesDirectory = async (category?: string, params?: { page
   
   const res = await api.get('/company/employees', { params: queryParams })
   const data = res.data
-  return data?.employees || data?.data?.employees || data
+  // Always return { employees, pagination } for frontend
+  if (Array.isArray(data?.employees)) {
+    return { employees: data.employees, pagination: data.pagination || {} };
+  }
+  if (Array.isArray(data)) {
+    return { employees: data, pagination: {} };
+  }
+  if (Array.isArray(data?.data?.employees)) {
+    return { employees: data.data.employees, pagination: data.data.pagination || {} };
+  }
+  return { employees: [], pagination: {} };
 }
 
 export const sendWorkRequest = async (employeeId: string, message?: string) => {
@@ -821,5 +834,61 @@ export { api };
 // Company job status toggle
 export const toggleCompanyJobStatus = async (id: string, isActive: boolean) => {
   const res = await api.patch(`/company/job/${id}/status`, { isActive });
+  return res.data;
+};
+
+export const fetchMatchedEmployeesForJob = async (jobId: string) => {
+  const res = await api.get(`/company/job/${jobId}/matched-employees`);
+  return res.data.matchedEmployees || [];
+};
+
+// Domestic Work APIs for Admin
+export const fetchAllEmployers = async (params?: { page?: number; limit?: number }) => {
+  const queryParams = new URLSearchParams();
+  if (params?.page) queryParams.append('page', params.page.toString());
+  if (params?.limit) queryParams.append('limit', params.limit.toString());
+  
+  const url = `/employers${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+  const res = await api.get(url);
+  return res.data;
+};
+
+export const fetchAllHousekeepers = async (params?: { page?: number; limit?: number }) => {
+  const queryParams = new URLSearchParams();
+  if (params?.page) queryParams.append('page', params.page.toString());
+  if (params?.limit) queryParams.append('limit', params.limit.toString());
+  
+  const url = `/housekeepers${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+  const res = await api.get(url);
+  return res.data;
+};
+
+export const fetchEmployerById = async (id: string) => {
+  const res = await api.get(`/employers/${id}`);
+  return res.data;
+};
+
+export const fetchHousekeeperById = async (id: string) => {
+  const res = await api.get(`/housekeepers/${id}`);
+  return res.data;
+};
+
+export const updateEmployerStatus = async (id: string, status: 'pending' | 'active' | 'completed') => {
+  const res = await api.put(`/employers/${id}/status`, { status });
+  return res.data;
+};
+
+export const updateHousekeeperStatus = async (id: string, status: 'available' | 'hired' | 'inactive') => {
+  const res = await api.put(`/housekeepers/${id}/status`, { status });
+  return res.data;
+};
+
+export const deleteEmployer = async (id: string) => {
+  const res = await api.delete(`/employers/${id}`);
+  return res.data;
+};
+
+export const deleteHousekeeper = async (id: string) => {
+  const res = await api.delete(`/housekeepers/${id}`);
   return res.data;
 };
