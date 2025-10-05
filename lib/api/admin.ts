@@ -78,3 +78,8 @@ export const deleteCompany = async (id: string) => {
     return resAlt.data
   }
 }
+
+export const fetchRequests = async () => {
+  const response = await api.get("/company/work-requests");
+  return response.data;
+};

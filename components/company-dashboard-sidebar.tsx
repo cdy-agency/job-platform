@@ -59,16 +59,16 @@ const navItems = [
     shortCode: "A",
   },
   {
-    title: "All Employee",
-    href: "/dashboard/company/employees",
+    title: "Work-requests",
+    href: "/dashboard/company/work-requests",
     icon: Handshake,
     shortCode: "AE",
   },
-  {
-    title: "Company Profile",
-    href: "/dashboard/company/profile",
-    icon: Building,
-    shortCode: "CP",
+   {
+    title: "All Employee",
+    href: "/dashboard/company/employees",
+    icon: Users,
+    shortCode: "AE",
   },
   {
     title: "Guidelines",
@@ -201,8 +201,9 @@ const SidebarContent = ({
     {/* User Profile Section */}
     <div className="border-t border-gray-800 p-4 bg-[#1a1a1a]">
       {(!isCollapsed || isMobile) ? (
-        <div className="space-y-3">
-          <div className="flex items-center gap-3 p-3 rounded-lg bg-gray-800/50">
+        <Link href="/dashboard/company/profile">
+        <div className="space-y-3 cursor-pointer">
+          <div className="flex items-center gap-3 p-3 rounded-lg hover:bg-purple-500/50 bg-gray-800/50">
             <AppAvatar image={companyProfile?.logo} name={companyProfile?.companyName} size={40} />
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-medium text-white">
@@ -221,6 +222,7 @@ const SidebarContent = ({
             <span>Log out</span>
           </Button>
         </div>
+        </Link>
       ) : (
         <div className="flex flex-col items-center gap-3">
           <AppAvatar image={companyProfile?.logo} name={companyProfile?.companyName} size={40} />
