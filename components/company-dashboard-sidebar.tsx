@@ -72,7 +72,7 @@ const navItems = [
   },
   {
     title: "Guidelines",
-    href: "/dashboard/user/guidelines",
+    href: "/dashboard/company/guidelines",
     icon: BookOpenText,
     shortCode: "GD",
   },
