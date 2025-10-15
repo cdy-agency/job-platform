@@ -10,6 +10,7 @@ const navItems = [
   { href: "/jobs", label: "Jobs" },
   { href: "/about", label: "About" },
   { href: "/contact", label: "Contact" },
+  { href: "/terms-policy", label: "Contact" },
 ]
 
 export function MainNav() {

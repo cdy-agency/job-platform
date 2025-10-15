@@ -25,6 +25,7 @@ import {
   deleteHousekeeper,
 } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
+import { Dialog, DialogContent, DialogDescription, DialogOverlay, DialogPortal, DialogTitle } from "@radix-ui/react-dialog";
 
 type Employer = {
   _id: string;
@@ -38,9 +39,8 @@ type Employer = {
     sector: string;
     cell: string;
     village: string;
-  };
-  salaryRangeMin: number;
-  salaryRangeMax: number;
+  }
+  salary: number;
   profileImage?: { url: string };
   status: "pending" | "active" | "completed";
 };
@@ -52,6 +52,7 @@ type Housekeeper = {
   gender: "male" | "female";
   idNumber: string;
   phoneNumber: string;
+  salary: string;
   location: {
     province: string;
     district: string;
@@ -69,7 +70,9 @@ export default function AdminDomesticWorkDashboardTable() {
   const [housekeepers, setHousekeepers] = useState<Housekeeper[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [deleteOpen, setDeleteOpen] = useState(false);
   const { toast } = useToast();
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; type: "employer" | "housekeeper" } | null>(null);
 
   useEffect(() => {
     loadData();
@@ -302,7 +305,7 @@ export default function AdminDomesticWorkDashboardTable() {
 
                         <td className="px-4 py-4 text-sm text-gray-600">
                           <div>
-                            Salary: {emp.salaryRangeMin}–{emp.salaryRangeMax} RWF
+                            Salary: {emp.salary} RWF
                           </div>
                         </td>
 
@@ -314,8 +317,10 @@ export default function AdminDomesticWorkDashboardTable() {
                           </Badge>
                         </td>
 
-                        <td className="px-4 py-4 text-right space-x-2">
-                          <Link
+                        <td className="py-4 text-right space-x-2">
+
+                          <div className="flex gap-2 items-center">
+                            <Link
                             href={`/dashboard/admin/domestic-work/${emp._id}?type=employer`}
                           >
                             <Button
@@ -327,7 +332,7 @@ export default function AdminDomesticWorkDashboardTable() {
                             </Button>
                           </Link>
 
-                          <select
+                            <select
                             value={emp.status}
                             onChange={(e) =>
                               handleStatusUpdate(emp._id, e.target.value, "employer")
@@ -342,11 +347,14 @@ export default function AdminDomesticWorkDashboardTable() {
 
                           <Button
                             size="sm"
-                            onClick={() => handleDelete(emp._id, "employer")}
+                            variant="outline"
+                            className="text-red-500 flex items-center"
+                            onClick={() => setDeleteTarget({ id: emp._id, type: "employer" })}
                             disabled={actionLoading === emp._id}
                           >
-                            <Trash2 className="h-4 w-4" />
+                            <Trash2 className="h-4 w-4 mr-1" />
                           </Button>
+                          </div>
                         </td>
                       </tr>
                     ))
@@ -403,8 +411,9 @@ export default function AdminDomesticWorkDashboardTable() {
                           </Badge>
                         </td>
 
-                        <td className="px-4 py-4 text-right space-x-2">
-                          <Link
+                        <td className="px-4 py-4 text-right space-x-2 items-center">
+                          <div className="flex items-center gap-3">
+                            <Link
                             href={`/dashboard/admin/domestic-work/${hk._id}?type=housekeeper`}
                           >
                             <Button
@@ -431,11 +440,14 @@ export default function AdminDomesticWorkDashboardTable() {
 
                           <Button
                             size="sm"
-                            onClick={() => handleDelete(hk._id, "housekeeper")}
+                            variant="outline"
+                            className="text-red-500 flex items-center"
+                            onClick={() => setDeleteTarget({ id: hk._id, type: "housekeeper" })}
                             disabled={actionLoading === hk._id}
                           >
-                            <Trash2 className="h-4 w-4" />
+                            <Trash2 className="h-4 w-4 mr-1" />
                           </Button>
+                          </div>
                         </td>
                       </tr>
                     ))}
@@ -454,6 +466,60 @@ export default function AdminDomesticWorkDashboardTable() {
           </div>
         )}
       </div>
+      <Dialog open={!!deleteTarget} onOpenChange={() => setDeleteTarget(null)}>
+        <DialogPortal>
+          <DialogOverlay className="fixed inset-0 bg-black/30" />
+          <DialogContent className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 max-w-md w-full p-6 rounded-lg bg-white shadow-lg">
+            <DialogTitle className="text-lg font-medium text-gray-900">
+              Confirm Deletion
+            </DialogTitle>
+            <DialogDescription className="text-sm text-gray-600 mb-6">
+              Are you sure you want to delete this record? This action cannot be undone.
+            </DialogDescription>
+            <div className="flex justify-end space-x-2">
+              <Button
+                variant="outline"
+                onClick={() => setDeleteTarget(null)}
+                disabled={!!actionLoading}
+              >
+                Cancel
+              </Button>
+              <Button
+                className="bg-red-500 text-white hover:bg-red-600"
+                onClick={async () => {
+                  if (!deleteTarget) return;
+                  const { id, type } = deleteTarget;
+                  setDeleteTarget(null);
+                  setActionLoading(id);
+                  try {
+                    if (type === "employer") {
+                      await deleteEmployer(id);
+                      setEmployers((prev) => prev.filter((p) => p._id !== id));
+                    } else {
+                      await deleteHousekeeper(id);
+                      setHousekeepers((prev) => prev.filter((p) => p._id !== id));
+                    }
+                    toast({ title: "Deleted", description: "Record deleted successfully" });
+                  } catch (err) {
+                    console.error("Delete error:", err);
+                    toast({
+                      title: "Error",
+                      description: "Failed to delete record",
+                      variant: "destructive",
+                    });
+                  } finally {
+                    setActionLoading(null);
+                  }
+                }}
+                disabled={!!actionLoading}
+              >
+                Delete
+              </Button>
+            </div>
+          </DialogContent>
+        </DialogPortal>
+      </Dialog>
+              
     </div>
   );
 }

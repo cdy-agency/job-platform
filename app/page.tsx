@@ -9,6 +9,7 @@ import HowItsWorks from "@/components/home/howItsWorks";
 import ForCompanies from "@/components/home/forCompanies";
 import { FeaturedJobs } from "@/components/featured-jobs";
 import HelpNotification from "@/components/help-notification";
+import TermsNotice from "@/components/ui/termsNotice";
 
 export default function Home() {
   const router = useRouter();
@@ -24,6 +25,7 @@ export default function Home() {
       </main>
       <Footer />
       <HelpNotification />
+      <TermsNotice />
     </div>
   );
 }

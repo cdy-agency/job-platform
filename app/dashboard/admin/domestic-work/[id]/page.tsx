@@ -10,7 +10,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { 
   ArrowLeft, User, MapPin, Phone, Mail, Calendar, 
   Building, Users, Heart, GraduationCap, Church,
-  DollarSign, Eye, Edit, Trash2
+  DollarSign, Eye, Trash2
 } from "lucide-react";
 import { 
   fetchEmployerById, 
@@ -21,6 +21,7 @@ import {
   deleteHousekeeper
 } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@radix-ui/react-dialog";
 
 type Employer = {
   _id: string;
@@ -38,8 +39,8 @@ type Employer = {
   villageLeaderNumber: string;
   partnerNumber: string;
   churchName: string;
-  salaryRangeMin: number;
-  salaryRangeMax: number;
+  salary: number;
+  vocationDays: string;
   profileImage?: { url: string };
   status: "pending" | "active" | "completed";
   selectedHousekeepers: any[];
@@ -62,9 +63,13 @@ type Housekeeper = {
     village: string;
   };
   workPreferences: {
-    workDistrict: string;
-    workSector: string;
-    willingToWorkWithChildren: boolean;
+    language: string
+    amountOfMoney: string
+    workType: string
+    vocationDays: string
+    married: string
+    numberChildren: string
+    willingToWorkWithChildren: boolean
   };
   background: {
     hasParents: boolean;
@@ -78,6 +83,7 @@ type Housekeeper = {
   };
   passportImage?: { url: string };
   fullBodyImage?: { url: string };
+  idImage?: {url: string};
   status: "available" | "hired" | "inactive";
   createdAt: string;
   updatedAt: string;
@@ -92,6 +98,9 @@ export default function DomesticWorkDetailPage() {
   const [data, setData] = useState<Employer | Housekeeper | null>(null);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
+  const [openImage, setOpenImage] = useState<string | null>(null)
+  const [deleteOpen, setDeleteOpen] = useState(false);
+
   const { toast } = useToast();
 
   useEffect(() => {
@@ -146,33 +155,30 @@ export default function DomesticWorkDetailPage() {
     }
   };
 
-  const handleDelete = async () => {
-    if (!confirm("Are you sure you want to delete this record? This action cannot be undone.")) return;
-    
-    try {
-      setActionLoading(true);
-      if (type === "employer") {
-        await deleteEmployer(id);
-      } else {
-        await deleteHousekeeper(id);
-      }
-      toast({
-        title: "Success",
-        description: "Record deleted successfully",
-      });
-      // Redirect back to list
-      window.location.href = "/dashboard/admin/domestic-work";
-    } catch (error) {
-      console.error("Error deleting:", error);
-      toast({
-        title: "Error",
-        description: "Failed to delete record",
-        variant: "destructive",
-      });
-    } finally {
-      setActionLoading(false);
+  const handleDeleteModal = async () => {
+  try {
+    setActionLoading(true);
+    if (type === "employer") {
+      await deleteEmployer(id);
+    } else {
+      await deleteHousekeeper(id);
     }
-  };
+    toast({
+      title: "Success",
+      description: "Record deleted successfully",
+    });
+    window.location.href = "/dashboard/admin/domestic-work";
+  } catch (error) {
+    console.error("Error deleting:", error);
+    toast({
+      title: "Error",
+      description: "Failed to delete record",
+      variant: "destructive",
+    });
+  } finally {
+    setActionLoading(false);
+  }
+};
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -290,7 +296,9 @@ export default function DomesticWorkDetailPage() {
               </select>
               <Button
                 size="sm"
-                onClick={handleDelete}
+                variant="outline"
+                className="text-red-500 flex items-center"
+                onClick={() => setDeleteOpen(true)}
                 disabled={actionLoading}
               >
                 <Trash2 className="h-4 w-4 mr-1" />
@@ -299,6 +307,37 @@ export default function DomesticWorkDetailPage() {
             </div>
           </div>
         </div>
+
+    <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+      <DialogContent className="w-full p-2 rounded bg-slate shadow-lg mb-4">
+        <DialogTitle className="text-lg font-medium text-gray-900 mb-4">
+          Confirm Deletion
+        </DialogTitle>
+        <DialogDescription className="text-sm text-gray-600 mb-6">
+          Are you sure you want to delete this record? This action cannot be undone.
+        </DialogDescription>
+        <div className="flex justify-end space-x-2">
+          <Button
+            variant="outline"
+            onClick={() => setDeleteOpen(false)}
+            disabled={actionLoading}
+          >
+            Cancel
+          </Button>
+          <Button
+            className="bg-red-500 text-white hover:bg-red-600"
+            onClick={async () => {
+              setDeleteOpen(false)
+              await handleDeleteModal()
+            }}
+            disabled={actionLoading}
+          >
+            Delete
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Main Content */}
@@ -401,12 +440,18 @@ export default function DomesticWorkDetailPage() {
                       <div>
                         <label className="text-sm font-medium text-gray-600">Salary Range</label>
                         <p className="text-gray-900">
-                          {employer.salaryRangeMin?.toLocaleString()} - {employer.salaryRangeMax?.toLocaleString()} RWF
+                          {employer.salary.toLocaleString()} RWF
                         </p>
                       </div>
-                      <div>
-                        <label className="text-sm font-medium text-gray-600">Church Name</label>
-                        <p className="text-gray-900">{employer.churchName}</p>
+                      <div className="flex flex-col gap-5">
+                        <div>
+                          <label className="text-sm font-medium text-gray-600">Church Name</label>
+                          <p className="text-gray-900">{employer.churchName}</p>
+                        </div>
+                        <div>
+                          <label className="text-sm font-medium text-gray-600">Vocation Days</label>
+                          <p className="text-gray-900">{employer.vocationDays}</p>
+                        </div>
                       </div>
                       <div>
                         <label className="text-sm font-medium text-gray-600">Village Leader Number</label>
@@ -475,18 +520,30 @@ export default function DomesticWorkDetailPage() {
                   <CardContent className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <label className="text-sm font-medium text-gray-600">Preferred District</label>
-                        <p className="text-gray-900">{housekeeper.workPreferences.workDistrict}</p>
+                        <label className="text-sm font-medium text-gray-600">Language</label>
+                        <p className="text-gray-900">{housekeeper.workPreferences.language}</p>
                       </div>
                       <div>
-                        <label className="text-sm font-medium text-gray-600">Preferred Sector</label>
-                        <p className="text-gray-900">{housekeeper.workPreferences.workSector}</p>
+                        <label className="text-sm font-medium text-gray-600">Money Range</label>
+                        <p className="text-gray-900">{housekeeper.workPreferences.amountOfMoney}K</p>
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium text-gray-600">Martial Status</label>
+                        <p className="text-gray-900">{housekeeper.workPreferences.married}</p>
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium text-gray-600">Number of Children</label>
+                        <p className="text-gray-900">{housekeeper.workPreferences.numberChildren || "none"}</p>
                       </div>
                       <div className="md:col-span-2">
                         <label className="text-sm font-medium text-gray-600">Willing to Work with Children</label>
                         <p className="text-gray-900">
                           {housekeeper.workPreferences.willingToWorkWithChildren ? "Yes" : "No"}
+                        </p><label className="text-sm font-medium text-gray-600">Vocation Days</label>
+                        <p className="text-gray-900">
+                          {housekeeper.workPreferences.vocationDays}
                         </p>
+                        
                       </div>
                     </div>
                   </CardContent>
@@ -573,6 +630,7 @@ export default function DomesticWorkDetailPage() {
                 </div>
                 }
   
+  
                 <h3 className="font-semibold text-gray-900 mb-1">
                   {isEmployer ? employer.name : housekeeper.fullName}
                 </h3>
@@ -585,37 +643,69 @@ export default function DomesticWorkDetailPage() {
 
             {/* Images for Housekeeper */}
             {!isEmployer && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-sm">Photos</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {housekeeper.passportImage?.url && (
-                    <div>
-                      <label className="text-xs font-medium text-gray-600">Passport Photo</label>
-                      <div className="mt-2 border rounded-lg overflow-hidden">
-                        <img 
-                          src={housekeeper.passportImage.url} 
-                          alt="Passport" 
-                          className="w-full h-32 object-cover"
-                        />
-                      </div>
-                    </div>
-                  )}
-                  {housekeeper.fullBodyImage?.url && (
-                    <div>
-                      <label className="text-xs font-medium text-gray-600">Full Body Photo</label>
-                      <div className="mt-2 border rounded-lg overflow-hidden">
-                        <img 
-                          src={housekeeper.fullBodyImage.url} 
-                          alt="Full Body" 
-                          className="w-full h-48 object-cover"
-                        />
-                      </div>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
+              <>
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-sm">Photos</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+
+          {/* Passport Photo */}
+          {housekeeper.passportImage?.url && (
+            <div>
+              <label className="text-xs font-medium text-gray-600">Passport Photo</label>
+              <div className="mt-2 border rounded-lg overflow-hidden cursor-pointer"
+                   onClick={() => housekeeper.passportImage?.url && setOpenImage(housekeeper.passportImage.url)}>
+                <img 
+                  src={housekeeper.passportImage.url} 
+                  alt="Passport" 
+                  className="w-full h-32 object-cover"
+                />
+              </div>
+            </div>
+          )}
+
+          {/* National ID Image */}
+          {housekeeper.idImage?.url && (
+            <div>
+              <label className="text-xs font-medium text-gray-600">National ID Image</label>
+              <div className="mt-2 border rounded-lg overflow-hidden cursor-pointer"
+                   onClick={() => housekeeper.idImage?.url && setOpenImage(housekeeper.idImage.url)}>
+                <img 
+                  src={housekeeper.idImage.url} 
+                  alt="ID" 
+                  className="w-full h-32 object-cover"
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Full Body Photo */}
+          {housekeeper.fullBodyImage?.url && (
+            <div>
+              <label className="text-xs font-medium text-gray-600">Full Body Photo</label>
+              <div className="mt-2 border rounded-lg overflow-hidden cursor-pointer"
+                   onClick={() => housekeeper.fullBodyImage?.url && setOpenImage(housekeeper.fullBodyImage.url)}>
+                <img 
+                  src={housekeeper.fullBodyImage.url} 
+                  alt="Full Body" 
+                  className="w-full h-48 object-cover"
+                />
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Modal / Dialog */}
+      <Dialog open={!!openImage} onOpenChange={() => setOpenImage(null)}>
+        <DialogContent className="max-w-3xl p-0 bg-transparent shadow-none">
+          {openImage && (
+            <img src={openImage} alt="Full View" className="w-full h-auto object-contain rounded-md" />
+          )}
+        </DialogContent>
+      </Dialog>
+    </>
             )}
 
             {/* Timestamps */}

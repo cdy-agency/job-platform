@@ -1,14 +1,48 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Card, CardContent} from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Upload, User, MapPin, DollarSign, Users, CheckCircle } from "lucide-react"
 import { api, getErrorMessage } from "@/lib/axiosInstance"
 import { useToast } from "@/hooks/use-toast"
 import { Skeleton } from "../ui/skeleton"
+import { fetchAllHousekeepers } from "@/lib/api"
+import HousekeeperSelection from "./HousekeeperSelection"
+import { Badge } from "@/components/ui/badge"
+import {
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+} from "@/components/ui/popover"
+import {
+  Command,
+  CommandInput,
+  CommandGroup,
+  CommandItem,
+  CommandEmpty,
+} from "@/components/ui/command"
+import { Check, ChevronsUpDown } from "lucide-react"
+import { cn } from "@/lib/utils"
+
+
+const allTaskOptions = [
+  "Cleaning",
+  "Cooking",
+  "Laundry",
+  "Babysitting",
+  "Gardening",
+  "Pet Care",
+  "Shopping",
+  "Ironing",
+  "Elderly Care",
+  "Dishwashing",
+  "Feeding Pets",
+  "Organizing Rooms",
+  "Errand Running",
+]
 
 type LocationData = { 
   province: string
@@ -32,13 +66,14 @@ type EmployerData = {
   partnerNumber: string
   churchName: string
   profileImage: File | null
-  salaryRangeMin: string
-  salaryRangeMax: string
+  salary: string
+  allTasks: string[]      
+  vocationDays: string  
 }
 
 
 
-type ApiHousekeeper = {
+export type ApiHousekeeper = {
   _id: string
   fullName: string
   dateOfBirth: string
@@ -49,8 +84,12 @@ type ApiHousekeeper = {
   passportImage: image,
   fullBodyImage: image,
   workPreferences: {
-    workDistrict: string
-    workSector: string
+    language: string
+    amountOfMoney: string
+    workType: string
+    vocationDays: string
+    married: string
+    numberChildren: string
     willingToWorkWithChildren: boolean
   }
   background: {
@@ -74,8 +113,9 @@ export default function EmployerForm() {
   const [selected, setSelected] = useState<string[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [employerId, setEmployerId] = useState<string | null>(null)
-  const [matchingHousekeepers, setMatchingHousekeepers] = useState<ApiHousekeeper[]>([])
   const [loadingMatches, setLoadingMatches] = useState(false)
+  const [housekeepers, setHousekeepers] = useState<ApiHousekeeper[]>([])
+  const [loadingHousekeepers, setLoadingHousekeepers] = useState(false)
   const { toast } = useToast()
   const [formData, setFormData] = useState<EmployerData>({
     name: "",
@@ -93,8 +133,9 @@ export default function EmployerForm() {
     partnerNumber: "",
     churchName: "",
     profileImage: null,
-    salaryRangeMin: "",
-    salaryRangeMax: ""
+    salary: "",
+    allTasks: [],
+    vocationDays: ""
   })
   const [imagePreview, setImagePreview] = useState<string>("")
 
@@ -107,6 +148,8 @@ export default function EmployerForm() {
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
+
+    
     if (file) {
       setFormData({ ...formData, profileImage: file })
       const reader = new FileReader()
@@ -116,6 +159,22 @@ export default function EmployerForm() {
       reader.readAsDataURL(file)
     }
   }
+
+  const fetchAllHousekeepersData = async () => {
+  try {
+    setLoadingHousekeepers(true)
+    const data = await fetchAllHousekeepers({ page: 1, limit: 100 })
+    setHousekeepers(data.housekeepers || [])
+  } catch (error) {
+    toast({
+      title: "Error",
+      description: "Failed to load housekeepers.",
+      variant: "destructive",
+    })
+  } finally {
+    setLoadingHousekeepers(false)
+  }
+}
 
   const registerEmployer = async () => {
     try {
@@ -128,9 +187,9 @@ export default function EmployerForm() {
       formDataToSend.append('villageLeaderNumber', formData.villageLeaderNumber)
       formDataToSend.append('partnerNumber', formData.partnerNumber)
       formDataToSend.append('churchName', formData.churchName)
-      formDataToSend.append('salaryRangeMin', formData.salaryRangeMin)
-      formDataToSend.append('salaryRangeMax', formData.salaryRangeMax)
-
+      formDataToSend.append('salary', formData.salary)
+      formDataToSend.append('vocationDays', formData.vocationDays)
+      formDataToSend.append('allTasks', JSON.stringify(formData.allTasks))
       if (formData.email) {
         formDataToSend.append('email', formData.email)
       }
@@ -149,8 +208,9 @@ export default function EmployerForm() {
           title: "Registration Successful!",
           description: "Your employer profile has been created successfully.",
         })
-        
-        await fetchMatchingHousekeepers(response.data.employer._id)
+      
+        // Fetch all housekeepers instead of matching ones
+        await fetchAllHousekeepersData()
         setStep(4)
       }
     } catch (error) {
@@ -164,31 +224,13 @@ export default function EmployerForm() {
     }
   }
 
-  const fetchMatchingHousekeepers = async (empId: string) => {
-    try {
-      setLoadingMatches(true)
-      const response = await api.get(`/employers/${empId}/matches`)
-      if (response.data.housekeepers) {
-        setMatchingHousekeepers(response.data.housekeepers)
-      }
-    } catch (error) {
-      console.error('Error fetching matching housekeepers:', error)
-      toast({
-        title: "Error",
-        description: "Failed to fetch matching housekeepers",
-        variant: "destructive",
-      })
-    } finally {
-      setLoadingMatches(false)
-    }
-  }
-
   const handleNext = async () => {
+
     if (step === 3) {
       if (!formData.name || !formData.phoneNumber || !formData.nationalId || !formData.location.province || 
           !formData.location.district || !formData.location.sector || !formData.location.cell || 
           !formData.location.village || !formData.villageLeaderNumber || !formData.partnerNumber || 
-          !formData.churchName || !formData.salaryRangeMin || !formData.salaryRangeMax) {
+          !formData.churchName || !formData.salary) {
         toast({
           title: "Missing Information",
           description: "Please fill in all required fields before proceeding.",
@@ -206,8 +248,8 @@ export default function EmployerForm() {
     if (step > 1) setStep(step - 1)
   }
 
-  const getMatchingHousekeepers = () => {
-    return matchingHousekeepers.map(hk => ({
+  const getHousekeepers = () => {
+    return housekeepers.map(hk => ({
       id: hk._id,
       name: hk.fullName,
       location: hk.location,
@@ -522,31 +564,99 @@ export default function EmployerForm() {
                 </div>
 
                 <div className="bg-purple-50 p-4 rounded-lg">
-                  <Label className="text-gray-700 font-semibold text-lg mb-4 block">Salary Range <span className="text-red-500">*</span></Label>
-                  <p className="text-sm text-gray-600 mb-4">Specify the monthly salary range you're willing to pay</p>
+                  <Label className="text-gray-700 font-semibold">Salary Range <span className="text-red-500">*</span></Label>
+                    <select
+                      value={formData.salary}
+                      onChange={(e) => setFormData({ ...formData, salary: e.target.value })}
+                      className="mt-2 border-gray-300 focus:border-[#834de3] focus:ring-[#834de3] rounded-md w-full"
+                    >
+                      <option value="">Select salary range</option>
+                      <option value="0-50000">0 - 50,000 RWF</option>
+                      <option value="50000-100000">50,000 - 100,000 RWF</option>
+                      <option value="100000-150000">100,000 - 150,000 RWF</option>
+                      <option value="150000+">150,000+ RWF</option>
+                    </select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-gray-700 font-semibold">
+                    Select Tasks at Home <span className="text-red-500">*</span>
+                  </Label>
+
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        role="combobox"
+                        className="w-full justify-between"
+                      >
+                        {formData.allTasks.length > 0
+                          ? `${formData.allTasks.length} selected`
+                          : "Select tasks..."}
+                        <ChevronsUpDown className="ml-2 h-4 w-4 opacity-50" />
+                      </Button>
+                    </PopoverTrigger>
+                        
+                    <PopoverContent className="w-[300px] p-0">
+                      <Command>
+                        <CommandInput placeholder="Search tasks..." />
+                        <CommandEmpty>No tasks found.</CommandEmpty>
+                        <CommandGroup className="max-h-60 overflow-y-auto">
+                          {allTaskOptions.map((task) => (
+                            <CommandItem
+                              key={task}
+                              onSelect={() => {
+                                const selected = formData.allTasks.includes(task)
+                                  ? formData.allTasks.filter((t) => t !== task)
+                                  : [...formData.allTasks, task]
+                                setFormData({ ...formData, allTasks: selected })
+                              }}
+                            >
+                              <Check
+                                className={cn(
+                                  "mr-2 h-4 w-4",
+                                  formData.allTasks.includes(task)
+                                    ? "opacity-100 text-[#834de3]"
+                                    : "opacity-0"
+                                )}
+                              />
+                              {task}
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
+                        
+                  {formData.allTasks.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {formData.allTasks.map((task) => (
+                        <Badge
+                          key={task}
+                          variant="secondary"
+                          className="cursor-pointer bg-purple-100 text-[#834de3] hover:bg-purple-200 transition"
+                          onClick={() =>
+                            setFormData({
+                              ...formData,
+                              allTasks: formData.allTasks.filter((t) => t !== task),
+                            })
+                          }
+                        >
+                          {task} ✕
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
+                </div>
                   
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label className="text-gray-600 text-sm">Minimum (RWF)</Label>
-                      <Input
-                        type="number"
-                        placeholder="50,000"
-                        value={formData.salaryRangeMin}
-                        onChange={(e) => setFormData({ ...formData, salaryRangeMin: e.target.value })}
-                        className="mt-2 border-gray-300 focus:border-[#834de3] focus:ring-[#834de3]"
-                      />
-                    </div>
-                    <div>
-                      <Label className="text-gray-600 text-sm">Maximum (RWF)</Label>
-                      <Input
-                        type="number"
-                        placeholder="100,000"
-                        value={formData.salaryRangeMax}
-                        onChange={(e) => setFormData({ ...formData, salaryRangeMax: e.target.value })}
-                        className="mt-2 border-gray-300 focus:border-[#834de3] focus:ring-[#834de3]"
-                      />
-                    </div>
-                  </div>
+                <div>
+                  <Label className="text-gray-700 font-semibold">Vocation Days <span className="text-red-500">*</span></Label>
+                  <Input
+                    placeholder="e.g., Saturday and Sunday"
+                    value={formData.vocationDays}
+                    onChange={(e) => setFormData({ ...formData, vocationDays: e.target.value })}
+                    className="mt-2 border-gray-300 focus:border-[#834de3] focus:ring-[#834de3]"
+                  />
                 </div>
 
                 <div className="flex justify-between">
@@ -570,111 +680,24 @@ export default function EmployerForm() {
 
             {/* Step 4: Matching Housekeepers */}
             {step === 4 && (
-              <div className="space-y-6">
-                <div className="flex items-center space-x-2 mb-6">
-                  <Users className="text-[#834de3]" />
-                  <h2 className="text-2xl font-bold text-gray-800">Available Housekeepers</h2>
-                </div>
-
-                {loadingMatches ? (
-                  <div className="space-y-4">
-                    {[1,2,3].map((i) => (
-                      <Card key={i} className="border-gray-200">
-                        <CardContent className="p-6 flex space-x-4">
-                          <Skeleton className="w-16 h-16 rounded-full" />
-                          <div className="flex-1 space-y-2">
-                            <Skeleton className="h-4 w-1/3" />
-                            <Skeleton className="h-4 w-1/2" />
-                            <Skeleton className="h-4 w-2/3" />
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                  {getMatchingHousekeepers().map((hk) => (
-                    <Card
-                      key={hk.id}
-                      className={`cursor-pointer transition-all hover:shadow-md ${
-                        selected.includes(String(hk.id)) 
-                          ? "border-[#834de3] border-2 bg-purple-50" 
-                          : "border-gray-200 hover:border-[#834de3]"
-                      }`}
-                      onClick={() => toggleSelect(hk.id)}
-                    >
-                      <CardContent className="p-6">
-                        <div className="flex items-start space-x-6">
-                          
-                          {/* Profile / Passport Image */}
-                          <div className="w-24 h-24 rounded-full overflow-hidden border border-gray-300">
-                            <img 
-                              src={hk.passportImage?.url || "/placeholder-profile.png"} 
-                              alt={hk.name} 
-                              className="w-full h-full object-cover" 
-                            />
-                          </div>
-                    
-                          {/* Housekeeper Info */}
-                          <div className="flex-1">
-                            <div className="flex items-center space-x-2">
-                              <h3 className="text-xl font-bold text-gray-800">{hk.name}</h3>
-                              {selected.includes(String(hk.id)) && (
-                                <CheckCircle className="text-[#834de3] w-5 h-5" />
-                              )}
-                            </div>
-                            
-                            <div className="mt-2 space-y-1 text-sm text-gray-600">
-                              <p><strong>Location:</strong> {hk.location.village}, {hk.location.cell}, {hk.location.sector}</p>
-                              <p><strong>Gender:</strong> {hk.gender} | <strong>Age:</strong> {hk.age}</p>
-                              <p><strong>Availability:</strong> {hk.availability}</p>
-                              <p><strong>Preferred Work Area:</strong> {hk.workPreferences?.workDistrict}, {hk.workPreferences?.workSector}</p>
-                              <p><strong>Children:</strong> {hk.workPreferences?.willingToWorkWithChildren ? "Yes" : "No"}</p>
-                            </div>
-                            
-                          </div>
-                            
-                          {/* Full Body Image (clickable) */}
-                          {hk.fullBodyImage?.url && (
-                            <div className="w-24 h-32 rounded overflow-hidden border border-gray-300">
-                              <a href={hk.fullBodyImage.url} target="_blank" rel="noopener noreferrer">
-                                <img 
-                                  src={hk.fullBodyImage.url} 
-                                  alt={`${hk.name} full body`} 
-                                  className="w-full h-full object-cover hover:opacity-90 transition" 
-                                />
-                              </a>
-                            </div>
-                          )}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-                )}
+              <HousekeeperSelection
+                housekeepers={housekeepers.filter(h => h.status === 'available')} // only available
+                onConfirm={(selectedIds: string[]) => {
+                  if (selectedIds.length === 0) {
+                    toast({
+                      title: "No Selection",
+                      description: "Please select at least one housekeeper.",
+                      variant: "destructive",
+                    });
+                    return;
+                  }
                 
-                <div className="flex justify-between items-center pt-4">
-                  <Button
-                    onClick={handleBack}
-                    variant="outline"
-                    className="border-[#834de3] text-[#834de3] hover:bg-purple-50 px-8"
-                  >
-                    ← Back
-                  </Button>
-                  <div className="text-sm text-gray-600">
-                    Selected: {selected.length}/2
-                  </div>
-                  <Button
-                    onClick={handleSelectHousekeepers}
-                    disabled={selected.length === 0 || isLoading}
-                    className="bg-[#834de3] text-white hover:bg-[#6f3cc2] transition-colors px-8 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {isLoading ? "Processing..." : "Confirm Selection →"}
-                  </Button>
-                </div>
-              </div>
+                  setSelected(selectedIds); 
+                  handleSelectHousekeepers();
+                }}
+              />
             )}
-          </CardContent>
+            </CardContent>
         </Card>
 
         {/* Progress indication at bottom */}
