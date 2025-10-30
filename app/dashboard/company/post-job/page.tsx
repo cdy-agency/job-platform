@@ -43,7 +43,6 @@ const employmentEnum = z.enum(["fulltime", "part-time", "internship"])
 const jobFormSchema = z.object({
   title: z.string().min(1, { message: "Title is required." }),
   description: z.string().min(1, { message: "Description is required." }),
-  image: z.instanceof(File).optional(),
   skills: z.array(z.string()).transform(val => val || []),
   province: z.string().min(1, { message: "Province is required." }),
   district: z.string().min(1, { message: "District is required." }),
@@ -86,7 +85,6 @@ export default function PostJobPage() {
 		defaultValues: {
 			title: "",
 			description: "",
-			image: undefined,
 			skills: [],
 			province: "",
 			district: "",
@@ -159,16 +157,6 @@ export default function PostJobPage() {
 					applicationDeadline: jobData.applicationDeadline ? 
 						new Date(jobData.applicationDeadline).toISOString().split('T')[0] : "",
 				})
-
-				// Existing image preview support
-				const possibleImage = (jobData as any)?.image?.url || (jobData as any)?.image || (jobData as any)?.banner || null
-				if (typeof possibleImage === 'string') {
-					setExistingImageUrl(possibleImage)
-					setRemoveExistingImage(false)
-				} else {
-					setExistingImageUrl(null)
-					setRemoveExistingImage(false)
-				}
 			}
 		} catch (error) {
 			console.error("Error loading job for editing:", error)
@@ -255,8 +243,6 @@ export default function PostJobPage() {
 			const jobData: any = {
 				title: values.title,
 				description: values.description,
-				image: values.image,
-				skills: values.skills || [],
 				province: values.province,
 				district: values.district,
 				experience: values.experience || "",
@@ -271,14 +257,7 @@ export default function PostJobPage() {
 				companyId
 			}
 
-			console.log("Form values:", jobData)
-
-			// Delete existing image on edit when requested and no new image selected
-			if (isEditMode && !values.image && removeExistingImage) {
-				jobData.image = "delete"
-			}
-
-			console.log("Job data being sent:", jobData)
+			console.log('this is job information data', jobData)
 
 			let result
 			if (isEditMode && jobId) {
@@ -525,52 +504,6 @@ export default function PostJobPage() {
 										<FormControl>
 											<Textarea placeholder="Describe the role, team, and impact" {...field} className="border-gray-300" />
 										</FormControl>
-										<FormMessage />
-									</FormItem>
-								)}
-							/>
-
-							{/* Image Upload */}
-							<FormField
-								control={form.control}
-								name="image"
-								render={({ field }) => (
-									<FormItem>
-										<FormLabel className="text-gray-800">Job Image/Banner</FormLabel>
-										<FormControl>
-											<div>
-												{isEditMode && existingImageUrl && !removeExistingImage && !field.value && (
-													<div className="mb-3 flex items-center gap-3">
-														<img src={existingImageUrl} alt="Existing" className="h-24 w-24 object-cover rounded border" />
-														<div className="flex gap-2">
-															<Button type="button" variant="outline" className="border-gray-300" onClick={() => setRemoveExistingImage(true)}>
-																Remove image
-															</Button>
-															<Button type="button" variant="outline" className="border-gray-300" onClick={() => fileInputRef.current?.click()}>
-																Replace image
-															</Button>
-														</div>
-													</div>
-												)}
-												<input
-													ref={fileInputRef}
-													type="file"
-													accept="image/*"
-													onChange={(e) => {
-														const file = e.target.files?.[0]
-														field.onChange(file)
-														if (file) {
-															setRemoveExistingImage(false)
-														}
-													}}
-													className="block w-full text-sm text-gray-900 file:mr-4 file:rounded-md file:border-0 file:bg-purple-600 file:px-4 file:py-2 file:text-sm file:font-medium file:text-white hover:file:bg-purple-700"
-												/>
-												{isEditMode && existingImageUrl && removeExistingImage && !field.value && (
-													<div className="mt-2 text-sm text-red-600">Existing image will be deleted.</div>
-												)}
-											</div>
-										</FormControl>
-										<FormDescription className="text-gray-600">Optional image to showcase the job</FormDescription>
 										<FormMessage />
 									</FormItem>
 								)}

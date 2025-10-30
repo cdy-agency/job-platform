@@ -263,7 +263,6 @@ export const resetEmployeePassword = async (oldPassword: string, newPassword: st
 export const postJob = async (data: {
   title: string;
   description: string;
-  image?: File;
   province: string;
   district: string;
   skills?: string[];
@@ -277,25 +276,8 @@ export const postJob = async (data: {
   companyId: string;
   applicationDeadline?: string;
 }) => {
-  const formData = new FormData();
-  formData.append('title', data.title);
-  formData.append('description', data.description);
-  formData.append('employmentType', data.employmentType);
-  formData.append("province", data.province);
-  formData.append("district", data.district);
-  formData.append('category', data.category);
-  formData.append('companyId', data.companyId);
-  if (data.experience) formData.append('experience', data.experience);
-  if (data.salary) formData.append('salary', data.salary);
-  if (data.applicationDeadline) formData.append('applicationDeadline', data.applicationDeadline);
-  if (data.image instanceof File) formData.append('image', data.image);
-  (data.skills || []).forEach((s) => formData.append('skills', s));
-  (data.otherBenefits || []).forEach((r) => formData.append('otherBenefits', r));
-  (data.responsibilities || []).forEach((r) => formData.append('responsibilities', r));
-  (data.benefits || []).forEach((b) => formData.append('benefits', b));
-
-  const res = await api.post('/company/job', formData, {
-    headers: { 'Content-Type': 'multipart/form-data' },
+  const res = await api.post('/company/job', data, {
+    headers: { 'Content-Type': 'application/json' },
   });
   return res.data;
 };
@@ -331,7 +313,6 @@ export const updateJob = async (
   data: Partial<{
     title: string;
     description: string;
-    image?: File | string;
     province: string;
     district: string;
     skills: string[];
@@ -345,44 +326,14 @@ export const updateJob = async (
     applicationDeadline: string;
   }>
 ) => {
-  const hasFileImage = data.image instanceof File;
-  // If we are sending a real file, use multipart to the file-enabled route
-  if (hasFileImage) {
-    const formData = new FormData();
-    Object.entries(data).forEach(([key, value]) => {
-      if (typeof value === 'undefined' || value === null) return;
-      if (key === 'image') {
-        if (value instanceof File) {
-          formData.append('image', value);
-          return;
-        }
-      }
-      if (Array.isArray(value)) {
-        value.forEach((v) => formData.append(key, String(v)));
-        return;
-      }
-      formData.append(key, String(value));
-    });
-    const res = await api.patch(`/company/job/${id}`, formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    });
-    return res.data;
-  }
-
-  // Otherwise, avoid multipart and call basic route without upload middleware
-  const payload: any = {};
-  Object.entries(data).forEach(([key, value]) => {
-    if (typeof value === 'undefined') return;
-    // Allow passing 'delete' string for image removal
-    if (Array.isArray(value)) {
-      payload[key] = value;
-      return;
-    }
-    payload[key] = value as any;
+  const res = await api.patch(`/company/job/${id}`, data, {
+    headers: { 'Content-Type': 'application/json' },
   });
-  const res = await api.patch(`/company/job/${id}/basic`, payload);
+
   return res.data;
 };
+
+
 export const deleteJob = async (id: string) => {
   const res = await api.delete(`/company/job/${id}`);
   return res.data;
