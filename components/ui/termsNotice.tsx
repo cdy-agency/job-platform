@@ -57,14 +57,14 @@ export default function TermsNotice() {
                     <span className="font-semibold text-black">KaziLink</span>,
                     you agree to our{" "}
                     <Link
-                      href="/terms"
+                      href="/terms-conditions"
                       className="text-purple-700 font-medium hover:underline"
                     >
                       Terms & Conditions
                     </Link>{" "}
                     and{" "}
                     <Link
-                      href="/privacy"
+                      href="/terms-conditions"
                       className="text-purple-700 font-medium hover:underline"
                     >
                       Privacy Policy
