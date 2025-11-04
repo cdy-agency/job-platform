@@ -21,6 +21,7 @@ import { CalendarIcon } from "lucide-react"
 import { format } from "date-fns"
 import { JOB_CATEGORIES } from "@/lib/constantData"
 import { provincesWithDistricts } from "./company-registration"
+import { useTranslation } from "react-i18next"
 
 interface EmployeeRegistrationProps {
   formData: {
@@ -47,6 +48,7 @@ const EmployeeRegistration = ({
   errors = {},
 }: EmployeeRegistrationProps) => {
   const [selectedJobs, setSelectedJobs] = useState<string[]>([])
+  const {t} = useTranslation('auth')
   const [date, setDate] = useState<Date | undefined>(
     formData.dateOfBirth ? new Date(formData.dateOfBirth) : undefined
   )
@@ -85,11 +87,11 @@ const EmployeeRegistration = ({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Name */}
         <div className="space-y-2">
-          <Label htmlFor="name">Full Name</Label>
+          <Label htmlFor="name">{t('fullName')}</Label>
           <Input
             id="name"
             type="text"
-            placeholder="Full Name"
+            placeholder={t("placeholders.fullName")}
             value={formData.name}
             onChange={(e) => onInputChange("name", e.target.value)}
             className="bg-white text-black"
@@ -100,11 +102,11 @@ const EmployeeRegistration = ({
 
         {/* Email */}
         <div className="space-y-2">
-          <Label htmlFor="email">Email</Label>
+          <Label htmlFor="email">{t('email')}</Label>
           <Input
             id="email"
             type="email"
-            placeholder="Email Address"
+            placeholder={t("placeholders.email")}
             value={formData.email}
             onChange={(e) => onInputChange("email", e.target.value)}
             className="bg-white text-black"
@@ -115,7 +117,7 @@ const EmployeeRegistration = ({
 
         {/* Date of Birth */}
         <div className="space-y-2">
-          <Label htmlFor="dob">Date of Birth (Optional)</Label>
+          <Label htmlFor="dob">{t('dateOfBirth')}</Label>
           <Popover>
             <PopoverTrigger asChild>
               <Button
@@ -125,7 +127,7 @@ const EmployeeRegistration = ({
                 }`}
               >
                 <CalendarIcon className="mr-2 h-4 w-4" />
-                {date ? format(date, "dd/MM/yyyy") : <span>Pick a date</span>}
+                {date ? format(date, "dd/MM/yyyy") : <span>{t('pickDate')}</span>}
               </Button>
             </PopoverTrigger>
             <PopoverContent className="p-0" align="start">
@@ -143,10 +145,10 @@ const EmployeeRegistration = ({
 
         {/* Province */}
         <div className="space-y-2">
-          <Label htmlFor="province">Province</Label>
+          <Label htmlFor="province">{t('province')}</Label>
           <Select value={formData.province} onValueChange={handleProvinceChange}>
             <SelectTrigger>
-              <SelectValue placeholder="Select Province" />
+              <SelectValue placeholder={t("placeholders.province")}/>
             </SelectTrigger>
             <SelectContent>
               {Object.keys(provincesWithDistricts).map((province) => (
@@ -160,14 +162,14 @@ const EmployeeRegistration = ({
 
         {/* District */}
         <div className="space-y-2">
-          <Label htmlFor="district">District</Label>
+          <Label htmlFor="district">{t('district')}</Label>
           <Select
             value={formData.district}
             onValueChange={(val) => onInputChange("district", val)}
             disabled={!formData.province}
           >
             <SelectTrigger>
-              <SelectValue placeholder="Select District" />
+              <SelectValue placeholder={t("placeholders.district")} />
             </SelectTrigger>
             <SelectContent>
               {formData.province &&
@@ -182,30 +184,30 @@ const EmployeeRegistration = ({
 
         {/* Gender */}
         <div className="space-y-2">
-          <Label htmlFor="gender">Gender</Label>
+          <Label htmlFor="gender">{t('gender')}</Label>
           <Select
             value={formData.gender}
             onValueChange={(val) => onInputChange("gender", val)}
           >
             <SelectTrigger>
-              <SelectValue placeholder="Select Gender" />
+              <SelectValue placeholder={t("placeholders.gender")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="male">Male</SelectItem>
-              <SelectItem value="female">Female</SelectItem>
-              <SelectItem value="other">Other</SelectItem>
+              <SelectItem value="male">{t('male')}</SelectItem>
+              <SelectItem value="female">{t('female')}</SelectItem>
+              <SelectItem value="other">{t('other')}</SelectItem>
             </SelectContent>
           </Select>
         </div>
 
         {/* Phone */}
         <div className="space-y-2">
-          <Label htmlFor="phoneNumber">Phone Number</Label>
+          <Label htmlFor="phoneNumber">{t('phoneNumber')}</Label>
           <Input
             id="phoneNumber"
             type="text"
             inputMode="tel"
-            placeholder="Phone Number (Optional)"
+            placeholder={t("placeholders.phoneNumber")}
             value={formData.employeePhoneNumber}
             onChange={(e) => onInputChange("employeePhoneNumber", e.target.value)}
             className="bg-white text-black"
@@ -219,11 +221,11 @@ const EmployeeRegistration = ({
       {/* Passwords */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
         <div className="space-y-2">
-          <Label htmlFor="password">Password</Label>
-          <Input
+         <Label htmlFor="password">{t('password')}</Label>
+         <Input
             id="password"
             type="password"
-            placeholder="Password"
+            placeholder={t("placeholders.password")}
             value={formData.password}
             onChange={(e) => onInputChange("password", e.target.value)}
             className="bg-white text-black"
@@ -235,11 +237,11 @@ const EmployeeRegistration = ({
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="confirmPassword">Confirm Password</Label>
+          <Label htmlFor="confirmPassword">{t('confirmPassword')}</Label>
           <Input
             id="confirmPassword"
             type="password"
-            placeholder="Confirm Password"
+            placeholder={t("confirmPassword")}
             value={formData.confirmPassword}
             onChange={(e) => onInputChange("confirmPassword", e.target.value)}
             required
@@ -255,8 +257,7 @@ const EmployeeRegistration = ({
       {/* Job Preferences */}
       <div className="mt-4 space-y-3">
         <Label>
-          Job Preferences{" "}
-          <span className="text-xs text-gray-500 ml-2">(Select all that apply)</span>
+          {t('jobPreferences')}{" "}
         </Label>
         <div className="bg-white border border-gray-300 rounded-md p-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">

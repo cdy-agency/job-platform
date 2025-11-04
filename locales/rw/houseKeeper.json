@@ -1,0 +1,106 @@
+{
+  "title": "Iyandikishe Umukoresha w'Inzu",
+  "description": "Wuzuza ifishi iri hasi kugirango wiyandikishe nka umukoresha w'inzu",
+  "steps": {
+    "1": "Amakuru y'Umuntu",
+    "2": "Amakuru y'Imiryango",
+    "3": "Ibikenewe mu Kazi"
+  },
+  "personalInfo": {
+    "fullName": "Amazina Yuzuye",
+    "fullNamePlaceholder": "Andika amazina yawe yose",
+    "dateOfBirth": "Itariki y'Amavuko",
+    "gender": "Igitsina",
+    "genderOptions": {
+      "male": "Gabo",
+      "female": "Gore",
+      "other": "Ikindi"
+    },
+    "idNumber": "Nomero y'Indangamuntu",
+    "idNumberPlaceholder": "Andika nomero yawe y'indangamuntu",
+    "phoneNumber": "Nomero ya Telefone",
+    "phoneNumberPlaceholder": "+250 XXX XXX XXX",
+    "province": "Intara",
+    "provinceOptions": {
+      "kigali": "Umujyi wa Kigali",
+      "eastern": "Intara y'Iburasirazuba",
+      "western": "Intara y'Iburengerazuba",
+      "northern": "Intara y'Amajyaruguru",
+      "southern": "Intara y'Amajyepfo"
+    },
+    "district": "Akarere",
+    "districtPlaceholder": "Andika izina ry'akarere",
+    "sector": "Umurenge",
+    "sectorPlaceholder": "Andika izina ry'umurenge",
+    "cell": "Akagali",
+    "cellPlaceholder": "Andika izina k'agakali",
+    "village": "Umudugudu",
+    "villagePlaceholder": "Andika izina ry'umudugudu",
+    "uploadPhotos": "Ohereza Amafoto",
+    "passportPhoto": "Ifoto y'Indangamuntu",
+    "fullBodyPhoto": "Ifoto y'Umubiri Wose",
+    "idImage": "Ifoto y'Indangamuntu",
+    "clickToUpload": "Kanda hano kugirango wohereze"
+  },
+  "backgroundInfo": {
+    "hasParents": "Ufite ababyeyi?",
+    "yes":"Yego",
+    "no": "Oya",
+    "parentInformation": "Amakuru y'ababyeyi",
+    "hasStudied": "Warize?",
+    "fatherName": "Amazina y'Umubyeyi w'Igabo",
+    "fatherPhone": "Telefone ya Papa",
+    "motherName": "Amazina y'Umubyeyi w'Igore",
+    "motherPhone": "Telefone ya Mama",
+    "educationLevel": "Urwego rw'Amashuri warangije",
+    "educationOptions": {
+      "primary": "Amashuri Abanza",
+      "secondary": "Amashuri Yisumbuye (O-Level)",
+      "alevel": "Advanced Level (A-Level)",
+      "vocational": "Amahugurwa y'Umwuga",
+      "university": "Kaminuza/Ikigo cy'Amashuri Makuru"
+    },
+    "church": "Itorero/Idini",
+    "churchOptions": {
+      "catholic": "Gatorika",
+      "adventist": "Adventiste",
+      "protestant": "Abaporotesitanti",
+      "anglican": "Anglikani",
+      "pentecostal": "Ipentekote",
+      "baptist": "Baptiste",
+      "muslim": "Muslimu",
+      "other": "Ikindi"
+    }
+  },
+  "workPreferences": {
+    "language": "Ururimi ukunda gukoresha",
+    "languagePlaceholder": "Andika ururimi ukunda gukoresha",
+    "amountOfMoney": "Umushahara w'ukwezi utegerejwe (RWF)",
+    "amountOptions":"Hitamo",
+    "workType": "Ubwoko bw'akazi",
+    "workTypeOptions": {
+      "live-in": "Gukora utuye aho ukorera",
+      "live-out": "Gukora utavuyeyo",
+      "all": "Byombi"
+    },
+    "married": "Urubatse?",
+    "numberChildren": "Umubare w'Abana",
+    "willingToWorkWithChildren": "Witeguye gukorana n'abana?",
+    "vocationDays": "Iminsi y'akazi"
+  },
+  "buttons": {
+    "next": "Komeza",
+    "back": "Subira Inyuma",
+    "submit": "Ohereza Iyandikisho",
+    "loading": "Birimo Gukora...",
+    "submitting": "Birimo Koherezwa..."
+  },
+  "messages": {
+    "missingInfoTitle": "Hari Amakuru Atuzuye",
+    "missingInfoDescription": "Nyamuneka wuzuze amakuru yose asabwa",
+    "registrationSuccess": "Iyandikisho Ryakozwe Neza!",
+    "registrationSuccessDesc": "Umwirondoro wawe w'umukoresha w'inzu wakozwe neza.",
+    "registrationFailed": "Iyandikisho Ryapfuye",
+    "registrationFailedDesc": "Habaye ikibazo mu kwiyandikisha. Reba amakuru y'amakosa."
+  }
+}

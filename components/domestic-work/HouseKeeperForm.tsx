@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { api, getErrorMessage } from "@/lib/axiosInstance";
 import { useToast } from "@/hooks/use-toast";
+import { useTranslation } from 'react-i18next';
 
 export default function HousekeeperRegistrationForm() {
   const [formData, setFormData] = useState({
@@ -23,6 +24,7 @@ export default function HousekeeperRegistrationForm() {
   const [step, setStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const { t } = useTranslation('houseKeeper')
 
   // @ts-expect-error error
   const handleInputChange = (e) => {
@@ -164,8 +166,8 @@ export default function HousekeeperRegistrationForm() {
     <div className="min-h-screen bg-gray-50 py-12 px-4">
       <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-lg p-8">
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-3">Housekeeper Registration</h1>
-          <p className="text-gray-600">Fill out the form below to register as a housekeeper</p>
+          <h1 className="text-4xl font-bold text-gray-900 mb-3">{t('title')}</h1>
+          <p className="text-gray-600">{t('description')}</p>
         </div>
 
         <div className="flex justify-center items-center mb-10 space-x-4">
@@ -175,7 +177,7 @@ export default function HousekeeperRegistrationForm() {
             }`}>
               {step > 1 ? '✓' : '1'}
             </div>
-            <span className="ml-2 font-medium text-gray-700 hidden sm:inline">Personal Info</span>
+            <span className="ml-2 font-medium text-gray-700 hidden sm:inline">{t('steps.1')}</span>
           </div>
           <div className="w-12 sm:w-16 h-0.5 bg-gray-300"></div>
           <div className="flex items-center">
@@ -184,7 +186,7 @@ export default function HousekeeperRegistrationForm() {
             }`}>
               {step > 2 ? '✓' : '2'}
             </div>
-            <span className="ml-2 font-medium text-gray-700 hidden sm:inline">Background</span>
+            <span className="ml-2 font-medium text-gray-700 hidden sm:inline">{t('steps.2')}</span>
           </div>
           <div className="w-12 sm:w-16 h-0.5 bg-gray-300"></div>
           <div className="flex items-center">
@@ -193,25 +195,25 @@ export default function HousekeeperRegistrationForm() {
             }`}>
               3
             </div>
-            <span className="ml-2 font-medium text-gray-700 hidden sm:inline">Work Preferences</span>
+            <span className="ml-2 font-medium text-gray-700 hidden sm:inline">{t('steps.3')}</span>
           </div>
         </div>
 
         <div className="space-y-6">
           {step === 1 && (
             <div className="space-y-6">
-              <h2 className="text-2xl font-semibold text-gray-800 mb-6">Personal Information</h2>
+              <h2 className="text-2xl font-semibold text-gray-800 mb-6">{t('steps.1')}</h2>
               
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Full Name <span className="text-red-500">*</span>
+                  {t('personalInfo.fullName')} <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
                   name="fullName"
                   value={formData.fullName}
                   onChange={handleInputChange}
-                  placeholder="Enter your full name"
+                  placeholder={t("personalInfo.fullNamePlaceholder")}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#834de3] focus:border-transparent outline-none transition"
                 />
               </div>
@@ -219,7 +221,7 @@ export default function HousekeeperRegistrationForm() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Date of Birth <span className="text-red-500">*</span>
+                    {t("personalInfo.dateOfBirth")}<span className="text-red-500">*</span>
                   </label>
                   <input
                     type="date"
@@ -231,7 +233,7 @@ export default function HousekeeperRegistrationForm() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Gender <span className="text-red-500">*</span>
+                    {t("personalInfo.gender")} <span className="text-red-500">*</span>
                   </label>
                   <select
                     name="gender"
@@ -240,9 +242,9 @@ export default function HousekeeperRegistrationForm() {
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#834de3] focus:border-transparent outline-none transition"
                   >
                     <option value="">Select gender</option>
-                    <option value="male">Male</option>
-                    <option value="female">Female</option>
-                    <option value="other">Other</option>
+                    <option value="male">{t("personalInfo.genderOptions.male")}</option>
+                    <option value="female">{t("personalInfo.genderOptions.female")}</option>
+                    <option value="other">{t("personalInfo.genderOptions.other")}</option>
                   </select>
                 </div>
               </div>
@@ -250,27 +252,27 @@ export default function HousekeeperRegistrationForm() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    ID Number <span className="text-red-500">*</span>
+                    {t("personalInfo.idNumber")} <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
                     name="idNumber"
                     value={formData.idNumber}
                     onChange={handleInputChange}
-                    placeholder="Enter your ID number"
+                    placeholder={t("personalInfo.idNumberPlaceholder")}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#834de3] focus:border-transparent outline-none transition"
                   />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Phone Number <span className="text-red-500">*</span>
+                    {t("personalInfo.phoneNumber")} <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="tel"
                     name="phoneNumber"
                     value={formData.phoneNumber}
                     onChange={handleInputChange}
-                    placeholder="+250 XXX XXX XXX"
+                    placeholder={t("personalInfo.phoneNumberPlaceholder")}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#834de3] focus:border-transparent outline-none transition"
                   />
                 </div>
@@ -281,7 +283,7 @@ export default function HousekeeperRegistrationForm() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Province <span className="text-red-500">*</span>
+                    {t("personalInfo.province")} <span className="text-red-500">*</span>
                   </label>
                   <select
                     name="province"
@@ -290,23 +292,23 @@ export default function HousekeeperRegistrationForm() {
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#834de3] focus:border-transparent outline-none transition"
                   >
                     <option value="">Select province</option>
-                    <option value="kigali">Kigali City</option>
-                    <option value="eastern">Eastern Province</option>
-                    <option value="western">Western Province</option>
-                    <option value="northern">Northern Province</option>
-                    <option value="southern">Southern Province</option>
+                    <option value="kigali">{t("personalInfo.provinceOptions.kigali")}</option>
+                    <option value="eastern">{t("personalInfo.provinceOptions.eastern")}</option>
+                    <option value="western">{t("personalInfo.provinceOptions.western")}</option>
+                    <option value="northern">{t("personalInfo.provinceOptions.northern")}</option>
+                    <option value="southern">{t("personalInfo.provinceOptions.southern")}</option>
                   </select>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    District <span className="text-red-500">*</span>
+                    {t("personalInfo.district")} <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
                     name="district"
                     value={formData.district}
                     onChange={handleInputChange}
-                    placeholder="Enter your district"
+                    placeholder={t("personalInfo.districtPlaceholder")}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#834de3] focus:border-transparent outline-none transition"
                   />
                 </div>
@@ -315,53 +317,53 @@ export default function HousekeeperRegistrationForm() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Sector <span className="text-red-500">*</span>
+                    {t("personalInfo.sector")} <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
                     name="sector"
                     value={formData.sector}
                     onChange={handleInputChange}
-                    placeholder="Enter your sector"
+                    placeholder={t("personalInfo.sectorPlaceholder")} 
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#834de3] focus:border-transparent outline-none transition"
                   />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Cell <span className="text-red-500">*</span>
+                    {t("personalInfo.cell")} <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
                     name="cell"
                     value={formData.cell}
                     onChange={handleInputChange}
-                    placeholder="Enter your cell"
+                    placeholder={t("personalInfo.cellPlaceholder")}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#834de3] focus:border-transparent outline-none transition"
                   />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Village <span className="text-red-500">*</span>
+                    {t("personalInfo.village")} <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
                     name="village"
                     value={formData.village}
                     onChange={handleInputChange}
-                    placeholder="Enter your village"
+                    placeholder={t("personalInfo.villagePlaceholder")}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#834de3] focus:border-transparent outline-none transition"
                   />
                 </div>
               </div>
 
-              <h3 className="text-lg font-semibold text-gray-800 mt-8 mb-4">Upload Photos</h3>
+              <h3 className="text-lg font-semibold text-gray-800 mt-8 mb-4">{t("personalInfo.uploadPhotos")}</h3>
               
                {/* --- Upload Section --- */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mt-10">
           {/* Passport */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Passport Photo <span className="text-red-500">*</span>
+              {t("personalInfo.passportPhoto")} <span className="text-red-500">*</span>
             </label>
             <div
               className="relative border-2 border-dashed border-gray-300 rounded-lg w-full h-40 bg-gray-100 flex items-center justify-center overflow-hidden cursor-pointer hover:border-[#834de3] transition"
@@ -390,7 +392,7 @@ export default function HousekeeperRegistrationForm() {
           {/* Full Body */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Full Body Photo <span className="text-red-500">*</span>
+              {t("personalInfo.fullBodyPhoto")} <span className="text-red-500">*</span>
             </label>
             <div
               className="relative border-2 border-dashed border-gray-300 rounded-lg w-full h-40 bg-gray-100 flex items-center justify-center overflow-hidden cursor-pointer hover:border-[#834de3] transition"
@@ -419,7 +421,7 @@ export default function HousekeeperRegistrationForm() {
           {/* ID Image */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              ID Image <span className="text-red-500">*</span>
+              {t("personalInfo.idImage")} <span className="text-red-500">*</span>
             </label>
             <div
               className="relative border-2 border-dashed border-gray-300 rounded-lg w-full h-40 bg-gray-100 flex items-center justify-center overflow-hidden cursor-pointer hover:border-[#834de3] transition"
@@ -452,7 +454,7 @@ export default function HousekeeperRegistrationForm() {
                   disabled={isLoading}
                   className="px-8 py-3 bg-[#834de3] text-white font-semibold rounded-lg hover:bg-[#7043c7] transition flex items-center shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {isLoading ? "Loading..." : "Next"}
+                  {isLoading ? t('buttons.loading'): t('buttons.next')}
                   {!isLoading && <span className="ml-2">→</span>}
                 </button>
               </div>
@@ -461,11 +463,11 @@ export default function HousekeeperRegistrationForm() {
 
           {step === 2 && (
             <div className="space-y-6">
-              <h2 className="text-2xl font-semibold text-gray-800 mb-6">Background Information</h2>
+              <h2 className="text-2xl font-semibold text-gray-800 mb-6">{t('steps.2')}</h2>
               
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-3">
-                  Do you have parents? <span className="text-red-500">*</span>
+                  {t('backgroundInfo.hasParents')} <span className="text-red-500">*</span>
                 </label>
                 <div className="flex space-x-6">
                   <label className="flex items-center cursor-pointer">
@@ -477,7 +479,7 @@ export default function HousekeeperRegistrationForm() {
                       onChange={handleInputChange}
                       className="w-5 h-5 text-[#834de3] focus:ring-[#834de3] cursor-pointer"
                     />
-                    <span className="ml-2 text-gray-700">Yes</span>
+                    <span className="ml-2 text-gray-700">{t('backgroundInfo.yes')}</span>
                   </label>
                   <label className="flex items-center cursor-pointer">
                     <input
@@ -488,65 +490,65 @@ export default function HousekeeperRegistrationForm() {
                       onChange={handleInputChange}
                       className="w-5 h-5 text-[#834de3] focus:ring-[#834de3] cursor-pointer"
                     />
-                    <span className="ml-2 text-gray-700">No</span>
+                    <span className="ml-2 text-gray-700">{t('backgroundInfo.no')}</span>
                   </label>
                 </div>
               </div>
 
               {formData.hasParents === 'yes' && (
                 <div className="space-y-6 bg-purple-50 p-6 rounded-lg border border-purple-100">
-                  <h3 className="text-lg font-medium text-gray-800">Parents Contact Information</h3>
+                  <h3 className="text-lg font-medium text-gray-800">{t('backgroundInfo.parentInformation')}</h3>
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Father's Name
+                        {t('backgroundInfo.fatherName')}
                       </label>
                       <input
                         type="text"
                         name="fatherName"
                         value={formData.fatherName}
                         onChange={handleInputChange}
-                        placeholder="Enter father's name"
+                        placeholder={t('backgroundInfo.fatherName')}
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#834de3] focus:border-transparent outline-none transition bg-white"
                       />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Father's Phone Number
+                        {t('backgroundInfo.fatherPhone')}
                       </label>
                       <input
                         type="tel"
                         name="fatherPhone"
                         value={formData.fatherPhone}
                         onChange={handleInputChange}
-                        placeholder="+250 XXX XXX XXX"
+                        placeholder={t('backgroundInfo.fatherPhone')}
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#834de3] focus:border-transparent outline-none transition bg-white"
                       />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Mother's Name
+                        {t('backgroundInfo.motherName')}
                       </label>
                       <input
                         type="text"
                         name="motherName"
                         value={formData.motherName}
                         onChange={handleInputChange}
-                        placeholder="Enter mother's name"
+                        placeholder={t('backgroundInfo.motherName')}
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#834de3] focus:border-transparent outline-none transition bg-white"
                       />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Mother's Phone Number
+                        {t('backgroundInfo.motherPhone')}
                       </label>
                       <input
                         type="tel"
                         name="motherPhone"
                         value={formData.motherPhone}
                         onChange={handleInputChange}
-                        placeholder="+250 XXX XXX XXX"
+                        placeholder={t('backgroundInfo.motherPhone')}
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#834de3] focus:border-transparent outline-none transition bg-white"
                       />
                     </div>
@@ -556,7 +558,7 @@ export default function HousekeeperRegistrationForm() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-3">
-                  Have you studied? <span className="text-red-500">*</span>
+                  {t('backgroundInfo.hasStudied')} <span className="text-red-500">*</span>
                 </label>
                 <div className="flex space-x-6">
                   <label className="flex items-center cursor-pointer">
@@ -568,7 +570,7 @@ export default function HousekeeperRegistrationForm() {
                       onChange={handleInputChange}
                       className="w-5 h-5 text-[#834de3] focus:ring-[#834de3] cursor-pointer"
                     />
-                    <span className="ml-2 text-gray-700">Yes</span>
+                    <span className="ml-2 text-gray-700">{t('backgroundInfo.yes')}</span>
                   </label>
                   <label className="flex items-center cursor-pointer">
                     <input
@@ -579,7 +581,7 @@ export default function HousekeeperRegistrationForm() {
                       onChange={handleInputChange}
                       className="w-5 h-5 text-[#834de3] focus:ring-[#834de3] cursor-pointer"
                     />
-                    <span className="ml-2 text-gray-700">No</span>
+                    <span className="ml-2 text-gray-700">{t('backgroundInfo.no')}</span>
                   </label>
                 </div>
               </div>
@@ -587,7 +589,7 @@ export default function HousekeeperRegistrationForm() {
               {formData.hasStudied === 'yes' && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Education Level Completed
+                    {t('backgroundInfo.educationLevel')}
                   </label>
                   <select
                     name="educationLevel"
@@ -595,19 +597,19 @@ export default function HousekeeperRegistrationForm() {
                     onChange={handleInputChange}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#834de3] focus:border-transparent outline-none transition"
                   >
-                    <option value="">Select education level</option>
-                    <option value="primary">Primary School</option>
-                    <option value="secondary">Secondary School (O-Level)</option>
-                    <option value="alevel">Advanced Level (A-Level)</option>
-                    <option value="vocational">Vocational Training</option>
-                    <option value="university">University/College</option>
+                    <option value="">{t('backgroundInfo.educationLevel')}</option>
+                    <option value="primary">{t('backgroundInfo.educationOptions.primary')}</option>
+                    <option value="secondary">{t('backgroundInfo.educationOptions.secondary')}</option>
+                    <option value="alevel">{t('backgroundInfo.educationOptions.alevel')}</option>
+                    <option value="vocational">{t('backgroundInfo.educationOptions.vocational')}</option>
+                    <option value="university">{t('backgroundInfo.educationOptions.university')}</option>
                   </select>
                 </div>
               )}
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Church/Religion <span className="text-red-500">*</span>
+                  {t('backgroundInfo.church')} <span className="text-red-500">*</span>
                 </label>
                 <select
                   name="church"
@@ -616,14 +618,14 @@ export default function HousekeeperRegistrationForm() {
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#834de3] focus:border-transparent outline-none transition"
                 >
                   <option value="">Select your church/religion</option>
-                  <option value="catholic">Catholic</option>
-                  <option value="adventist">Adventist</option>
-                  <option value="protestant">Protestant</option>
-                  <option value="anglican">Anglican</option>
-                  <option value="pentecostal">Pentecostal</option>
-                  <option value="baptist">Baptist</option>
-                  <option value="muslim">Muslim</option>
-                  <option value="other">Other</option>
+                  <option value="catholic">{t('backgroundInfo.churchOptions.catholic')}</option>
+                  <option value="adventist">{t('backgroundInfo.churchOptions.adventist')}</option>
+                  <option value="protestant">{t('backgroundInfo.churchOptions.protestant')}</option>
+                  <option value="anglican">{t('backgroundInfo.churchOptions.anglican')}</option>
+                  <option value="pentecostal">{t('backgroundInfo.churchOptions.pentecostal')}</option>
+                  <option value="baptist">{t('backgroundInfo.churchOptions.baptist')}</option>
+                  <option value="muslim">{t('backgroundInfo.churchOptions.muslim')}</option>
+                  <option value="other">{t('backgroundInfo.churchOptions.other')}</option>
                 </select>
               </div>
 
@@ -634,14 +636,14 @@ export default function HousekeeperRegistrationForm() {
                   className="px-8 py-3 border-2 border-[#834de3] text-[#834de3] font-semibold rounded-lg hover:bg-[#834de3] hover:text-white transition flex items-center disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <span className="mr-2">←</span>
-                  Back
+                  {t('buttons.back')}
                 </button>
                 <button
                   onClick={() => setStep(3)}
                   disabled={isLoading}
                   className="px-8 py-3 bg-[#834de3] text-white font-semibold rounded-lg hover:bg-[#7043c7] transition flex items-center shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {isLoading ? "Loading..." : "Next"}
+                  {isLoading ? t('buttons.loading') : t('buttons.next')}
                   {!isLoading && <span className="ml-2">→</span>}
                 </button>
               </div>
@@ -650,26 +652,26 @@ export default function HousekeeperRegistrationForm() {
 
         {step === 3 && (
           <div className="space-y-6">
-            <h2 className="text-2xl font-semibold text-gray-800 mb-6">Work Preferences</h2>
+            <h2 className="text-2xl font-semibold text-gray-800 mb-6">{t('steps.3')}</h2>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Preferred Language <span className="text-red-500">*</span>
+                  {t('workPreferences.language')} <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
                   name="language"
                   value={formData.language}
                   onChange={handleInputChange}
-                  placeholder="Enter preferred language"
+                  placeholder={t('workPreferences.languagePlaceholder')}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#834de3] focus:border-transparent outline-none transition"
                 />
             </div>
 
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
-          Expected Monthly Salary (RWF) <span className="text-red-500">*</span>
+          {t('workPreferences.amountOfMoney')} <span className="text-red-500">*</span>
         </label>
         <select
           name="amountOfMoney"
@@ -677,7 +679,7 @@ export default function HousekeeperRegistrationForm() {
           onChange={handleInputChange}
           className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#834de3] focus:border-transparent outline-none transition"
         >
-          <option value="">Select range</option>
+          <option value="">{t('workPreferences.amountOptions')}</option>
           <option value="0-50">0 - 50,000</option>
           <option value="50-100">50,000 - 100,000</option>
           <option value="100-150+">100,000 - 150,000+</option>
@@ -687,10 +689,10 @@ export default function HousekeeperRegistrationForm() {
 
     <div>
         <label className="block text-sm font-medium text-gray-700 mb-3">
-          Work Type <span className="text-red-500">*</span>
+          {t('workPreferences.workType')} <span className="text-red-500">*</span>
         </label>
         <div className="flex space-x-6">
-          {["live-in", "live-out", "all"].map((type) => (
+          {[t("workPreferences.workTypeOptions.live-in"), t("workPreferences.workTypeOptions.live-out"), t("workPreferences.workTypeOptions.all")].map((type) => (
             <label key={type} className="flex items-center cursor-pointer">
               <input
                 type="radio"
@@ -710,7 +712,7 @@ export default function HousekeeperRegistrationForm() {
 
     <div>
       <label className="block text-sm font-medium text-gray-700 mb-3">
-        Are you married? <span className="text-red-500">*</span>
+        {t('workPreferences.married')} <span className="text-red-500">*</span>
       </label>
       <div className="flex space-x-6">
         <label className="flex items-center cursor-pointer">
@@ -722,7 +724,7 @@ export default function HousekeeperRegistrationForm() {
             onChange={handleInputChange}
             className="w-5 h-5 text-[#834de3] focus:ring-[#834de3] cursor-pointer"
           />
-          <span className="ml-2 text-gray-700">Yes</span>
+          <span className="ml-2 text-gray-700">{t('backgroundInfo.yes')}</span>
         </label>
         <label className="flex items-center cursor-pointer">
           <input
@@ -733,7 +735,7 @@ export default function HousekeeperRegistrationForm() {
             onChange={handleInputChange}
             className="w-5 h-5 text-[#834de3] focus:ring-[#834de3] cursor-pointer"
           />
-          <span className="ml-2 text-gray-700">No</span>
+          <span className="ml-2 text-gray-700">{t('backgroundInfo.no')}</span>
         </label>
       </div>
     </div>
@@ -741,14 +743,14 @@ export default function HousekeeperRegistrationForm() {
     {formData.married === "yes" && (
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
-          Number of Children
+          {t('workPreferences.numberChildren')}
         </label>
         <input
           type="number"
           name="numberChildren"
           value={formData.numberChildren}
           onChange={handleInputChange}
-          placeholder="Enter number of children"
+          placeholder={t('workPreferences.numberChildren')}
           min="0"
           className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#834de3] focus:border-transparent outline-none transition"
         />
@@ -757,7 +759,7 @@ export default function HousekeeperRegistrationForm() {
 
     <div>
       <label className="block text-sm font-medium text-gray-700 mb-3">
-        Are you willing to work with children? <span className="text-red-500">*</span>
+         {t('workPreferences.willingToWorkWithChildren')} <span className="text-red-500">*</span>
       </label>
       <div className="flex space-x-6">
         <label className="flex items-center cursor-pointer">
@@ -769,7 +771,7 @@ export default function HousekeeperRegistrationForm() {
             onChange={handleInputChange}
             className="w-5 h-5 text-[#834de3] focus:ring-[#834de3] cursor-pointer"
           />
-          <span className="ml-2 text-gray-700">Yes</span>
+          <span className="ml-2 text-gray-700">{t('backgroundInfo.yes')}</span>
         </label>
         <label className="flex items-center cursor-pointer">
           <input
@@ -780,7 +782,7 @@ export default function HousekeeperRegistrationForm() {
             onChange={handleInputChange}
             className="w-5 h-5 text-[#834de3] focus:ring-[#834de3] cursor-pointer"
           />
-          <span className="ml-2 text-gray-700">No</span>
+          <span className="ml-2 text-gray-700">{t('backgroundInfo.no')}</span>
         </label>
       </div>
     </div>
@@ -788,7 +790,7 @@ export default function HousekeeperRegistrationForm() {
     {/* Vocation Days */}
     <div>
       <label className="block text-sm font-medium text-gray-700 mb-2">
-        Vocation Days <span className="text-red-500">*</span>
+        {t('workPreferences.vocationDays')} <span className="text-red-500">*</span>
       </label>
       <input
         type="text"
@@ -807,14 +809,14 @@ export default function HousekeeperRegistrationForm() {
         className="px-8 py-3 border-2 border-[#834de3] text-[#834de3] font-semibold rounded-lg hover:bg-[#834de3] hover:text-white transition flex items-center disabled:opacity-50 disabled:cursor-not-allowed"
       >
         <span className="mr-2">←</span>
-        Back
+        {t('buttons.back')} 
       </button>
       <button
         onClick={handleSubmit}
         disabled={isLoading}
         className="px-8 py-3 bg-[#834de3] text-white font-semibold rounded-lg hover:bg-[#7043c7] transition flex items-center shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        {isLoading ? "Submitting..." : "Submit Registration"}
+        {isLoading ? t('buttons.submitting') : t('buttons.submit')}
         {!isLoading && <span className="ml-2">→</span>}
       </button>
     </div>

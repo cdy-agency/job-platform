@@ -28,6 +28,7 @@ import { formatDeadline } from "@/lib/utils";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/context/authContext";
+import { useTranslation } from "react-i18next";
 
 const mainPurple = "#834de3";
 
@@ -78,6 +79,7 @@ export default function JobDetailsPage() {
   const { toast } = useToast()
   const { user } = useAuth();
   const [hasApplied, setHasApplied] = useState(false);
+  const { t } = useTranslation('jobs')
 
   useEffect(() => {
     setLoading(true);
@@ -276,15 +278,15 @@ export default function JobDetailsPage() {
           <div className="w-20 h-20 mx-auto mb-6 bg-purple-100 rounded-lg flex items-center justify-center">
             <Briefcase className="h-10 w-10 text-purple-600" />
           </div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-3">Job Not Found</h1>
+          <h1 className="text-2xl font-bold text-gray-900 mb-3">{t('job-not-found-title')}</h1>
           <p className="text-gray-600 mb-8">
-            We couldn't find the job you're looking for.
+            {t('job-not-found-message')}
           </p>
           <Button
             onClick={() => router.push("/")}
             className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-lg"
           >
-            Back to Home
+            {t('back-to-home')}
           </Button>
         </div>
       </div>
@@ -303,8 +305,8 @@ export default function JobDetailsPage() {
       });
       
       toast({ 
-        title: 'Application submitted successfully!', 
-        description: 'We\'ll review your application and get back to you soon.',
+        title: t('application-submitted-title'), 
+        description: t('application-submitted-description'),
         variant: 'default'
       });
       
@@ -314,7 +316,7 @@ export default function JobDetailsPage() {
       setHasApplied(true); 
     } catch (error: any) {
       toast({ 
-        title: 'Failed to submit application', 
+        title: t('application-failed-title'), 
         description: error?.response?.data?.message || 'Please try again later.',
         variant: 'destructive'
       });
@@ -326,7 +328,7 @@ export default function JobDetailsPage() {
   const handleBookmark = () => {
     setIsBookmarked(!isBookmarked);
     toast({ 
-      title: isBookmarked ? 'Removed from bookmarks' : '📌 Added to bookmarks',
+      title: isBookmarked ? t('removed-bookmark') : t('bookmarked'),
       description: isBookmarked ? 'Job removed from your saved list.' : 'Job saved to your bookmarks.'
     })
   };
@@ -340,7 +342,7 @@ export default function JobDetailsPage() {
       });
     } else {
       navigator.clipboard.writeText(window.location.href);
-      toast({ title: '🔗 Link copied', description: 'The job link has been copied to your clipboard.' })
+      toast({ title: t('link-copied'), description: 'The job link has been copied to your clipboard.' })
     }
   };
 
@@ -399,21 +401,21 @@ export default function JobDetailsPage() {
                 <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4">
                   <div className="flex items-center gap-2 mb-2">
                     <DollarSign className="h-4 w-4 text-white/80" />
-                    <p className="text-sm text-white/70 font-medium">Salary</p>
+                    <p className="text-sm text-white/70 font-medium">{t('salary')}</p>
                   </div>
                   <p className="font-bold text-sm">{job.salary}</p>
                 </div>
                 <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4">
                   <div className="flex items-center gap-2 mb-2">
                     <Target className="h-4 w-4 text-white/80" />
-                    <p className="text-sm text-white/70 font-medium">Experience</p>
+                    <p className="text-sm text-white/70 font-medium">{t('experience')}</p>
                   </div>
-                  <p className="font-bold text-sm">{job.experience} Years</p>
+                  <p className="font-bold text-sm">{job.experience} {t('years')}</p>
                 </div>
                 <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4">
                   <div className="flex items-center gap-2 mb-2">
                     <Calendar className="h-4 w-4 text-white/80" />
-                    <p className="text-sm text-white/70 font-medium">Deadline</p>
+                    <p className="text-sm text-white/70 font-medium">{t('deadline')}</p>
                   </div>
                   <p className="font-bold text-sm">
                     {job.applicationDeadline ? formatDeadline(job.applicationDeadline) : 'Open'}
@@ -463,7 +465,7 @@ export default function JobDetailsPage() {
                 rel="noopener noreferrer"
                 className="hover:underline"
               >
-                Visit Company Website
+                {t('visit-website')}
               </a>
             </div>
           )}
@@ -481,7 +483,7 @@ export default function JobDetailsPage() {
             <div className="bg-white p-4 rounded-lg border">
               <div className="flex items-center gap-2 text-purple-600 mb-2">
                 <Briefcase className="h-4 w-4" />
-                <span className="text-sm font-medium">Type</span>
+                <span className="text-sm font-medium">{t('type')}</span>
               </div>
               <p className="text-gray-900 capitalize">{job.employmentType.replace('-', ' ')}</p>
             </div>
@@ -497,7 +499,7 @@ export default function JobDetailsPage() {
             <div className="bg-white p-4 rounded-lg border">
               <div className="flex items-center gap-2 text-purple-600 mb-2">
                 <MapPin className="h-4 w-4" />
-                <span className="text-sm font-medium">Location</span>
+                <span className="text-sm font-medium">{t('location')}</span>
               </div>
               <p className="text-gray-900">{job.province}, {job.district}</p>
             </div>
@@ -515,7 +517,7 @@ export default function JobDetailsPage() {
         {/* Responsibilities */}
         {job.responsibilities && job.responsibilities.length > 0 && (
           <section id="responsibilities" className="mb-12">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Responsibilities</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">{t('responsibilities')}</h2>
             <div className="bg-white p-6 rounded-lg border">
               <ul className="space-y-3">
                 {job.responsibilities.map((item, i) => (
@@ -532,7 +534,7 @@ export default function JobDetailsPage() {
         {/* Requirements */}
         {job.requirements && job.requirements.length > 0 && (
           <section id="requirements" className="mb-12">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Requirements</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">{t('requirements')}</h2>
             <div className="bg-white p-6 rounded-lg border">
               <ul className="space-y-3">
                 {job.requirements.map((item, i) => (
@@ -549,7 +551,7 @@ export default function JobDetailsPage() {
         {/* Benefits */}
         {job.benefits && job.benefits.length > 0 && (
           <section id="benefits" className="mb-12">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Benefits</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">{t('benefits')}</h2>
             <div className="bg-white p-6 rounded-lg border">
               <ul className="space-y-3">
                 {job.benefits.map((benefit, i) => (
@@ -566,7 +568,7 @@ export default function JobDetailsPage() {
         {/* Skills */}
         {job.skills && job.skills.length > 0 && (
           <section id="skills" className="mb-12">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Required Skills</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">{t('skills')}</h2>
             <div className="bg-white p-6 rounded-lg border">
               <div className="flex flex-wrap gap-2">
                 {job.skills.map((skill, i) => (
@@ -585,9 +587,9 @@ export default function JobDetailsPage() {
         {/* Apply Section */}
         <section id="apply" className="text-center py-12">
           <div className="bg-white p-8 rounded-lg border shadow-sm">
-            <h3 className="text-2xl font-bold text-gray-900 mb-4">Ready to Apply?</h3>
+            <h3 className="text-2xl font-bold text-gray-900 mb-4">{t('apply-section-title')}</h3>
             <p className="text-gray-600 mb-6">
-              Join {job.company.name} and take the next step in your career journey.
+              {t('apply-section-message')} {job.company.name} {t('apply-section-message1')}
             </p>
             <Button 
               onClick={() => setApplyOpen(true)} 
@@ -595,14 +597,14 @@ export default function JobDetailsPage() {
               className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 rounded-lg font-medium"
               size="lg"
             >
-              {applying ? 'Submitting...' : 
-               hasApplied ? 'Already Applied' : 
-               isDeadlinePassed ? 'Applications Closed' : 
-               'Apply Now'}
+              {applying ? t('submitting') : 
+               hasApplied ? t('already-applied') : 
+               isDeadlinePassed ? t('applications-closed') : 
+               t('apply-now')}
             </Button>
             {job.applicationDeadline && (
               <p className="text-sm text-gray-500 mt-3">
-                Application deadline: {formatDeadline(job.applicationDeadline)}
+                {t('application-deadline')} {formatDeadline(job.applicationDeadline)}
               </p>
             )}
           </div>
@@ -634,12 +636,12 @@ export default function JobDetailsPage() {
           <div className="space-y-6 mt-6">
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Cover Letter
+                {t('cover-letter')}
               </label>
               <textarea 
                   value={applyMessage} 
                   onChange={(e) => setApplyMessage(e.target.value)} 
-                  placeholder="Tell us why you're excited about this opportunity..."
+                  placeholder={t('cover-letter-placeholder')}
                   maxLength={250}
                   className="block w-full border border-gray-300 rounded-lg p-3 text-sm min-h-[120px] focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
                 />
@@ -658,7 +660,7 @@ export default function JobDetailsPage() {
                 className="block w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100"
               />
               <p className="text-xs text-gray-500 mt-1">
-                Supported formats: PDF, DOC, DOCX, JPG, PNG (Max 10MB)
+                {t('cv-supported-formats')}
               </p>
             </div>
           </div>

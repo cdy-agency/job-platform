@@ -4,14 +4,22 @@ import { MobileNav } from "./MobileNav"
 import Link from "next/link"
 import React, { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
-import { Phone, Mail, Linkedin, Instagram, Facebook, Twitter } from "lucide-react"
+import { Phone, Mail, Linkedin, Instagram, Facebook, Twitter, Globe } from "lucide-react"
 import { useAuth } from "@/context/authContext"
 import { useRouter } from "next/navigation"
+import { useTranslation } from 'react-i18next'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 
 const NavBar = () => {
   const [isScrolled, setIsScrolled] = useState(false)
   const { user, logout } = useAuth()
   const router = useRouter()
+  const { t, i18n } = useTranslation('common')
 
   useEffect(() => {
     const handleScroll = () => {
@@ -22,6 +30,11 @@ const NavBar = () => {
     window.addEventListener('scroll', handleScroll)
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
+
+  const changeLanguage = (lng: string) => {
+    i18n.changeLanguage(lng)
+    localStorage.setItem('language', lng)
+  }
 
   const dashboardPath = (user as any)?.role === 'superadmin'
     ? '/dashboard/admin'
@@ -92,11 +105,11 @@ const NavBar = () => {
             <div className="hidden md:flex flex-1 justify-center">
               <nav className="flex items-center space-x-8">
                 {[
-                  { href: "/", label: "Home" },
-                  { href: "/jobs", label: "Jobs" },
-                  { href: "/users", label: "Users" },
-                  { href: "/domestic-work", label: "Domestic Work" },
-                  { href: "/contact", label: "Contact" },
+                  { href: "/", label: t('home') },
+                  { href: "/jobs", label: t('jobs') },
+                  { href: "/users", label: t('users') },
+                  { href: "/domestic-work", label: t('domestic-work') },
+                  { href: "/contact", label: t('contact') },
                 ].map((item) => (
                   <Link
                     key={item.href}
@@ -112,6 +125,26 @@ const NavBar = () => {
             
             {/* Desktop Auth/User - Right */}
             <div className="hidden md:flex items-center gap-4 flex-shrink-0">
+              {/* Language Switcher */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="sm" className="gap-2">
+                    <Globe className="h-4 w-4" />
+                    <span className="text-sm font-medium">
+                      {i18n.language === 'rw' ? 'RW' : 'EN'}
+                    </span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => changeLanguage('en')}>
+                    English
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => changeLanguage('rw')}>
+                    Kinyarwanda
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+
               {user ? (
                 <div className="flex items-center gap-3">
                   <Link href={dashboardPath}>
@@ -142,7 +175,7 @@ const NavBar = () => {
                     className="border-gray-300 bg-white text-gray-700"
                     onClick={() => { logout(); router.push('/login') }}
                   >
-                    Logout
+                    {t('logout')}
                   </Button>
                 </div>
               ) : (
@@ -153,7 +186,7 @@ const NavBar = () => {
                       variant="outline"
                       className="border-[#834de3] bg-[#834de3] hover:bg-[#8d6ee9] text-white font-medium px-6"
                     >
-                      Log in
+                      {t('login')}
                     </Button>
                   </Link>
                   <Link href="/register">
@@ -161,7 +194,7 @@ const NavBar = () => {
                       size="sm" 
                       className="bg-[#834de3] hover:bg-[rgb(141,110,233)] text-white font-medium px-6"
                     >
-                      Create account
+                      {t('register')}
                     </Button>
                   </Link>
                 </>

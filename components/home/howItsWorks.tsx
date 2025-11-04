@@ -1,24 +1,27 @@
 import { Briefcase, CheckCircle, Search, ArrowRight } from 'lucide-react'
 import React from 'react'
+import { useTranslation } from 'react-i18next'
 
 const HowItsWorks = () => {
+  const {t} = useTranslation('common')
+
   const steps = [
     {
       icon: Search,
-      title: "Search Jobs",
-      description: "Browse thousands of opportunities across various industries and locations.",
+      title: t('step-1-title'),
+      description: t('step-1-description'),
       step: "01"
     },
     {
       icon: CheckCircle,
-      title: "Apply with Ease",
-      description: "Create your profile once and apply to multiple positions with just a few clicks.",
+      title: t('step-2-title'),
+      description: t('step-2-description'),
       step: "02"
     },
     {
       icon: Briefcase,
-      title: "Land Your Dream Job",
-      description: "Connect directly with employers and start your new career journey.",
+      title: t("step-3-title"),
+      description: t("step-3-description"),
       step: "03"
     }
   ]
@@ -33,10 +36,10 @@ const HowItsWorks = () => {
         {/* Header */}
         <div className="text-center mb-16">
           <h2 className="text-4xl md:text-3xl font-bold text-gray-900 mb-4">
-            How It Works
+            {t('how-it-works-title')}
           </h2>
           <p className="text-base text-gray-600 max-w-2xl mx-auto">
-            Three simple steps to connect with your next opportunity
+           {t("how-it-works-description")}
           </p>
         </div>
 

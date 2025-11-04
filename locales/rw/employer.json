@@ -1,0 +1,70 @@
+{
+  "titles": { "registerEmployer": "Iyandikishe Umukoresha" },
+  "subtitles": { "registerEmployerDesc": "uzuza ifishi yo kwiyandikisha nk’umukoresha" },
+  "steps": { "personalInfo": "Amakuru Y’umuntu", "location": "Aho Atuza", "preferences": "Amahitamo & Imirimo" },
+  "fields": {
+    "fullName": "Amazina Yuzuye",
+    "phoneNumber": "Nomero ya Telefoni",
+    "email": "Imeyili",
+    "nationalId": "Indangamuntu",
+    "province": "Intara",
+    "district": "Akarere",
+    "sector": "Umurenge",
+    "cell": "Akagali",
+    "village": "Umudugudu",
+    "villageLeaderNumber": "Nomero y’Umuyobozi w’Umudugudu",
+    "partnerNumber": "Nomero y’Umufatanyabikorwa",
+    "churchName": "Izina ry’Itorero",
+    "salary": "Umushahara",
+    "vocationDays": "Iminsi y’Ibiruhuko",
+    "tasks": "Imirimo"
+  },
+  "placeholders": {
+    "fullName": "Andika amazina yawe yose",
+    "phoneNumber": "Andika nomero yawe ya telefoni",
+    "email": "Andika imeyili (niba ihari)",
+    "nationalId": "Andika indangamuntu",
+    "province": "Andika intara",
+    "district": "Andika akarere",
+    "sector": "Andika umurenge",
+    "cell": "Andika akagali",
+    "village": "Andika umudugudu",
+    "churchName": "Andika izina ry’itorero",
+    "vocationDays": "Andika umubare w’iminsi y’ikiruhuko",
+    "selectSalary": "Hitamo urugero rw’umushahara",
+    "selectTasks": "Hitamo imirimo",
+    "searchTasks": "Shakisha imirimo...",
+    "noTask": "Nta mirimo yabonetse",
+    "profileImageAlt": "Ifoto y’Umukoresha"
+  },
+  "buttons": {
+    "next": "Komeza",
+    "back": "Subira Inyuma",
+    "submit": "Ohereza",
+    "loading": "Birimo...",
+    "uploadProfile": "Shyira Ifoto"
+  },
+  "optional": "Niba ihari",
+  "messages": {
+    "registrationSuccessTitle": "Umukoresha Yanditswe",
+    "registrationSuccessDesc": "Iyandikwa ry’umukoresha ryagenze neza.",
+    "registrationFailed": "Iyandikwa ryaranze",
+    "missingInfoTitle": "Amakuru Arabuze",
+    "missingInfoDesc": "Nyamuneka wuzuze amakuru yose asabwa mbere yo gukomeza."
+  },
+  "tasks": {
+    "Cleaning": "Gusukura",
+    "Cooking": "Guteka",
+    "Laundry": "Gukaraba",
+    "Babysitting": "Kwita ku bana",
+    "Gardening": "Guhinga/Ugutaka",
+    "Pet Care": "Kwita ku nyamaswa",
+    "Shopping": "Kugura ibikenewe",
+    "Ironing": "Gukorakora imyenda",
+    "Elderly Care": "Kwita ku bakuze",
+    "Dishwashing": "Kogeza ibikombe",
+    "Feeding Pets": "Gutanga amafunguro ku nyamaswa",
+    "Organizing Rooms": "Guteza imbere ibyumba",
+    "Errand Running": "Gukora uturimo twihutirwa"
+  }
+}

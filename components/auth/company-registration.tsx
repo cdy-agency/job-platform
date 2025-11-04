@@ -7,6 +7,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useTranslation } from "react-i18next";
 
 interface CompanyRegistrationProps {
   formData: {
@@ -57,6 +58,7 @@ export const provincesWithDistricts: Record<string, string[]> = {
 };
 
 const CompanyRegistration = ({ formData, onInputChange }: CompanyRegistrationProps) => {
+  const {t} = useTranslation('auth')
   const handleProvinceChange = (province: string) => {
     onInputChange("province", province);
     onInputChange("district", ""); // reset district whenever province changes
@@ -67,11 +69,11 @@ const CompanyRegistration = ({ formData, onInputChange }: CompanyRegistrationPro
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Company Name */}
         <div className="space-y-2">
-          <Label htmlFor="companyName">Company Name</Label>
+          <Label htmlFor="companyName">{t('companyName')} </Label>
           <Input
             id="companyName"
             type="text"
-            placeholder="Company Name"
+            placeholder={t("companyNameP")}
             value={formData.companyName}
             onChange={(e) => onInputChange("companyName", e.target.value)}
             required
@@ -80,11 +82,11 @@ const CompanyRegistration = ({ formData, onInputChange }: CompanyRegistrationPro
 
         {/* Email */}
         <div className="space-y-2">
-          <Label htmlFor="email">Company Email</Label>
+          <Label htmlFor="email">{t('companyEmail')} </Label>
           <Input
             id="email"
             type="email"
-            placeholder="Company Email Address"
+            placeholder={t("companyEmailP")}
             value={formData.email}
             onChange={(e) => onInputChange("email", e.target.value)}
             required
@@ -93,13 +95,13 @@ const CompanyRegistration = ({ formData, onInputChange }: CompanyRegistrationPro
 
         {/* Province */}
         <div className="space-y-2">
-          <Label htmlFor="province">Province</Label>
+          <Label htmlFor="province">{t('province')}</Label>
           <Select
             value={formData.province}
             onValueChange={handleProvinceChange}
           >
             <SelectTrigger>
-              <SelectValue placeholder="Select Province" />
+              <SelectValue placeholder={t("provinceP")} />
             </SelectTrigger>
             <SelectContent>
               {Object.keys(provincesWithDistricts).map((province) => (
@@ -113,14 +115,14 @@ const CompanyRegistration = ({ formData, onInputChange }: CompanyRegistrationPro
 
         {/* District */}
         <div className="space-y-2">
-          <Label htmlFor="district">District</Label>
+          <Label htmlFor="district">{t('district')}</Label>
           <Select
             value={formData.district}
             onValueChange={(val) => onInputChange("district", val)}
             disabled={!formData.province}
           >
             <SelectTrigger>
-              <SelectValue placeholder="Select District" />
+              <SelectValue placeholder={t("districtP")} />
             </SelectTrigger>
             <SelectContent>
               {formData.province &&
@@ -135,11 +137,11 @@ const CompanyRegistration = ({ formData, onInputChange }: CompanyRegistrationPro
 
         {/* Phone */}
         <div className="space-y-2">
-          <Label htmlFor="companyPhoneNumber">Phone Number</Label>
+          <Label htmlFor="companyPhoneNumber">{t('phoneNumber')}</Label>
           <Input
             id="companyPhoneNumber"
             type="tel"
-            placeholder="Company Phone Number (Optional)"
+            placeholder={t("phoneNumberP")}
             value={formData.companyPhoneNumber}
             onChange={(e) => onInputChange("companyPhoneNumber", e.target.value)}
           />
@@ -147,11 +149,11 @@ const CompanyRegistration = ({ formData, onInputChange }: CompanyRegistrationPro
 
         {/* Website */}
         <div className="space-y-2 md:col-span-2">
-          <Label htmlFor="website">Website</Label>
+          <Label htmlFor="website">{t('website')}</Label>
           <Input
             id="website"
             type="url"
-            placeholder="Company Website (Optional)"
+            placeholder={t("websiteP")}
             value={formData.website}
             onChange={(e) => onInputChange("website", e.target.value)}
           />
@@ -159,7 +161,7 @@ const CompanyRegistration = ({ formData, onInputChange }: CompanyRegistrationPro
 
         {/* Logo */}
         <div className="space-y-2 md:col-span-2">
-          <Label htmlFor="logo">Company Logo</Label>
+          <Label htmlFor="logo">{t('logo')}</Label>
           <Input
             id="logo"
             type="file"
@@ -175,22 +177,22 @@ const CompanyRegistration = ({ formData, onInputChange }: CompanyRegistrationPro
       {/* Passwords */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
         <div className="space-y-2">
-          <Label htmlFor="password">Password</Label>
+          <Label htmlFor="password">{t('password')}</Label>
           <Input
             id="password"
             type="password"
-            placeholder="Password"
+            placeholder={t("password")}
             value={formData.password}
             onChange={(e) => onInputChange("password", e.target.value)}
             required
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="confirmPassword">Confirm Password</Label>
+          <Label htmlFor="confirmPassword">{t('confirmPassword')}</Label>
           <Input
             id="confirmPassword"
             type="password"
-            placeholder="Confirm Password"
+            placeholder={t("confirmPasswordP")}
             value={formData.confirmPassword}
             onChange={(e) => onInputChange("confirmPassword", e.target.value)}
             required

@@ -11,9 +11,11 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { fetchJobs } from "@/lib/api";
+import { useTranslation } from "react-i18next";
 
 export function FeaturedJobs() {
   const [jobs, setJobs] = useState<any[]>([]);
+  const {t} = useTranslation('common')
 
   useEffect(() => {
     fetchJobs()
@@ -29,13 +31,10 @@ export function FeaturedJobs() {
     return (
       <section className="bg-gray-50 py-16 px-10">
         <div className="container px-4 sm:px-8 text-center">
-          <h2 className="mb-2 text-3xl font-bold">Featured Jobs</h2>
+          <h2 className="mb-2 text-3xl font-bold">{t('featured-jobs-title')}</h2>
           <p className="text-muted-foreground mb-6">
-            No featured jobs available right now
+            {t('no-jobs-message')}
           </p>
-          <Link href="/jobs">
-            <Button size="lg">Browse Jobs</Button>
-          </Link>
         </div>
       </section>
     );
@@ -45,9 +44,9 @@ export function FeaturedJobs() {
     <section className="bg-gray-50 py-16">
       <div className="max-w-7xl mx-auto">
         <div className="mb-10 text-center">
-          <h2 className="mb-2 text-3xl font-bold text-black">Featured Jobs</h2>
+          <h2 className="mb-2 text-3xl font-bold text-black">{t('featured-jobs-title')}</h2>
           <p className="text-muted-foreground">
-            Explore our handpicked selection of top opportunities
+            {t('featured-jobs-subtitle')}
           </p>
         </div>
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
@@ -107,7 +106,7 @@ export function FeaturedJobs() {
                     variant="outline"
                     className="w-full bg-transparent bg-[#834de3] hover:bg-purple-500 cursor-pointer text-white"
                   >
-                    View Details
+                    Reba ibisobanuro
                   </Button>
                 </Link>
               </CardFooter>
@@ -116,7 +115,7 @@ export function FeaturedJobs() {
         </div>
         <div className="mt-10 text-center">
           <Link href="/jobs">
-            <Button size="lg">View All Jobs</Button>
+            <Button size="lg">Reba Imirimo Yose</Button>
           </Link>
         </div>
       </div>

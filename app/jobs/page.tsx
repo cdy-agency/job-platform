@@ -14,6 +14,7 @@ import { Card } from "@/components/ui/card";
 import { fetchJobs } from "@/lib/api";
 import { Footer } from "@/components/footer";
 import NavBar from "@/components/home/NavBar";
+import { useTranslation } from "react-i18next";
 
 interface Company {
   _id: string;
@@ -41,6 +42,9 @@ export default function JobsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [employmentFilter, setEmploymentFilter] = useState("all");
   const [error, setError] = useState<string | null>(null);
+  const {t} = useTranslation('jobs')
+
+  const typeJob = [t('jobs-filter-all'), t('jobs-filter-full-time'),t('jobs-filter-part-time'),t('jobs-filter-internship')]
 
   // Fetch jobs
   useEffect(() => {
@@ -50,7 +54,7 @@ export default function JobsPage() {
       setError(null);
 
       const data = await fetchJobs();
-      console.log("📦 Jobs API response:", data); // <-- important debug log
+      console.log("📦 Jobs API response:", data);
 
       // Handle both possible response formats
       const jobsArray = Array.isArray(data)
@@ -110,7 +114,7 @@ export default function JobsPage() {
         <div className="flex-1 flex flex-col items-center justify-center text-center">
           <p className="text-red-600 mb-4">{error}</p>
           <Button onClick={() => window.location.reload()} className="bg-[#834de3] text-white">
-            Retry
+            {t('jobs-retry')}
           </Button>
         </div>
         <Footer />
@@ -125,7 +129,7 @@ export default function JobsPage() {
 
       <main className="max-w-5xl mx-auto w-full px-4 py-10 flex-1">
         <h1 className="text-3xl font-bold text-gray-900 mb-6 text-center">
-          Available Jobs
+          {t('jobs-page-title')}
         </h1>
 
         {/* Search + Filter */}
@@ -134,14 +138,14 @@ export default function JobsPage() {
             <Input
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Search jobs or companies..."
+              placeholder={('jobs-search-placeholder')}
               className="h-12 pl-10"
             />
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 h-5 w-5" />
           </div>
 
           <div className="flex gap-2 justify-center md:justify-start">
-            {["all", "full-time", "part-time", "internship"].map((type) => (
+            {typeJob.map((type) => (
               <Button
                 key={type}
                 variant={employmentFilter === type ? "default" : "outline"}
@@ -198,7 +202,7 @@ export default function JobsPage() {
                   <Button
                     className="bg-[#834de3] hover:bg-[#925ef0] text-white rounded-md"
                   >
-                    <Link href={`/jobs/${job._id}`}>View</Link>
+                    <Link href={`/jobs/${job._id}`}>{t('jobs-view')}</Link>
                   </Button>
                 </div>
               </Card>
@@ -206,7 +210,7 @@ export default function JobsPage() {
           </div>
         ) : (
           <p className="text-center text-gray-500 py-10">
-            No jobs found for this filter.
+            {t('jobs-no-results')}
           </p>
         )}
       </main>

@@ -1,0 +1,106 @@
+{
+  "title": "Housekeeper Registration",
+  "description": "Fill in the form below to register as a housekeeper",
+  "steps": {
+    "1": "Personal Information",
+    "2": "Family Background",
+    "3": "Work Preferences"
+  },
+  "personalInfo": {
+    "fullName": "Full Name",
+    "fullNamePlaceholder": "Enter your full name",
+    "dateOfBirth": "Date of Birth",
+    "gender": "Gender",
+    "genderOptions": {
+      "male": "Male",
+      "female": "Female",
+      "other": "Other"
+    },
+    "idNumber": "ID Number",
+    "idNumberPlaceholder": "Enter your ID number",
+    "phoneNumber": "Phone Number",
+    "phoneNumberPlaceholder": "+250 XXX XXX XXX",
+    "province": "Province",
+    "provinceOptions": {
+      "kigali": "Kigali City",
+      "eastern": "Eastern Province",
+      "western": "Western Province",
+      "northern": "Northern Province",
+      "southern": "Southern Province"
+    },
+    "district": "District",
+    "districtPlaceholder": "Enter your district",
+    "sector": "Sector",
+    "sectorPlaceholder": "Enter your sector",
+    "cell": "Cell",
+    "cellPlaceholder": "Enter your cell",
+    "village": "Village",
+    "villagePlaceholder": "Enter your village",
+    "uploadPhotos": "Upload Photos",
+    "passportPhoto": "Passport Photo",
+    "fullBodyPhoto": "Full Body Photo",
+    "idImage": "ID Image",
+    "clickToUpload": "Click here to upload"
+  },
+  "backgroundInfo": {
+    "hasParents": "Do you have parents?",
+    "yes":"Yes",
+    "no": "No",
+    "parentInformation": "Parent Information",
+    "hasStudied": "Have you studied?",
+    "fatherName": "Father's Name",
+    "fatherPhone": "Father's Phone",
+    "motherName": "Mother's Name",
+    "motherPhone": "Mother's Phone",
+    "educationLevel": "Education Level",
+    "educationOptions": {
+      "primary": "Primary School",
+      "secondary": "Secondary School (O-Level)",
+      "alevel": "Advanced Level (A-Level)",
+      "vocational": "Vocational Training",
+      "university": "University/Higher Education"
+    },
+    "church": "Church/Religion",
+    "churchOptions": {
+      "catholic": "Catholic",
+      "adventist": "Adventist",
+      "protestant": "Protestant",
+      "anglican": "Anglican",
+      "pentecostal": "Pentecostal",
+      "baptist": "Baptist",
+      "muslim": "Muslim",
+      "other": "Other"
+    }
+  },
+  "workPreferences": {
+    "language": "Preferred Language",
+    "languagePlaceholder": "Enter your preferred language",
+    "amountOfMoney": "Expected Monthly Salary (RWF)",
+    "amountOptions":"Select range",
+    "workType": "Type of Work",
+    "workTypeOptions": {
+      "live-in": "Live-in",
+      "live-out": "Live-out",
+      "all": "Both"
+    },
+    "married": "Are you married?",
+    "numberChildren": "Number of Children",
+    "willingToWorkWithChildren": "Willing to work with children?",
+    "vocationDays": "Working Days"
+  },
+  "buttons": {
+    "next": "Next",
+    "back": "Back",
+    "submit": "Submit Registration",
+    "loading": "Loading...",
+    "submitting": "Submitting..."
+  },
+  "messages": {
+    "missingInfoTitle": "Missing Information",
+    "missingInfoDescription": "Please fill in all required fields",
+    "registrationSuccess": "Registration Successful!",
+    "registrationSuccessDesc": "Your housekeeper profile has been created successfully.",
+    "registrationFailed": "Registration Failed",
+    "registrationFailedDesc": "There was an issue submitting your registration. Check the errors."
+  }
+}

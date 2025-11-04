@@ -2,8 +2,16 @@ import Link from 'next/link'
 import React from 'react'
 import { Button } from '@/components/ui/button'
 import { ArrowRight } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 
 const Hero = () => {
+  const {t} = useTranslation('common')
+  
+  const changeLanguage =(lng: string) =>{
+    localStorage.setItem('language', lng)
+  }
+
+
   return (
     <section className="relative min-h-[90vh] flex items-center overflow-hidden">
       {/* Background Image */}
@@ -23,13 +31,13 @@ const Hero = () => {
           {/* Left Content */}
           <div className="text-white">
             {/* Main Heading */}
-            <h1 className="mb-6 text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl lg:text-7xl leading-tight">
-              The fastest way to find trusted work and talent in Rwanda
+            <h1 className="mb-6 text-2xl font-bold tracking-tight sm:text-5xl md:text-5xl leading-tight">
+               {t('hero-title')}
             </h1>
 
             {/* Subtitle */}
             <p className="mb-8 text-xl md:text-2xl text-white/90 leading-relaxed max-w-2xl">
-              Akazi-Link connects companies with reliable workers across Rwanda. Post jobs in minutes, apply with a click.
+            {t('hero-description')}
             </p>
 
             {/* CTA Buttons */}
@@ -39,7 +47,7 @@ const Hero = () => {
                   size="lg"
                   className="bg-[#834de3] text-white font-semibold hover:bg-[#9260e7] px-8 py-3 rounded shadow-lg hover:shadow-xl transition-all duration-200 group"
                 >
-                  Get Started Today
+                  {t('start-today')}
                   <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
                 </Button>
               </Link>
@@ -49,7 +57,7 @@ const Hero = () => {
                   variant="outline"
                   className="border-2 border-white text-white hover:bg-white hover:text-[#834de3] font-semibold px-8 py-3 rounded backdrop-blur-sm bg-white/10 transition-all duration-200"
                 >
-                  Browse Jobs
+                  {t('find-job')}
                 </Button>
               </Link>
             </div>

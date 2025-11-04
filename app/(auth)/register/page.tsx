@@ -16,11 +16,13 @@ import {
 } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
+import { useTranslation } from "react-i18next";
 
 export default function RegisterPage() {
   const router = useRouter();
   const { toast } = useToast();
   const [isCreating, setIsCreating ] = useState<boolean>(false)
+  const {t} = useTranslation('auth')
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -78,15 +80,15 @@ export default function RegisterPage() {
         };
         await registerEmployee(payload);
         toast({
-          title: `${formData.name} registered successfully!`,
-          description: "Welcome to our platform!",
+          title: `${formData.name} ${t('registrationSuccess')}`,
+          description: t('welcomePlatform'),
         });
         router.push("/login");
       }
     } catch (error) {
       toast({
-        title: "Registration failed",
-        description: "Please check your information and try again.",
+        title: t("registrationFailed"),
+        description: t('registrationFailedDesc'),
         variant: "destructive",
       });
     }finally{
@@ -106,10 +108,10 @@ export default function RegisterPage() {
                 {/* Welcome text */}
                 <div className="mb-8">
                   <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                    Join Us!
+                   {t('joinUs')}
                   </h1>
                   <p className="text-gray-500">
-                    Create your account to get started
+                    {t('createAccount')}
                   </p>
                 </div>
 
@@ -118,7 +120,7 @@ export default function RegisterPage() {
                   {/* User Type Toggle */}
                   <div className="space-y-3">
                     <Label className="text-sm font-medium text-gray-700">
-                      I am a:
+                      {t('iAm')}
                     </Label>
                     <RadioGroup
                       value={formData.userType}
@@ -138,7 +140,7 @@ export default function RegisterPage() {
                           className="flex items-center gap-2 cursor-pointer text-black"
                         >
                           <User className="w-4 h-4" />
-                          Job Seeker
+                          {t('employee')}
                         </Label>
                       </div>
                       <div className="flex items-center space-x-2 bg-gray-50 p-3 rounded-xl flex-1">
@@ -152,7 +154,7 @@ export default function RegisterPage() {
                           className="flex items-center gap-2 cursor-pointer text-black"
                         >
                           <Building2 className="w-4 h-4" />
-                          Company
+                          {t('company')}
                         </Label>
                       </div>
                     </RadioGroup>
@@ -200,16 +202,16 @@ export default function RegisterPage() {
                       isCreating ? "bg-purple-400" : "bg-purple-600" 
                     }`}
                   >
-                    {isCreating ? "Creating..." : "Creating Account"}
+                    {isCreating ? t("creating") : t("creatingAccount")}
                   </Button>
 
                   <p className="text-center text-sm text-gray-500">
-                    Already have an account?{" "}
+                    {t('alreadyHaveAccount')}{" "}
                     <Link
                       href="/login"
                       className="text-purple-600 hover:text-purple-700 font-medium"
                     >
-                      Sign In
+                      {t('signIn')}
                     </Link>
                   </p>
                 </form>

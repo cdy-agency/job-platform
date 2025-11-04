@@ -2,8 +2,10 @@
 
 import Link from "next/link"
 import { Facebook, Instagram, Linkedin, Twitter } from "lucide-react"
+import { useTranslation } from "react-i18next"
 
 export function Footer() {
+  const {t} = useTranslation('common')
   return (
     <footer className="border-t bg-white">
       <div className="mx-auto max-w-6xl py-12">
@@ -11,51 +13,46 @@ export function Footer() {
           <div>
             <h3 className="mb-4 text-lg font-semibold text-gray-800">Akazi-Link</h3>
             <p className="text-sm text-gray-600">
-              Connecting talent with opportunity. Find your dream job or the perfect candidate.
+              {t('footer-company-desc')}
             </p>
           </div>
           <div>
-            <h3 className="mb-4 text-lg font-semibold text-gray-800">For Job Seekers</h3>
+            <h3 className="mb-4 text-lg font-semibold text-gray-800">{t('footer-jobseekers-title')}</h3>
             <ul className="space-y-2 text-sm">
               <li>
                 <Link href="/jobs" className="text-gray-600 hover:text-blue-500">
-                  Browse Jobs
+                  {t('footer-jobseekers-browse')}
                 </Link>
               </li>
               <li>
                 <Link href="/register" className="text-gray-600 hover:text-blue-500">
-                  Create Account
-                </Link>
-              </li>
-              <li>
-                <Link href="#" className="text-gray-600 hover:text-blue-500">
-                  Career Resources
+                  {t('footer-jobseekers-account')}
                 </Link>
               </li>
             </ul>
           </div>
           <div>
-            <h3 className="mb-4 text-lg font-semibold text-gray-800">For Companies</h3>
+            <h3 className="mb-4 text-lg font-semibold text-gray-800">{t('footer-companies-title')}</h3>
             <ul className="space-y-2 text-sm">
               <li>
                 <Link href="/register" className="text-gray-600 hover:text-blue-500">
-                  Post a Job
+                  {t('footer-companies-postjob')}
                 </Link>
               </li>
-              <li>
+              {/* <li>
                 <Link href="#" className="text-gray-600 hover:text-blue-500">
                   Talent Solutions
                 </Link>
-              </li>
-              <li>
+              </li> */}
+              {/* <li>
                 <Link href="#" className="text-gray-600 hover:text-blue-500">
                   Pricing
                 </Link>
-              </li>
+              </li> */}
             </ul>
           </div>
           <div>
-            <h3 className="mb-4 text-lg font-semibold text-gray-800">Connect</h3>
+            <h3 className="mb-4 text-lg font-semibold text-gray-800">{t('footer-connect-title')}</h3>
             <div className="flex space-x-4">
               <Link href="#" className="text-gray-600 hover:text-blue-500">
                 <Facebook className="h-5 w-5" />
@@ -76,13 +73,13 @@ export function Footer() {
             </div>
             <div className="mt-4">
               <p className="text-sm text-gray-600">
-                Contact us at <span className="text-blue-500">support@akazilink.com</span>
+                {t('footer-contact')} <span className="text-blue-500">support@akazilink.com</span>
               </p>
             </div>
           </div>
         </div>
         <div className="mt-8 border-t pt-8 text-center text-sm text-gray-600">
-          <p>&copy; {new Date().getFullYear()} Akazi-Link. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} {t('footer-rights')}</p>
         </div>
       </div>
     </footer>

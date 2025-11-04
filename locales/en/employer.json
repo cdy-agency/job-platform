@@ -1,0 +1,70 @@
+{
+  "titles": { "registerEmployer": "Register Employer" },
+  "subtitles": { "registerEmployerDesc": "Fill the form to register an employer" },
+  "steps": { "personalInfo": "Personal Info", "location": "Location", "preferences": "Preferences & Tasks" },
+  "fields": {
+    "fullName": "Full Name",
+    "phoneNumber": "Phone Number",
+    "email": "Email",
+    "nationalId": "National ID",
+    "province": "Province",
+    "district": "District",
+    "sector": "Sector",
+    "cell": "Cell",
+    "village": "Village",
+    "villageLeaderNumber": "Village Leader Number",
+    "partnerNumber": "Partner Number",
+    "churchName": "Church Name",
+    "salary": "Salary",
+    "vocationDays": "Vocation Days",
+    "tasks": "Tasks"
+  },
+  "placeholders": {
+    "fullName": "Enter full name",
+    "phoneNumber": "Enter phone number",
+    "email": "Enter email (optional)",
+    "nationalId": "Enter national ID",
+    "province": "Enter province",
+    "district": "Enter district",
+    "sector": "Enter sector",
+    "cell": "Enter cell",
+    "village": "Enter village",
+    "churchName": "Enter church name",
+    "vocationDays": "Enter number of vocation days",
+    "selectSalary": "Select salary range",
+    "selectTasks": "Select tasks",
+    "searchTasks": "Search tasks...",
+    "noTask": "No tasks found",
+    "profileImageAlt": "Profile Image"
+  },
+  "buttons": {
+    "next": "Next",
+    "back": "Back",
+    "submit": "Submit",
+    "loading": "Loading...",
+    "uploadProfile": "Upload Profile"
+  },
+  "optional": "Optional",
+  "messages": {
+    "registrationSuccessTitle": "Employer Registered",
+    "registrationSuccessDesc": "Employer registration was successful.",
+    "registrationFailed": "Registration failed",
+    "missingInfoTitle": "Missing Information",
+    "missingInfoDesc": "Please fill all required fields before proceeding."
+  },
+  "tasks": {
+    "Cleaning": "Cleaning",
+    "Cooking": "Cooking",
+    "Laundry": "Laundry",
+    "Babysitting": "Babysitting",
+    "Gardening": "Gardening",
+    "Pet Care": "Pet Care",
+    "Shopping": "Shopping",
+    "Ironing": "Ironing",
+    "Elderly Care": "Elderly Care",
+    "Dishwashing": "Dishwashing",
+    "Feeding Pets": "Feeding Pets",
+    "Organizing Rooms": "Organizing Rooms",
+    "Errand Running": "Errand Running"
+  }
+}

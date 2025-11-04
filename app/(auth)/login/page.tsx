@@ -11,6 +11,7 @@ import NavBar from "@/components/home/NavBar"
 import { loginUser, adminLogin } from "@/lib/api"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/context/authContext"
+import { useTranslation } from "react-i18next"
 
 export default function LoginPage() {
   const [email, setEmail] = useState("")
@@ -20,6 +21,7 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null)
   const router = useRouter()
   const { login } = useAuth()
+  const {t} = useTranslation('auth')
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -45,7 +47,7 @@ export default function LoginPage() {
         router.push('/dashboard/user')
       }
     } catch (err: any) {
-      setError(err?.response?.data?.message || 'Login failed')
+      setError(err?.response?.data?.message || t('loginFailed'))
     } finally {
       setLoading(false)
     }
@@ -62,14 +64,14 @@ export default function LoginPage() {
             <div className="max-w-md mx-auto">
               {/* Welcome text */}
               <div className="mb-8">
-                <h1 className="text-3xl font-bold text-gray-900 mb-2">HELLO!</h1>
-                <p className="text-gray-500">Hey, welcome back to your place</p>
+                <h1 className="text-3xl font-bold text-gray-900 mb-2">{t('hello')} </h1>
+                <p className="text-gray-500">{t('welcomeBack"')} </p>
               </div>
 
               {/* Form */}
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="space-y-2">
-                  <Label htmlFor="email" className="sr-only">Email</Label>
+                  <Label htmlFor="email" className="sr-only">{t('email')} </Label>
                   <Input
                     id="email"
                     type="email"
@@ -82,7 +84,7 @@ export default function LoginPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="password" className="sr-only">Password</Label>
+                  <Label htmlFor="password" className="sr-only">{('password')}</Label>
                   <Input
                     id="password"
                     type="password"
@@ -103,11 +105,11 @@ export default function LoginPage() {
                       className="data-[state=checked]:bg-purple-600 data-[state=checked]:border-purple-600"
                     />
                     <Label htmlFor="remember" className="text-sm text-gray-600">
-                      Remember me
+                      {t('rememberMe')}
                     </Label>
                   </div>
                   <Link href="/forgot-password" className="text-sm text-gray-500 hover:text-purple-600">
-                    Forgot password?
+                    {t("forgotPassword")}
                   </Link>
                 </div>
 
@@ -120,13 +122,13 @@ export default function LoginPage() {
                   className="w-full h-12 bg-purple-600 hover:bg-purple-700 text-white rounded font-medium"
                   disabled={loading}
                 >
-                  {loading ? 'Signing In...' : 'Sign In'}
+                  {loading ? t('signingIn') : t('signIn')}
                 </Button>
 
                 <p className="text-center text-sm text-gray-500">
-                  {"Don't have an account? "}
+                  {t("dontHaveAccount")}
                   <Link href="/register" className="text-purple-600 hover:text-purple-700 font-medium">
-                    Sign Up
+                    {t('signUp')}
                   </Link>
                 </p>
               </form>
