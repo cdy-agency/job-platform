@@ -1,0 +1,29 @@
+{
+    "title": "Twandikire",
+    "sub-title":"Ufite ibibazo cyangwa ibitekerezo? Twishimira kubyumva. Itsinda ryacu rihora ryiteguye kugufasha muri byose ukeneye.",
+    "fullName": "Amazina yose *",
+    "email": "Imeyili *",
+    "subject": "Impamvu",
+    "message": "Ubutumwa *",
+    "placeholders": {
+    "fullName": "Andika amazina yawe yose *",
+    "email": "Andila Imeyili *",
+    "subject": "Impamvu (ubishaka)",
+    "message": "Tubwire icyo twagufasha*"
+    },
+    "touch": "Tuvugishe",
+    "sent":"Ubutumwa bwoherejwe!",
+    "thankYou":"Urakoze kutwandikira. Tuzagusubiza vuba bidatinze.",
+    "sendMessage":"Ohereza Ubutumwa",
+
+    "faq-title": "Ibibazo bikunze kubazwa",
+  "faqItems": {
+      "question1": "Nigute nshobora gukora konti?",
+      "answer1": "Ushobora gukora konti ukanda kuri buto ya 'Iyandikishe' iri hejuru ku ruhande rw'iburyo. Uzahabwa amahitamo hagati yo gukora konti y’umukandida cyangwa iy’isosiyete.",
+      "question2": "Kwandika akazi ni ubuntu?",
+      "answer2": "Dutanga uburyo bubiri bwo gutangaza akazi: ubwa buri wese (ubuntu) n’ubw’inyongera (premium). Gutangaza akazi ku buntu birashoboka, naho uburyo bwa premium butanga uburyo bwo kugaragara cyane no izindi nyunganirizo.",
+      "question3": "Nigute nakwihindurira amakuru yanjye?",
+      "answer3": "Nimwinjira muri konti yanyu, mushobora guhindura amakuru yanyu mubinyujije ku rupapuro rwa ‘settings’ ruherereye kuri dashboard yanyu."
+  },
+  "follow":"Dukurikire"
+}

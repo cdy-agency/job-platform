@@ -28,7 +28,7 @@ export default function CompanyUseSection() {
           </div>
 
           {/* Floating card */}
-          <div className="absolute -bottom-8 -left-10 bg-white border border-gray-200 rounded-xl shadow-lg p-4 w-48">
+          <div className="absolute -bottom-8 -left-0 md:-left-10 bg-white border border-gray-200 rounded-xl shadow-lg p-4 w-48">
             <h4 className="font-semibold text-gray-900 text-sm">{t('companyuse-card-title')}</h4>
             <button className="mt-3 bg-purple-600 hover:bg-purple-700 text-white px-3 py-2 rounded-lg font-semibold shadow-lg">
             {t('companyuse-card-button')}

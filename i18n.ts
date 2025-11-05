@@ -13,6 +13,8 @@ import houseKeeperEN from './locales/en/houseKeeper.json'
 import houseKeeperRW from './locales/rw/houseKeeper.json'
 import employeeEN from './locales/en/employer.json'
 import employeeRW from './locales/rw/employer.json'
+import contactEN from './locales/en/contact.json'
+import contactRW from './locales/rw/contact.json'
 
 const resources = {
   en: {
@@ -21,13 +23,15 @@ const resources = {
     auth: authEN,
     houseKeeper: houseKeeperEN,
     employer: employeeEN,
+    contact: contactEN,
   },
   rw: {
     common: commonRW,
     jobs: jobsRW,
     auth: authRW,
     houseKeeper: houseKeeperRW,
-    employer: employeeRW
+    employer: employeeRW,
+    contact: contactRW,
   }
 };
 

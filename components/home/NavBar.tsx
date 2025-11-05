@@ -46,6 +46,10 @@ const NavBar = () => {
   const avatar = (user as any)?.logo || (user as any)?.profileImage || ''
   const userEmail = (user as any)?.email || ''
 
+  // Your contact info
+  const phoneNumber = "0784041381"
+  const emailAddress = "akazilink@gmail.com"
+
   return (
     <div className="relative">
       {/* Top contact bar - completely hides when scrolled */}
@@ -57,15 +61,44 @@ const NavBar = () => {
         <div className="container max-w-7xl mx-auto px-4 sm:px-4 h-full">
           <div className="flex items-center justify-between h-12 text-sm">
             <div className="flex items-center space-x-6">
+              {/* Phone - click opens WhatsApp */}
               <div className="flex items-center space-x-2">
                 <Phone className="h-4 w-4 text-gray-500" />
-                <span className="text-gray-700">0784041381</span>
+                <a
+                  href={`https://wa.me/25${phoneNumber}`} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-gray-700 hover:text-[#834de3] transition-colors"
+                >
+                  {phoneNumber}
+                </a>
               </div>
+
+              {/* Email - click opens mail app */}
               <div className="flex items-center space-x-2">
-                <Mail className="h-4 w-4 text-gray-500" />
-                <span className="text-gray-700">akazilink@gmail.com</span>
+                <div className="flex items-center space-x-2">
+                  <Mail className="h-4 w-4 text-gray-500" />
+                  <a
+                    href="#"
+                    onClick={(e) => {
+                      e.preventDefault()
+                      const email = "akazilink@gmail.com"
+                      const mailtoLink = `mailto:${email}`
+                      const win = window.open(mailtoLink)
+                      setTimeout(() => {
+                        if (!win || win.closed || typeof win.closed === 'undefined') {
+                          window.open(`https://mail.google.com/mail/?view=cm&fs=1&to=${email}`, '_blank')
+                        }
+                      }, 500)
+                    }}
+                    className="text-gray-700 hover:text-[#834de3] transition-colors"
+                  >
+                    akazilink@gmail.com
+                  </a>
+                </div>
               </div>
             </div>
+
             <div className="hidden sm:flex items-center space-x-3">
               <a href="#" className="text-gray-500 hover:text-[#834de3] transition-colors">
                 <Linkedin className="h-4 w-4" />
@@ -131,7 +164,7 @@ const NavBar = () => {
                   <Button variant="ghost" size="sm" className="gap-2">
                     <Globe className="h-4 w-4" />
                     <span className="text-sm font-medium">
-                      {i18n.language === 'rw' ? 'RW' : 'EN'}
+                      {i18n.language === 'rw' ? 'KINY' : 'EN'}
                     </span>
                   </Button>
                 </DropdownMenuTrigger>

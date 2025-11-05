@@ -1,0 +1,29 @@
+{
+    "title": "Contact Us",
+    "sub-title":"Have questions or feedback? We'd love to hear from you. Our team is here to help with anything you need.",
+    "fullName": "Full Name *",
+    "email": "Email Address *",
+    "subject": "Subject *",
+    "message": "Message *",
+    "placeholders": {
+    "fullName": "Enter Your Full Name *",
+    "email": "Enter Your Email Address *",
+    "subject": "Subject (Optional)",
+    "message": "Tell us what we can help you... *"
+    },
+    "touch": "Get in Touch",
+    "sent":"Message Sent!",
+    "thankYou":"Thank you for reaching out. We'll get back to you soon.",
+    "sendMessage":"Send Message",
+
+    "faq-title": "Frequently Asked Questions",
+    "faqItems": {
+      "question1": "How do I create an account?",
+      "answer1": "You can create an account by clicking the 'Sign up' button in the top right corner of the page. You'll be asked to choose between a job seeker or company account.",
+      "question2": "Is it free to post jobs?",
+      "answer2": "We offer both free and premium job posting options. Basic job listings are free, while premium listings offer enhanced visibility and additional features.",
+      "question3": "How can I update my profile?",
+      "answer3": "Once logged in, you can update your profile by navigating to the settings page in your dashboard."
+    },
+  "follow":"Follow Us"
+}
