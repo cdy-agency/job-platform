@@ -53,7 +53,7 @@ export const HelpNotification: React.FC<HelpNotificationProps> = ({ className })
   };
 
   const handleWhatsAppClick = () => {
-    window.open('https://wa.me/+250787910406', '_blank');
+    window.open('https://wa.me/+250784886470', '_blank');
     setIsDialogOpen(false);
   };
 
@@ -139,7 +139,7 @@ export const HelpNotification: React.FC<HelpNotificationProps> = ({ className })
                       </div>
                       <div>
                         <p className="font-medium text-green-800">WhatsApp Support</p>
-                        <p className="text-sm text-green-600">+250 787 910 406</p>
+                        <p className="text-sm text-green-600">+250 784 886 470</p>
                       </div>
                     </div>
                   </div>
@@ -199,7 +199,7 @@ export const HelpNotification: React.FC<HelpNotificationProps> = ({ className })
                       </div>
                       <div>
                         <p className="font-medium text-blue-800">Phone Support</p>
-                        <p className="text-sm text-blue-600">+250 787 910 406</p>
+                        <p className="text-sm text-blue-600">+250 784 886 470</p>
                       </div>
                     </div>
                   </div>

@@ -86,11 +86,18 @@ export default function RegisterPage() {
         router.push("/login");
       }
     } catch (error) {
-      toast({
-        title: t("registrationFailed"),
-        description: t('registrationFailedDesc'),
-        variant: "destructive",
-      });
+      const message =
+      // @ts-expect-error error
+      error?.response?.data?.message ||
+      // @ts-expect-error error
+      error?.message ||
+      "Something went wrong";
+
+    toast({
+    title: t("registrationFailed"),
+    description: message,
+    variant: "destructive",
+  });
     }finally{
       setIsCreating(false)
     }

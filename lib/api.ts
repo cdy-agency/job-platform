@@ -28,7 +28,6 @@ export const createCompanyFormData = (formData: any): FormData => {
   form.append('companyName', formData.companyName);
   form.append('email', formData.email);
   form.append('password', formData.password);
-  form.append('confirmPassword', formData.confirmPassword);
 
   if (formData.province) {
     form.append('province', formData.province);

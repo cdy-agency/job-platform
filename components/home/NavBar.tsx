@@ -130,7 +130,9 @@ const NavBar = () => {
             {/* Logo - Left */}
             <div className="flex-shrink-0">
               <Link href="/" className="flex items-center">
-                <span className="text-2xl font-bold text-[#834de3]">Akazi-Link</span>
+               <div className="w-16 h-16 rounded-full overflow-hidden">
+                <img src="/WhatsApp.jpg" alt="Logo Image"  className="w-full h-full object-cover"/>
+               </div>
               </Link>
             </div>
             

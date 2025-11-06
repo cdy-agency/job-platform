@@ -27,7 +27,7 @@ export default function TermsAndConditionsPage() {
       <div className="py-12 px-4 md:px-20 flex flex-col items-center justify-center min-h-screen">
         <div className="max-w-7xl w-full">
           <h1 className="text-7xl font-bold text-purple-400 mb-6 text-center">
-            KaziLink Terms & Conditions
+            AKazi-Link Terms & Conditions
           </h1>
 
           <Card className="bg-white/95 backdrop-blur-sm shadow-2xl border border-gray-100">
@@ -36,10 +36,10 @@ export default function TermsAndConditionsPage() {
                 {/* Introduction */}
                 <section className="mb-8">
                   <h2 className="text-2xl font-semibold text-purple-700 mb-3">
-                    Welcome to KaziLink
+                    Welcome to AKazi-Link
                   </h2>
                   <p className="text-gray-800">
-                    KaziLink is a digital platform designed to connect workers, employers,
+                    AKazi-Link is a digital platform designed to connect workers, employers,
                     and housekeepers in Rwanda. By using our website or mobile app, you
                     agree to comply with these Terms and Conditions.
                   </p>
@@ -51,13 +51,13 @@ export default function TermsAndConditionsPage() {
                 {[
                   {
                     title: "1. Definitions",
-                    text: `“Platform” refers to the KaziLink website and related applications.
-                    “User” means any person using KaziLink, including workers, employers, and recruiters.
+                    text: `“Platform” refers to the Akazi-Link website and related applications.
+                    “User” means any person using Akazi-Link, including workers, employers, and recruiters.
                     “Services” include job posting, worker–employer connection, messaging, payment, and training access.`,
                   },
                   {
                     title: "2. Acceptance of Terms",
-                    text: `By accessing KaziLink, you confirm that you are at least 18 years old
+                    text: `By accessing Akazi-Link, you confirm that you are at least 18 years old
                     and have read and agreed to these Terms.`,
                   },
                   {
@@ -70,11 +70,11 @@ export default function TermsAndConditionsPage() {
                   },
                   {
                     title: "5. Job Posting & Worker Connection",
-                    text: `KaziLink facilitates connections but is not a direct employer. All employment terms are handled between parties.`,
+                    text: `Akazi-Link facilitates connections but is not a direct employer. All employment terms are handled between parties.`,
                   },
                   {
                     title: "6. Payments & Fees",
-                    text: `Payments are processed securely through the platform. KaziLink is not responsible for salary disputes.`,
+                    text: `Payments are processed securely through the platform. Akazi-Link is not responsible for salary disputes.`,
                   },
                   {
                     title: "7. Data Protection & Privacy",
@@ -82,7 +82,7 @@ export default function TermsAndConditionsPage() {
                   },
                   {
                     title: "8. Limitation of Liability",
-                    text: `KaziLink provides services “as is” and is not liable for disputes, technical issues, or losses.`,
+                    text: `Akazi-Link provides services “as is” and is not liable for disputes, technical issues, or losses.`,
                   },
                   {
                     title: "9. Amendments",
@@ -90,7 +90,7 @@ export default function TermsAndConditionsPage() {
                   },
                   {
                     title: "10. Contact",
-                    text: `For inquiries or support, please reach out through the KaziLink platform.`,
+                    text: `For inquiries or support, please reach out through the Akazi-Link platform.`,
                   },
                 ].map((section, index) => (
                   <section key={index} className="mb-6">
@@ -109,13 +109,13 @@ export default function TermsAndConditionsPage() {
                     User Agreement
                   </h3>
                   <p className="text-gray-800 mb-4">
-                    By creating an account or using KaziLink, you confirm that you:
+                    By creating an account or using Akazi-Link, you confirm that you:
                   </p>
                   <ul className="list-disc pl-6 space-y-2 text-gray-800">
                     <li>Are at least 18 years old.</li>
                     <li>Use the platform lawfully for employment purposes.</li>
                     <li>Provide accurate and truthful information.</li>
-                    <li>Understand KaziLink only connects users and does not employ directly.</li>
+                    <li>Understand Akazi-Link only connects users and does not employ directly.</li>
                     <li>Allow lawful processing of your data under Rwandan law.</li>
                   </ul>
                 </section>

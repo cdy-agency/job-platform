@@ -11,6 +11,7 @@ const inter = Inter({ subsets: ["latin"] });
 export const metadata: Metadata = {
   title: "Akazi-Link - Find Your Next Career Opportunity",
   description: "Connect with top companies and find your dream job",
+  icons: '/WhatsApp.jpg'
 };
 
 export default function RootLayout({
