@@ -61,7 +61,7 @@ const CompanyRegistration = ({ formData, onInputChange }: CompanyRegistrationPro
   const {t} = useTranslation('auth')
   const handleProvinceChange = (province: string) => {
     onInputChange("province", province);
-    onInputChange("district", ""); // reset district whenever province changes
+    onInputChange("district", "");
   };
 
   return (
