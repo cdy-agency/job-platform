@@ -1,3 +1,5 @@
+"use client"
+
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -8,6 +10,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useTranslation } from "react-i18next";
+import { useToast } from "@/hooks/use-toast";
+import { useState } from "react";
 
 interface CompanyRegistrationProps {
   formData: {
@@ -59,10 +63,14 @@ export const provincesWithDistricts: Record<string, string[]> = {
 
 const CompanyRegistration = ({ formData, onInputChange }: CompanyRegistrationProps) => {
   const {t} = useTranslation('auth')
+  const { toast } = useToast()
+  const [isWebsiteValid, setIsWebsiteValid] = useState(true);
   const handleProvinceChange = (province: string) => {
     onInputChange("province", province);
     onInputChange("district", "");
   };
+
+  const validateWebsite = (url: string) => /^https?:\/\//i.test(url);
 
   return (
     <div>
@@ -155,8 +163,18 @@ const CompanyRegistration = ({ formData, onInputChange }: CompanyRegistrationPro
             type="url"
             placeholder={t("websiteP")}
             value={formData.website}
-            onChange={(e) => onInputChange("website", e.target.value)}
+            onChange={(e) => {
+              const value = e.target.value;
+              onInputChange("website", value);
+            
+              // validate website live
+              setIsWebsiteValid(value === "" || validateWebsite(value));
+            }}
+            className={`border ${!isWebsiteValid ? "border-red-500" : "border-gray-300"} rounded px-3 py-2 w-full`}
           />
+          {!isWebsiteValid && (
+            <p className="text-red-500 text-sm">Website must start with http:// or https://</p>
+          )}
         </div>
 
         {/* Logo */}
